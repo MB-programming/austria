@@ -77,10 +77,17 @@
 
           <div class="info-cards">
             <div class="info-card">
-              <div class="info-icon">🌐</div>
+              <div class="info-icon">🏛</div>
               <div class="info-body">
-                <span class="info-label">الموقع المستهدف</span>
-                <span class="info-value" id="display-url">appointment.bmeia.gv.at</span>
+                <span class="info-label">السفارة</span>
+                <span class="info-value" id="display-office">KAIRO</span>
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="info-icon">📋</div>
+              <div class="info-body">
+                <span class="info-label">نوع الحجز</span>
+                <span class="info-value" id="display-type">Bachelor</span>
               </div>
             </div>
             <div class="info-card">
@@ -88,6 +95,13 @@
               <div class="info-body">
                 <span class="info-label">الاسم</span>
                 <span class="info-value" id="display-name">—</span>
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="info-icon">🔁</div>
+              <div class="info-body">
+                <span class="info-label">إعادة البحث</span>
+                <span class="info-value" id="display-refresh">30s</span>
               </div>
             </div>
             <div class="info-card">
@@ -252,26 +266,36 @@
           <div class="form-section">
             <h3 class="section-title">إعدادات البوت</h3>
             <div class="form-row">
-              <div class="form-group full">
+              <div class="form-group">
+                <label>السفارة / المنظمة (Office)</label>
+                <input type="text" id="s-office" placeholder="KAIRO" list="office-list" />
+                <datalist id="office-list">
+                  <option value="KAIRO">
+                  <option value="ABU-DHABI"><option value="AMMAN"><option value="ANKARA">
+                  <option value="BEIRUT"><option value="BERLIN"><option value="BRUESSEL">
+                  <option value="DOHA"><option value="DUBAI"><option value="ISTANBUL">
+                  <option value="LONDON"><option value="MADRID"><option value="PARIS">
+                  <option value="RIYADH"><option value="ROM"><option value="TUNIS">
+                  <option value="WASHINGTON">
+                </datalist>
+                <small class="hint">الاسم الألماني كما يظهر في الموقع (الافتراضي: KAIRO)</small>
+              </div>
+              <div class="form-group">
+                <label>نوع الحجز (كلمة مفتاحية)</label>
+                <input type="text" id="s-reservation-type" placeholder="Bachelor" />
+                <small class="hint">جزء من اسم نوع الحجز — مثال: Bachelor أو Master أو Visum</small>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>فترة إعادة البحث عند عدم وجود مواعيد (ثانية)</label>
+                <input type="number" id="s-refresh-interval" placeholder="30" min="10" max="300" />
+                <small class="hint">الحد الأدنى 10 ثواني — الافتراضي 30</small>
+              </div>
+              <div class="form-group">
                 <label>الرابط المستهدف</label>
                 <input type="url" id="s-target-url" placeholder="https://appointment.bmeia.gv.at/" />
-                <small class="hint">رابط موقع الحجز (اتركه فارغًا للرابط الافتراضي)</small>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>تأخير التنقل (ميلي ثانية)</label>
-                <input type="number" id="s-step-delay" placeholder="1000" min="500" max="5000" />
-              </div>
-              <div class="form-group">
-                <label>وقت إعادة المحاولة (ميلي ثانية)</label>
-                <input type="number" id="s-stall-ms" placeholder="2000" min="1000" max="10000" />
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>أقصى محاولات إعادة الضغط</label>
-                <input type="number" id="s-retry-limit" placeholder="10" min="1" max="50" />
+                <small class="hint">اتركه فارغًا للرابط الافتراضي</small>
               </div>
             </div>
           </div>

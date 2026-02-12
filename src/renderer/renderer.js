@@ -1,14 +1,8 @@
 'use strict';
 
-// ===========================
-// STATE
-// ===========================
 let botRunning = false;
-let statusInterval = null;
 
-// ===========================
-// TAB NAVIGATION
-// ===========================
+// ─── Tab navigation ──────────────────────────────────────────────────────────
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const tabId = btn.dataset.tab;
@@ -19,51 +13,62 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
   });
 });
 
-// ===========================
-// INIT: Load saved data
-// ===========================
+// ─── Init ─────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
   await loadAll();
   startStatusPolling();
+
+  // Receive log lines forwarded from the bot window
+  window.electronAPI.onBotLog(({ type, message }) => {
+    const clean = message.replace('[AustriaBot] ', '').replace('[AustriaBot] ERROR: ', '');
+    const logType = message.includes('ERROR') ? 'error' : type || 'success';
+    addLog(logType, clean);
+
+    // Auto-switch to logs tab for important events
+    if (logType === 'error' || message.includes('CONFIRMED')) {
+      document.querySelector('[data-tab="logs"]').click();
+    }
+  });
 });
 
+// ─── Load saved data ──────────────────────────────────────────────────────────
 async function loadAll() {
   try {
-    const settings = await window.electronAPI.getSettings();
-    if (!settings) return;
+    const stored = await window.electronAPI.getSettings();
+    if (!stored) return;
 
-    // Person fields
-    const p = settings.person || {};
-    setField('p-lastname',       p.lastname);
-    setField('p-firstname',      p.firstname);
-    setField('p-dob',            p.dateOfBirth);
-    setField('p-sex',            p.sex);
-    setField('p-lastname-birth', p.lastnameAtBirth);
-    setField('p-place-birth',    p.placeOfBirth);
-    setField('p-street',         p.street);
-    setField('p-postcode',       p.postcode);
-    setField('p-city',           p.city);
-    setField('p-country-code',   p.countryCode);
-    setField('p-country',        p.country);
-    setField('p-telephone',      p.telephone);
-    setField('p-email',          p.email);
-    setField('p-passport-num',   p.passportNumber);
+    const p = stored.person   || {};
+    const s = stored.settings || {};
+
+    // Person
+    setField('p-lastname',         p.lastname);
+    setField('p-firstname',        p.firstname);
+    setField('p-dob',              p.dateOfBirth);
+    setField('p-sex',              p.sex);
+    setField('p-lastname-birth',   p.lastnameAtBirth);
+    setField('p-place-birth',      p.placeOfBirth);
+    setField('p-street',           p.street);
+    setField('p-postcode',         p.postcode);
+    setField('p-city',             p.city);
+    setField('p-country-code',     p.countryCode);
+    setField('p-country',          p.country);
+    setField('p-telephone',        p.telephone);
+    setField('p-email',            p.email);
+    setField('p-passport-num',     p.passportNumber);
     setField('p-nationality-code', p.nationalityCode);
-    setField('p-nationality',    p.nationality);
-    setField('p-passport-issue', p.passportIssueDate);
-    setField('p-passport-expiry',p.passportExpiry);
+    setField('p-nationality',      p.nationality);
+    setField('p-passport-issue',   p.passportIssueDate);
+    setField('p-passport-expiry',  p.passportExpiry);
 
-    // Settings fields
-    const s = settings.settings || {};
-    setField('s-openai-key',   s.openaiApiKey);
-    setField('s-target-url',   s.targetUrl);
-    setField('s-step-delay',   s.stepDelay);
-    setField('s-stall-ms',     s.stallMs);
-    setField('s-retry-limit',  s.retryLimit);
+    // Settings
+    setField('s-openai-key',       s.openaiApiKey);
+    setField('s-office',           s.office);
+    setField('s-reservation-type', s.reservationType);
+    setField('s-refresh-interval', s.refreshIntervalSec);
+    setField('s-target-url',       s.targetUrl);
 
-    updateInfoCards(settings);
-
-  } catch(e) {
+    updateInfoCards(stored);
+  } catch (e) {
     addLog('error', 'خطأ في تحميل الإعدادات: ' + e.message);
   }
 }
@@ -74,51 +79,48 @@ function setField(id, val) {
   el.value = val;
 }
 
-// ===========================
-// SAVE PERSON
-// ===========================
+// ─── Save person ──────────────────────────────────────────────────────────────
 async function savePerson() {
   const person = {
-    lastname:        getField('p-lastname'),
-    firstname:       getField('p-firstname'),
-    dateOfBirth:     getField('p-dob'),
-    sex:             getField('p-sex'),
-    lastnameAtBirth: getField('p-lastname-birth') || getField('p-lastname'),
-    placeOfBirth:    getField('p-place-birth'),
-    street:          getField('p-street'),
-    postcode:        getField('p-postcode'),
-    city:            getField('p-city'),
-    countryCode:     parseInt(getField('p-country-code')) || 65,
-    country:         getField('p-country'),
-    telephone:       getField('p-telephone'),
-    email:           getField('p-email'),
-    passportNumber:  getField('p-passport-num'),
-    nationalityCode: parseInt(getField('p-nationality-code')) || 71,
-    nationality:     getField('p-nationality'),
-    passportIssueDate: getField('p-passport-issue'),
-    passportExpiry:  getField('p-passport-expiry')
+    lastname:         getField('p-lastname'),
+    firstname:        getField('p-firstname'),
+    dateOfBirth:      getField('p-dob'),
+    sex:              getField('p-sex'),
+    lastnameAtBirth:  getField('p-lastname-birth') || getField('p-lastname'),
+    placeOfBirth:     getField('p-place-birth'),
+    street:           getField('p-street'),
+    postcode:         getField('p-postcode'),
+    city:             getField('p-city'),
+    countryCode:      parseInt(getField('p-country-code'))     || 65,
+    country:          getField('p-country'),
+    telephone:        getField('p-telephone'),
+    email:            getField('p-email'),
+    passportNumber:   getField('p-passport-num'),
+    nationalityCode:  parseInt(getField('p-nationality-code')) || 71,
+    nationality:      getField('p-nationality'),
+    passportIssueDate:getField('p-passport-issue'),
+    passportExpiry:   getField('p-passport-expiry')
   };
 
   try {
     await window.electronAPI.saveSettings({ person });
     showSaved('person-saved', '✓ تم الحفظ');
-    updateInfoCards({ person, settings: await getStoredSettings() });
+    const stored = await window.electronAPI.getSettings();
+    updateInfoCards(stored);
     addLog('success', 'تم حفظ بيانات الشخص: ' + person.firstname + ' ' + person.lastname);
-  } catch(e) {
+  } catch (e) {
     addLog('error', 'خطأ في الحفظ: ' + e.message);
   }
 }
 
-// ===========================
-// SAVE SETTINGS
-// ===========================
+// ─── Save settings ────────────────────────────────────────────────────────────
 async function saveSettings() {
   const s = {
-    openaiApiKey: getField('s-openai-key'),
-    targetUrl:    getField('s-target-url') || 'https://appointment.bmeia.gv.at/',
-    stepDelay:    parseInt(getField('s-step-delay')) || 1000,
-    stallMs:      parseInt(getField('s-stall-ms'))   || 2000,
-    retryLimit:   parseInt(getField('s-retry-limit'))|| 10
+    openaiApiKey:       getField('s-openai-key'),
+    office:             getField('s-office')           || 'KAIRO',
+    reservationType:    getField('s-reservation-type') || 'Bachelor',
+    refreshIntervalSec: parseInt(getField('s-refresh-interval')) || 30,
+    targetUrl:          getField('s-target-url')       || 'https://appointment.bmeia.gv.at/'
   };
 
   try {
@@ -127,37 +129,36 @@ async function saveSettings() {
     const stored = await window.electronAPI.getSettings();
     updateInfoCards(stored);
     addLog('success', 'تم حفظ الإعدادات');
-  } catch(e) {
+  } catch (e) {
     addLog('error', 'خطأ في الحفظ: ' + e.message);
   }
 }
 
-// ===========================
-// BOT CONTROL
-// ===========================
+// ─── Bot control ──────────────────────────────────────────────────────────────
 async function startBot() {
   const stored = await window.electronAPI.getSettings();
   const person   = stored.person   || {};
   const settings = stored.settings || {};
 
-  if (!settings.openaiApiKey) {
-    addLog('warn', 'تحذير: لم يتم ضبط OpenAI API Key — الكابتشا لن يُحل تلقائيًا');
-  }
-  if (!person.lastname) {
-    addLog('warn', 'تحذير: لم يتم إدخال بيانات الشخص');
-  }
+  if (!person.lastname)       addLog('warn', 'تحذير: بيانات الشخص غير مكتملة');
+  if (!settings.openaiApiKey) addLog('warn', 'تحذير: OpenAI API Key غير مضبوط — ستحتاج لإدخال الكابتشا يدويًا');
 
-  const config = { person, settings, targetUrl: settings.targetUrl || 'https://appointment.bmeia.gv.at/' };
+  const config = {
+    person,
+    settings,
+    targetUrl: settings.targetUrl || 'https://appointment.bmeia.gv.at/'
+  };
 
   try {
     const res = await window.electronAPI.startBot(config);
     if (res.success) {
       setBotState(true);
-      addLog('info', 'تم تشغيل البوت → ' + config.targetUrl);
+      addLog('info', 'تم تشغيل البوت ← ' + config.targetUrl);
+      addLog('info', 'السفارة: ' + (settings.office || 'KAIRO') + ' | النوع: ' + (settings.reservationType || 'Bachelor'));
     } else {
       addLog('warn', res.message || 'البوت يعمل بالفعل');
     }
-  } catch(e) {
+  } catch (e) {
     addLog('error', 'خطأ في التشغيل: ' + e.message);
   }
 }
@@ -167,20 +168,18 @@ async function stopBot() {
     await window.electronAPI.stopBot();
     setBotState(false);
     addLog('warn', 'تم إيقاف البوت');
-  } catch(e) {
+  } catch (e) {
     addLog('error', 'خطأ في الإيقاف: ' + e.message);
   }
 }
 
-// ===========================
-// STATUS POLLING
-// ===========================
+// ─── Status polling ───────────────────────────────────────────────────────────
 function startStatusPolling() {
-  statusInterval = setInterval(async () => {
+  setInterval(async () => {
     try {
       const { running } = await window.electronAPI.getBotStatus();
       if (running !== botRunning) setBotState(running);
-    } catch {}
+    } catch (_) {}
   }, 2000);
 
   window.electronAPI.onBotStopped(() => {
@@ -192,21 +191,21 @@ function startStatusPolling() {
 function setBotState(running) {
   botRunning = running;
 
-  const startBtn = document.getElementById('start-btn');
-  const stopBtn  = document.getElementById('stop-btn');
-  const label    = document.getElementById('bot-state-label');
-  const desc     = document.getElementById('bot-state-desc');
-  const visual   = document.getElementById('bot-animation');
-  const dot      = document.querySelector('.status-dot');
-  const statusTxt= document.getElementById('status-text');
+  const startBtn  = document.getElementById('start-btn');
+  const stopBtn   = document.getElementById('stop-btn');
+  const label     = document.getElementById('bot-state-label');
+  const desc      = document.getElementById('bot-state-desc');
+  const visual    = document.getElementById('bot-animation');
+  const dot       = document.querySelector('.status-dot');
+  const statusTxt = document.getElementById('status-text');
 
   if (running) {
     startBtn.disabled = true;
     stopBtn.disabled  = false;
     label.textContent = 'البوت يعمل الآن';
-    desc.textContent  = 'الحجز التلقائي قيد التنفيذ...';
+    desc.textContent  = 'جاري البحث عن موعد وإتمام الحجز…';
     visual.classList.add('running');
-    dot.className = 'status-dot running';
+    dot.className     = 'status-dot running';
     statusTxt.textContent = 'يعمل';
   } else {
     startBtn.disabled = false;
@@ -214,21 +213,18 @@ function setBotState(running) {
     label.textContent = 'البوت متوقف';
     desc.textContent  = 'اضغط "تشغيل" لبدء الحجز التلقائي';
     visual.classList.remove('running');
-    dot.className = 'status-dot stopped';
+    dot.className     = 'status-dot stopped';
     statusTxt.textContent = 'متوقف';
   }
 }
 
-// ===========================
-// LOGS
-// ===========================
+// ─── Logs ─────────────────────────────────────────────────────────────────────
 function addLog(type, msg) {
   const container = document.getElementById('logs-container');
   const empty = container.querySelector('.log-empty');
   if (empty) empty.remove();
 
-  const now = new Date();
-  const time = now.toLocaleTimeString('ar-EG', { hour12: false });
+  const time = new Date().toLocaleTimeString('ar-EG', { hour12: false });
 
   const line = document.createElement('div');
   line.className = 'log-line ' + (type || 'info');
@@ -238,13 +234,11 @@ function addLog(type, msg) {
 }
 
 function clearLogs() {
-  const container = document.getElementById('logs-container');
-  container.innerHTML = '<div class="log-empty">تم مسح السجل.</div>';
+  document.getElementById('logs-container').innerHTML =
+    '<div class="log-empty">تم مسح السجل.</div>';
 }
 
-// ===========================
-// UI HELPERS
-// ===========================
+// ─── UI helpers ───────────────────────────────────────────────────────────────
 function getField(id) {
   const el = document.getElementById(id);
   return el ? el.value.trim() : '';
@@ -263,14 +257,8 @@ function toggleApiVisibility() {
 }
 
 function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-async function getStoredSettings() {
-  try {
-    const s = await window.electronAPI.getSettings();
-    return s.settings || {};
-  } catch { return {}; }
+  return String(str).replace(/[&<>"']/g,
+    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 function updateInfoCards(stored) {
@@ -278,14 +266,12 @@ function updateInfoCards(stored) {
   const p = stored.person   || {};
   const s = stored.settings || {};
 
-  const nameEl = document.getElementById('display-name');
-  const apiEl  = document.getElementById('display-api');
-  const urlEl  = document.getElementById('display-url');
+  const el = id => document.getElementById(id);
 
-  if (nameEl) nameEl.textContent = (p.firstname || '') + ' ' + (p.lastname || '') || '—';
-  if (apiEl)  apiEl.textContent  = s.openaiApiKey ? 'مضبوط ✓' : 'غير مضبوط';
-  if (urlEl) {
-    try { urlEl.textContent = new URL(s.targetUrl || 'https://appointment.bmeia.gv.at/').hostname; }
-    catch { urlEl.textContent = 'appointment.bmeia.gv.at'; }
-  }
+  const name = ((p.firstname || '') + ' ' + (p.lastname || '')).trim();
+  if (el('display-name'))    el('display-name').textContent    = name || '—';
+  if (el('display-api'))     el('display-api').textContent     = s.openaiApiKey ? 'مضبوط ✓' : 'غير مضبوط';
+  if (el('display-office'))  el('display-office').textContent  = s.office || 'KAIRO';
+  if (el('display-type'))    el('display-type').textContent    = s.reservationType || 'Bachelor';
+  if (el('display-refresh')) el('display-refresh').textContent = (s.refreshIntervalSec || 30) + 's';
 }
