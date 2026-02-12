@@ -1,0 +1,13 @@
+{
+  "appId": "com.orbtasoft.automation",
+  "appName": "Orbtasoft Automation",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}
