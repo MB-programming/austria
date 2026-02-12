@@ -177,7 +177,7 @@ async function startBot() {
   const settings = stored.settings || {};
 
   if (!person.lastname)       addLog('warn', 'تحذير: بيانات الشخص غير مكتملة');
-  if (!settings.openaiApiKey) addLog('warn', 'تحذير: OpenAI API Key غير مضبوط — الكابتشا يدوي');
+  if (!settings.openaiApiKey) addLog('warn', 'تحذير: مفتاح التفعيل غير مضبوط — الكابتشا يدوي');
 
   TARGET_URL = settings.targetUrl || 'https://appointment.bmeia.gv.at/';
 

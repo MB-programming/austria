@@ -262,7 +262,7 @@ function buildScript(config) {
       setTimeout(() => {
         clearInterval(tick);
         stopAlarm();
-        location.href = CFG.rootUrl;
+        location.reload();           // stay on scheduler page, just refresh
       }, wait_s * 1000);
       return;
     }

@@ -107,7 +107,7 @@
             <div class="info-card">
               <div class="info-icon">🔑</div>
               <div class="info-body">
-                <span class="info-label">OpenAI API</span>
+                <span class="info-label">تفعيل البوت</span>
                 <span class="info-value" id="display-api">غير مضبوط</span>
               </div>
             </div>
@@ -143,17 +143,17 @@
             <div class="form-row">
               <div class="form-group">
                 <label>اللقب (Lastname)</label>
-                <input type="text" id="p-lastname" placeholder="Kelta" />
+                <input type="text" id="p-lastname" placeholder="SMITH" />
               </div>
               <div class="form-group">
                 <label>الاسم الأول (Firstname)</label>
-                <input type="text" id="p-firstname" placeholder="Mena" />
+                <input type="text" id="p-firstname" placeholder="JOHN" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label>تاريخ الميلاد (MM/DD/YYYY)</label>
-                <input type="text" id="p-dob" placeholder="01/15/1995" />
+                <input type="text" id="p-dob" placeholder="mm/dd/yyyy" />
               </div>
               <div class="form-group">
                 <label>الجنس</label>
@@ -166,11 +166,11 @@
             <div class="form-row">
               <div class="form-group">
                 <label>اللقب عند الميلاد</label>
-                <input type="text" id="p-lastname-birth" placeholder="نفس اللقب" />
+                <input type="text" id="p-lastname-birth" placeholder="SMITH (نفس اللقب إن لم يتغير)" />
               </div>
               <div class="form-group">
                 <label>مكان الميلاد</label>
-                <input type="text" id="p-place-birth" placeholder="GIZA" />
+                <input type="text" id="p-place-birth" placeholder="CAIRO" />
               </div>
             </div>
           </div>
@@ -180,23 +180,23 @@
             <div class="form-row">
               <div class="form-group full">
                 <label>الشارع والعنوان</label>
-                <input type="text" id="p-street" placeholder="5B AlSafa Third District Ismailia" />
+                <input type="text" id="p-street" placeholder="123 Main Street" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label>الرمز البريدي</label>
-                <input type="text" id="p-postcode" placeholder="41511" />
+                <input type="text" id="p-postcode" placeholder="11511" />
               </div>
               <div class="form-group">
                 <label>المدينة</label>
-                <input type="text" id="p-city" placeholder="Ismailia" />
+                <input type="text" id="p-city" placeholder="CAIRO" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label>الدولة (كود)</label>
-                <input type="number" id="p-country-code" placeholder="65 (مصر)" />
+                <input type="number" id="p-country-code" placeholder="مثال: 65 (مصر)" />
               </div>
               <div class="form-group">
                 <label>الدولة (اسم)</label>
@@ -210,7 +210,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label>رقم الهاتف</label>
-                <input type="tel" id="p-telephone" placeholder="01222112819" />
+                <input type="tel" id="p-telephone" placeholder="01XXXXXXXXX" />
               </div>
               <div class="form-group">
                 <label>البريد الإلكتروني</label>
@@ -224,11 +224,11 @@
             <div class="form-row">
               <div class="form-group">
                 <label>رقم جواز السفر</label>
-                <input type="text" id="p-passport-num" placeholder="A35945487" />
+                <input type="text" id="p-passport-num" placeholder="A00000000" />
               </div>
               <div class="form-group">
                 <label>الجنسية (كود)</label>
-                <input type="number" id="p-nationality-code" placeholder="71 (مصر)" />
+                <input type="number" id="p-nationality-code" placeholder="مثال: 71 (مصر)" />
               </div>
             </div>
             <div class="form-row">
@@ -238,13 +238,13 @@
               </div>
               <div class="form-group">
                 <label>تاريخ إصدار الجواز (MM/DD/YYYY)</label>
-                <input type="text" id="p-passport-issue" placeholder="11/29/2023" />
+                <input type="text" id="p-passport-issue" placeholder="mm/dd/yyyy" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label>تاريخ انتهاء الجواز (MM/DD/YYYY)</label>
-                <input type="text" id="p-passport-expiry" placeholder="11/28/2030" />
+                <input type="text" id="p-passport-expiry" placeholder="mm/dd/yyyy" />
               </div>
             </div>
           </div>
@@ -265,15 +265,15 @@
 
         <form class="form-grid" id="settings-form">
           <div class="form-section">
-            <h3 class="section-title">OpenAI API (لحل الكابتشا)</h3>
+            <h3 class="section-title">تفعيل البوت</h3>
             <div class="form-row">
               <div class="form-group full">
-                <label>مفتاح OpenAI API Key</label>
+                <label>مفتاح التفعيل</label>
                 <div class="input-with-toggle">
-                  <input type="password" id="s-openai-key" placeholder="sk-proj-..." />
+                  <input type="password" id="s-openai-key" placeholder="أدخل مفتاح التفعيل…" />
                   <button type="button" class="toggle-visibility" onclick="toggleApiVisibility()">👁</button>
                 </div>
-                <small class="hint">مطلوب لحل الكابتشا تلقائيًا باستخدام GPT-4o</small>
+                <small class="hint">مطلوب لتفعيل الحل التلقائي للكابتشا</small>
               </div>
             </div>
           </div>
