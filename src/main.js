@@ -71,7 +71,7 @@ function createMainWindow() {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     },
-    title: 'Austria Appointment Bot',
+    title: 'Orbtasoft',
     backgroundColor: '#0f0f1a'
   });
 
@@ -109,7 +109,7 @@ ipcMain.handle('start-bot', async (_, config) => {
       contextIsolation: false,   // lets injected scripts run freely
       webSecurity: true
     },
-    title: 'Bot — Austria Appointment'
+    title: 'Orbtasoft — Bot'
   });
 
   // Forward bot console.log lines that start with [AustriaBot] to the UI

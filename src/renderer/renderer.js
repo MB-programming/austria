@@ -154,7 +154,7 @@ async function saveSettings() {
     openaiApiKey:       getField('s-openai-key'),
     office:             getField('s-office')            || 'KAIRO',
     reservationType:    getField('s-reservation-type')  || 'Bachelor',
-    refreshIntervalSec: parseInt(getField('s-refresh-interval')) || 30,
+    refreshIntervalSec: parseFloat(getField('s-refresh-interval')) || 30,
     navigationDelayMs:  parseInt(getField('s-nav-delay'))        || 800,
     targetUrl:          getField('s-target-url')        || 'https://appointment.bmeia.gv.at/'
   };
@@ -184,7 +184,7 @@ async function startBot() {
                    'nationality','passportIssueDate','passportExpiry']
     .filter(f => !person[f]);
   if (missing.length) {
-    addLog('error', '🛑 بيانات مطلوبة ناقصة: ' + missing.join(', '));
+    addLog('error', '✕ بيانات مطلوبة ناقصة: ' + missing.join(', '));
     addLog('warn',  'اذهب لتبويب "البيانات الشخصية" واملأ جميع الحقول ثم اضغط حفظ');
     return;
   }
@@ -200,20 +200,20 @@ async function startBot() {
       const res = await window.electronAPI.startBot(config);
       if (res.success) {
         setBotState(true);
-        addActivity('step', '🚀', 'البوت انطلق — جاري تحميل الموقع…');
+        addActivity('step', '▶', 'البوت انطلق — جاري تحميل الموقع…');
         addLog('info', 'تم تشغيل البوت ← ' + TARGET_URL);
       } else {
-        addActivity('error', '⚠️', res.message || 'البوت يعمل بالفعل');
+        addActivity('error', '⚠', res.message || 'البوت يعمل بالفعل');
         addLog('warn', res.message);
       }
     } catch (e) {
-      addActivity('error', '❌', 'خطأ في التشغيل: ' + e.message);
+      addActivity('error', '✕', 'خطأ في التشغيل: ' + e.message);
       addLog('error', e.message);
     }
   } else {
     setBotState(true);
-    addActivity('wait', 'ℹ️', 'وضع المتصفح — الأتمتة الكاملة تحتاج تطبيق Desktop');
-    addActivity('step', '🌐', 'افتح الموقع يدوياً: ' + TARGET_URL);
+    addActivity('wait', 'ℹ', 'وضع المتصفح — الأتمتة الكاملة تحتاج تطبيق Desktop');
+    addActivity('step', '⊕', 'افتح الموقع يدوياً: ' + TARGET_URL);
     addLog('warn', 'وضع المتصفح: الأتمتة غير متاحة');
   }
 }
@@ -224,7 +224,7 @@ async function stopBot() {
     catch (e) { addLog('error', 'خطأ في الإيقاف: ' + e.message); }
   }
   setBotState(false);
-  addActivity('error', '⛔', 'تم إيقاف البوت');
+  addActivity('error', '◼', 'تم إيقاف البوت');
   addLog('warn', 'تم إيقاف البوت');
 }
 
@@ -254,7 +254,7 @@ function addActivity(type, icon, text) {
 function clearActivity() {
   const feed = document.getElementById('activity-feed');
   if (!feed) return;
-  feed.innerHTML = '<div class="activity-idle"><span class="idle-icon">💤</span><span>البوت متوقف — اضغط "تشغيل" لبدء الحجز</span></div>';
+  feed.innerHTML = '<div class="activity-idle"><span class="idle-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></span><span>البوت متوقف — اضغط "تشغيل" لبدء الحجز</span></div>';
 }
 
 // ─── Countdown card management ────────────────────────────────────────────────
@@ -267,35 +267,35 @@ function routeBotMessage(msg) {
   // ── Navigation steps ──
   if (m.includes('page detected: office')) {
     _noApptCardEl = null; _countdownCardEl = null;
-    return addActivity('step', '🏛', 'الصفحة: اختيار السفارة…');
+    return addActivity('step', '◈', 'الصفحة: اختيار السفارة…');
   }
   if (m.includes('office selected'))
-    return addActivity('success', '✅', msg);
+    return addActivity('success', '✓', msg);
 
   if (m.includes('page detected: calendar')) {
-    return addActivity('step', '📋', 'الصفحة: اختيار نوع الحجز…');
+    return addActivity('step', '≡', 'الصفحة: اختيار نوع الحجز…');
   }
   if (m.includes('reservation type selected'))
-    return addActivity('success', '✅', msg);
+    return addActivity('success', '✓', msg);
 
   if (m.includes('page detected: persons'))
-    return addActivity('step', '👤', 'الصفحة: عدد الأشخاص…');
+    return addActivity('step', '◉', 'الصفحة: عدد الأشخاص…');
   if (m.includes('personcount'))
     return addActivity('success', '✅', 'تم اختيار عدد الأشخاص: 1');
 
   if (m.includes('page detected: info'))
-    return addActivity('step', '📄', 'الصفحة: معلومات — جاري التجاوز…');
+    return addActivity('step', '◻', 'الصفحة: معلومات — جاري التجاوز…');
 
   if (m.includes('page detected: scheduler')) {
     _noApptCardEl = null; _countdownCardEl = null;
-    return addActivity('step', '📅', 'الصفحة: البحث عن مواعيد متاحة…');
+    return addActivity('step', '◷', 'الصفحة: البحث عن مواعيد متاحة…');
   }
 
   // ── No appointments + countdown ──
   if (m.startsWith('no_appointments:')) {
     const secs = parseInt(msg.split(':')[1]) || 30;
-    _noApptCardEl = addActivityCard('wait', '❌', 'لا توجد مواعيد متاحة حالياً');
-    _countdownCardEl = addActivityCard('wait', '⏱', 'إعادة البحث خلال ' + secs + ' ثانية…');
+    _noApptCardEl = addActivityCard('wait', '✕', 'لا توجد مواعيد متاحة حالياً');
+    _countdownCardEl = addActivityCard('wait', '◌', 'إعادة البحث خلال ' + secs + ' ثانية…');
     return;
   }
   if (m.startsWith('countdown:')) {
@@ -311,26 +311,26 @@ function routeBotMessage(msg) {
   if (m.includes('appointment slot selected')) {
     _noApptCardEl = null; _countdownCardEl = null;
     const slotTime = msg.split('→')[1]?.trim() || '';
-    return addActivity('found', '🎯', 'تم العثور على موعد! ' + slotTime);
+    return addActivity('found', '◆', 'تم العثور على موعد! ' + slotTime);
   }
 
   // ── Form ──
   if (m.includes('page detected: form'))
-    return addActivity('step', '📝', 'الصفحة: ملء البيانات الشخصية…');
+    return addActivity('step', '✎', 'الصفحة: ملء البيانات الشخصية…');
   if (m.includes('form filled'))
     return addActivity('success', '✅', 'تم ملء جميع البيانات');
   if (m.includes('captcha solved'))
-    return addActivity('success', '🔓', 'تم حل الكابتشا: ' + msg.split('→')[1]?.trim());
+    return addActivity('success', '✓', 'تم حل الكابتشا: ' + msg.split('→')[1]?.trim());
   if (m.includes('no openai key') || m.includes('manual captcha'))
-    return addActivity('wait', '⌨️', 'أدخل الكابتشا يدوياً في نافذة البوت');
+    return addActivity('wait', '⌨', 'أدخل الكابتشا يدوياً في نافذة البوت');
 
   // ── Confirmation ──
   if (m.includes('booking confirmed'))
-    return addActivity('confirm', '🎉', 'تم الحجز بنجاح!');
+    return addActivity('confirm', '★', 'تم الحجز بنجاح!');
 
   // ── Errors ──
   if (m.includes('error') || m.includes('not found'))
-    return addActivity('error', '❌', msg);
+    return addActivity('error', '✕', msg);
 }
 
 // addActivityCard returns the DOM element (for updating)
