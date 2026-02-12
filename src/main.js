@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path  = require('path');
 const https = require('https');
 const Store = require('electron-store');
@@ -85,6 +85,8 @@ function createMainWindow() {
 }
 
 // ─── IPC handlers ──────────────────────────────────────────────────────────
+ipcMain.handle('open-external', (_, url) => shell.openExternal(url));
+
 ipcMain.handle('get-settings', () => store.store);
 
 ipcMain.handle('save-settings', (_, data) => {
@@ -153,7 +155,9 @@ function buildScript(config) {
     refreshIntervalSec: s.refreshIntervalSec || 30,
     navDelay:           s.navigationDelayMs  || 800,
     openaiApiKey:       s.openaiApiKey       || '',
-    rootUrl:            config.targetUrl     || 'https://appointment.bmeia.gv.at/'
+    rootUrl:            config.targetUrl     || 'https://appointment.bmeia.gv.at/',
+    notificationSound:  s.notificationSound  || 'beep',
+    customSoundB64:     s.customSoundB64     || ''
   };
 
   return `(function () {
@@ -173,19 +177,54 @@ function buildScript(config) {
 
   function playBeep() {
     try {
+      // Custom audio file
+      if (CFG.notificationSound === 'custom' && CFG.customSoundB64) {
+        const audio = new Audio(CFG.customSoundB64);
+        audio.volume = 1;
+        audio.play().catch(() => {});
+        return;
+      }
+
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      [[880, 0], [1100, 0.22], [880, 0.44]].forEach(([freq, t]) => {
+      const now = ctx.currentTime;
+
+      function tone(freq, start, dur, vol, type) {
         const osc  = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.frequency.value = freq;
-        osc.type = 'sine';
-        gain.gain.setValueAtTime(0.55, ctx.currentTime + t);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.18);
-        osc.start(ctx.currentTime + t);
-        osc.stop(ctx.currentTime + t + 0.22);
-      });
+        osc.type = type || 'sine';
+        gain.gain.setValueAtTime(vol, now + start);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + start + dur);
+        osc.start(now + start);
+        osc.stop(now + start + dur + 0.01);
+      }
+
+      const snd = CFG.notificationSound || 'beep';
+
+      if (snd === 'beep') {
+        // Triple beep — original
+        tone(880,  0,    0.18, 0.55);
+        tone(1100, 0.22, 0.18, 0.55);
+        tone(880,  0.44, 0.18, 0.55);
+
+      } else if (snd === 'chime') {
+        // Ascending major chord C-E-G
+        tone(523, 0,    0.35, 0.5);
+        tone(659, 0.18, 0.35, 0.5);
+        tone(784, 0.36, 0.45, 0.5);
+
+      } else if (snd === 'alert') {
+        // Rapid high-pitched pulses
+        [0, 0.12, 0.24, 0.36, 0.48].forEach(t => tone(1400, t, 0.09, 0.6, 'square'));
+
+      } else if (snd === 'ding') {
+        // Single warm bell
+        tone(1047, 0, 0.6, 0.7);
+        tone(1319, 0, 0.3, 0.3);
+      }
+
     } catch (_) {}
   }
 
@@ -333,7 +372,7 @@ function buildScript(config) {
     const slots = Array.from(document.querySelectorAll('input[type="radio"][name="Start"]'));
 
     if (slots.length === 0) {
-      const wait_s = Math.max(10, CFG.refreshIntervalSec);
+      const wait_s = Math.max(0.25, CFG.refreshIntervalSec);
       log('NO_APPOINTMENTS:' + wait_s);
       // No alarm here — alarm fires only when a slot IS found
 

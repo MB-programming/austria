@@ -99,6 +99,30 @@ async function loadAll() {
     setField('s-nav-delay',        s.navigationDelayMs);
     setField('s-target-url',       s.targetUrl);
 
+    // Restore custom sound from store into memory
+    if (s.customSoundB64)     _customSoundB64      = s.customSoundB64;
+    if (s.customSoundFileName) _customSoundFileName = s.customSoundFileName;
+
+    // Load sound setting
+    const sndVal = s.notificationSound || 'beep';
+    const sndRadio = document.querySelector(`input[name="s-sound"][value="${sndVal}"]`);
+    if (sndRadio) sndRadio.checked = true;
+    if (sndVal === 'custom') {
+      document.getElementById('custom-file-row').style.display = '';
+      if (s.customSoundB64) {
+        document.getElementById('custom-preview-btn').style.display = '';
+        const nameEl = document.getElementById('custom-sound-name');
+        if (nameEl) nameEl.textContent = s.customSoundFileName || 'ملف مخصص محمّل';
+      }
+    }
+    // Toggle custom file row on radio change
+    document.querySelectorAll('input[name="s-sound"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const row = document.getElementById('custom-file-row');
+        row.style.display = r.value === 'custom' ? '' : 'none';
+      });
+    });
+
     if (s.targetUrl) TARGET_URL = s.targetUrl;
 
     updateInfoCards(stored);
@@ -148,6 +172,73 @@ async function savePerson() {
   }
 }
 
+// ─── Sound helpers ────────────────────────────────────────────────────────────
+let _customSoundB64 = '';
+let _customSoundFileName = '';
+
+function loadCustomSound(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) {
+    alert('حجم الملف أكبر من 8 ميجا — اختر ملفاً أصغر');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    _customSoundB64 = e.target.result;
+    _customSoundFileName = file.name;
+    document.getElementById('custom-preview-btn').style.display = '';
+    const nameEl = document.getElementById('custom-sound-name');
+    if (nameEl) nameEl.textContent = file.name;
+    // Auto-select custom radio
+    const r = document.getElementById('sound-custom-radio');
+    if (r) r.checked = true;
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewSound(type) {
+  try {
+    if (type === 'custom') {
+      if (!_customSoundB64) return;
+      new Audio(_customSoundB64).play();
+      return;
+    }
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    function tone(freq, start, dur, vol, waveType) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = waveType || 'sine';
+      gain.gain.setValueAtTime(vol, now + start);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + start + dur);
+      osc.start(now + start);
+      osc.stop(now + start + dur + 0.01);
+    }
+    if (type === 'beep') {
+      tone(880, 0, 0.18, 0.55); tone(1100, 0.22, 0.18, 0.55); tone(880, 0.44, 0.18, 0.55);
+    } else if (type === 'chime') {
+      tone(523, 0, 0.35, 0.5); tone(659, 0.18, 0.35, 0.5); tone(784, 0.36, 0.45, 0.5);
+    } else if (type === 'alert') {
+      [0, 0.12, 0.24, 0.36, 0.48].forEach(t => tone(1400, t, 0.09, 0.6, 'square'));
+    } else if (type === 'ding') {
+      tone(1047, 0, 0.6, 0.7); tone(1319, 0, 0.3, 0.3);
+    }
+  } catch (_) {}
+}
+
+function openSupport() {
+  const url = 'https://orbtasoft.com';
+  if (IS_ELECTRON && window.electronAPI.openExternal) {
+    window.electronAPI.openExternal(url);
+  } else {
+    window.open(url, '_blank');
+  }
+}
+
 // ─── Save settings ────────────────────────────────────────────────────────────
 async function saveSettings() {
   const s = {
@@ -156,7 +247,10 @@ async function saveSettings() {
     reservationType:    getField('s-reservation-type')  || 'Bachelor',
     refreshIntervalSec: parseFloat(getField('s-refresh-interval')) || 30,
     navigationDelayMs:  parseInt(getField('s-nav-delay'))        || 800,
-    targetUrl:          getField('s-target-url')        || 'https://appointment.bmeia.gv.at/'
+    targetUrl:          getField('s-target-url')        || 'https://appointment.bmeia.gv.at/',
+    notificationSound:  (document.querySelector('input[name="s-sound"]:checked') || {}).value || 'beep',
+    customSoundB64:     _customSoundB64  || '',
+    customSoundFileName: _customSoundFileName || ''
   };
 
   if (s.targetUrl) TARGET_URL = s.targetUrl;

@@ -7,5 +7,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   stopBot:      ()         => ipcRenderer.invoke('stop-bot'),
   getBotStatus: ()         => ipcRenderer.invoke('bot-status'),
   onBotStopped: (cb)       => ipcRenderer.on('bot-stopped', cb),
-  onBotLog:     (cb)       => ipcRenderer.on('bot-log', (_, data) => cb(data))
+  onBotLog:     (cb)       => ipcRenderer.on('bot-log', (_, data) => cb(data)),
+  openExternal: (url)      => ipcRenderer.invoke('open-external', url)
 });
