@@ -149,24 +149,49 @@ function buildScript(config) {
   function detectPage() {
     const path   = location.pathname;
     const search = location.search;
+    const text   = (document.getElementById('main') || document.body).innerText || '';
 
-    // 1. Scheduler (appointment slot calendar)
-    if (/\\/HomeWeb\\/Scheduler/i.test(path)) return 'scheduler';
+    // ── 1. Personal data form — most specific, check first ────────────────────
+    // Detect by passport/travel document field OR Lastname-like input
+    if (
+      document.getElementById('Lastname') ||
+      document.querySelector('[name$="$Lastname"]') ||
+      document.querySelector('[name*="Lastname"]') ||
+      document.getElementById('TraveldocumentNumber') ||
+      document.querySelector('[name$="$TraveldocumentNumber"]') ||
+      document.getElementById('DSGVOAccepted')
+    ) return 'form';
 
-    // 2. Info / instructions page (comes before the slot calendar)
+    // ── 2. Scheduler (appointment slot calendar) ──────────────────────────────
+    // Detect by slot radio buttons, URL, or "no appointments" message
+    if (
+      document.querySelector('input[type="radio"][name="Start"]') ||
+      /\/HomeWeb\/Scheduler/i.test(path) ||
+      /\/Scheduler/i.test(path) ||
+      /no appointments available/i.test(text) ||
+      /keine termine/i.test(text) ||
+      /unfortunately no appointment/i.test(text) ||
+      (document.querySelector('input[type="radio"]') && /Start/i.test(path))
+    ) return 'scheduler';
+
+    // ── 3. Info / instructions page ───────────────────────────────────────────
     if (/fromspecificinfo=true/i.test(search)) return 'info';
+    // Also detect by a Next button with no other specific form elements
+    if (
+      /\/Info/i.test(path) ||
+      /\/Instructions/i.test(path) ||
+      (/information|instructions|hinweise/i.test(text) &&
+       document.querySelector('input[type="submit"]'))
+    ) return 'info';
 
-    // 3. Personal data form (has Lastname input)
-    if (document.getElementById('Lastname')) return 'form';
-
-    // 4. Calendar / service type selection (CalendarId is a visible SELECT)
+    // ── 4. Calendar / service type selection ──────────────────────────────────
     const calEl = document.getElementById('CalendarId');
     if (calEl && calEl.tagName === 'SELECT') return 'calendar';
 
-    // 5. Number of persons page (PersonCount select; CalendarId is now hidden)
+    // ── 5. Number of persons ──────────────────────────────────────────────────
     if (document.getElementById('PersonCount')) return 'persons';
 
-    // 6. Office / representation selection (Office is a visible SELECT)
+    // ── 6. Office / representation selection ─────────────────────────────────
     const offEl = document.getElementById('Office');
     if (offEl && offEl.tagName === 'SELECT') return 'office';
 
@@ -176,10 +201,19 @@ function buildScript(config) {
   // ── Submit helpers ────────────────────────────────────────────────────────
   function submitNext(delayMs) {
     setTimeout(() => {
-      // Look specifically for input[type=submit] with value "Next"
-      const btn = Array.from(document.querySelectorAll('input[type="submit"]'))
-                       .find(b => /^next$/i.test((b.value || '').trim()));
+      // Try: input[type=submit] with "Next" or "Weiter", then any submit button
+      const allSubmits = [
+        ...Array.from(document.querySelectorAll('input[type="submit"]')),
+        ...Array.from(document.querySelectorAll('button[type="submit"]')),
+        ...Array.from(document.querySelectorAll('button')),
+      ];
+      const btn =
+        allSubmits.find(b => /^next$/i.test((b.value || b.textContent || '').trim())) ||
+        allSubmits.find(b => /next|weiter|continue|إرسال|submit/i.test(b.value || b.textContent || '')) ||
+        allSubmits[0]; // fallback: first submit button on page
+
       if (!btn) { logErr('Next button not found'); return; }
+      log('Clicking next: "' + (btn.value || btn.textContent || '').trim() + '"');
       const form = btn.form || document.querySelector('form');
       if (form && form.requestSubmit) form.requestSubmit(btn);
       else btn.click();
@@ -246,7 +280,7 @@ function buildScript(config) {
     if (slots.length === 0) {
       const wait_s = Math.max(10, CFG.refreshIntervalSec);
       log('NO_APPOINTMENTS:' + wait_s);
-      startAlarm();
+      // No alarm here — alarm fires only when a slot IS found
 
       // Emit countdown every second so the UI can show it
       let remaining = wait_s;
@@ -261,11 +295,13 @@ function buildScript(config) {
 
       setTimeout(() => {
         clearInterval(tick);
-        stopAlarm();
         location.reload();           // stay on scheduler page, just refresh
       }, wait_s * 1000);
       return;
     }
+
+    // Slot found — play alarm to alert the user
+    startAlarm();
 
     // Pick a random available slot
     const slot = slots[Math.floor(Math.random() * slots.length)];
@@ -277,6 +313,8 @@ function buildScript(config) {
 
   // ── State: Personal data form ─────────────────────────────────────────────
   async function handleForm() {
+
+    stopAlarm(); // slot was found on previous page — silence the alert
 
     // Find field by id, then by name, then by ASP.NET postback name (ends with $Id)
     const findEl = (id) =>
