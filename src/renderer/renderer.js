@@ -96,6 +96,7 @@ async function loadAll() {
     setField('s-office',           s.office);
     setField('s-reservation-type', s.reservationType);
     setField('s-refresh-interval', s.refreshIntervalSec);
+    setField('s-nav-delay',        s.navigationDelayMs);
     setField('s-target-url',       s.targetUrl);
 
     if (s.targetUrl) TARGET_URL = s.targetUrl;
@@ -154,6 +155,7 @@ async function saveSettings() {
     office:             getField('s-office')            || 'KAIRO',
     reservationType:    getField('s-reservation-type')  || 'Bachelor',
     refreshIntervalSec: parseInt(getField('s-refresh-interval')) || 30,
+    navigationDelayMs:  parseInt(getField('s-nav-delay'))        || 800,
     targetUrl:          getField('s-target-url')        || 'https://appointment.bmeia.gv.at/'
   };
 

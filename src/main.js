@@ -97,6 +97,7 @@ function buildScript(config) {
     office:             s.office             || 'KAIRO',
     reservationType:    s.reservationType    || 'Bachelor',
     refreshIntervalSec: s.refreshIntervalSec || 30,
+    navDelay:           s.navigationDelayMs  || 800,
     openaiApiKey:       s.openaiApiKey       || '',
     rootUrl:            config.targetUrl     || 'https://appointment.bmeia.gv.at/'
   };
@@ -238,7 +239,7 @@ function buildScript(config) {
     const chosen = pickByText(sel, CFG.office);
     if (chosen) {
       log('Office selected → ' + chosen);
-      submitNext(700);
+      submitNext(CFG.navDelay);
     } else {
       logErr('Office "' + CFG.office + '" not found in dropdown');
     }
@@ -250,7 +251,7 @@ function buildScript(config) {
     const chosen = pickByText(sel, CFG.reservationType);
     if (chosen) {
       log('Reservation type selected → ' + chosen);
-      submitNext(700);
+      submitNext(CFG.navDelay);
     } else {
       logErr('Reservation type "' + CFG.reservationType + '" not found. Available: ' +
         Array.from(sel.options).slice(1).map(o => o.text.trim()).join(' | '));
@@ -264,13 +265,13 @@ function buildScript(config) {
     sel.value = '1';
     sel.dispatchEvent(new Event('change', { bubbles: true }));
     log('PersonCount → 1');
-    submitNext(700);
+    submitNext(CFG.navDelay);
   }
 
   // ── State: Information / instructions page ────────────────────────────────
   function handleInfo() {
     log('Info page — clicking Next');
-    submitNext(800);
+    submitNext(CFG.navDelay);
   }
 
   // ── State: Appointment slot calendar ─────────────────────────────────────
@@ -308,7 +309,7 @@ function buildScript(config) {
     slot.checked = true;
     slot.dispatchEvent(new Event('change', { bubbles: true }));
     log('Appointment slot selected → ' + slot.value);
-    submitNext(400);
+    submitNext(CFG.navDelay);
   }
 
   // ── State: Personal data form ─────────────────────────────────────────────
@@ -375,92 +376,182 @@ function buildScript(config) {
     await solveCaptcha();
   }
 
-  // ── CAPTCHA solver (GPT-4o vision) ────────────────────────────────────────
+  // ── CAPTCHA solver (GPT-4o vision) — with auto-retry ─────────────────────
   async function solveCaptcha() {
-    const input = document.getElementById('CaptchaText') ||
-                  document.querySelector('input[name="CaptchaText"]');
-    if (!input) {
+    const findInput = () =>
+      document.getElementById('CaptchaText') ||
+      document.querySelector('input[name="CaptchaText"]') ||
+      document.querySelector('input[name$="$CaptchaText"]');
+
+    if (!findInput()) {
       log('No CAPTCHA field — submitting form');
-      submitNext(400);
+      submitNext(CFG.navDelay);
+      // After main submit, wait and look for a confirmation Next (second Next)
+      setTimeout(async () => {
+        if (document.querySelector('input[type="submit"], button[type="submit"]')) {
+          log('Confirmation page — clicking Next again');
+          submitNext(CFG.navDelay);
+        }
+      }, CFG.navDelay + 1500);
       return;
     }
 
     if (!CFG.openaiApiKey) {
-      input.focus();
+      findInput().focus();
       log('No OpenAI key — manual CAPTCHA required');
       return;
     }
 
-    await wait(1200);
-
-    // Find captcha image
-    const img = document.querySelector('#Captcha_CaptchaImage') ||
-                document.querySelector('img[src*="BotDetectCaptcha"]') ||
-                document.querySelector('img[src*="captcha" i]') ||
-                document.querySelector('img[alt*="captcha" i]');
-
-    if (!img) {
-      input.focus();
-      logErr('CAPTCHA image not found — manual entry required');
-      return;
-    }
-
-    // Convert to base64 via canvas
-    const base64 = await new Promise(resolve => {
-      const draw = () => {
-        try {
-          const c = document.createElement('canvas');
-          c.width  = img.naturalWidth  || img.width  || 250;
-          c.height = img.naturalHeight || img.height || 60;
-          c.getContext('2d').drawImage(img, 0, 0);
-          resolve(c.toDataURL('image/png').split(',')[1]);
-        } catch (_) { resolve(null); }
-      };
-      img.complete ? draw() : (img.onload = draw, img.onerror = () => resolve(null));
-    });
-
-    if (!base64) {
-      input.focus();
-      logErr('Could not read CAPTCHA image — manual entry required');
-      return;
-    }
-
-    try {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + CFG.openaiApiKey },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [{ role: 'user', content: [
-            { type: 'text',      text: 'This is a CAPTCHA image. Reply with ONLY the characters visible. No spaces, no explanation.' },
-            { type: 'image_url', image_url: { url: 'data:image/png;base64,' + base64 } }
-          ]}],
-          max_tokens: 20,
-          temperature: 0.1
-        })
+    // Helper: read captcha image as base64
+    const readCaptchaBase64 = async () => {
+      const img = document.querySelector('#Captcha_CaptchaImage') ||
+                  document.querySelector('img[src*="BotDetectCaptcha"]') ||
+                  document.querySelector('img[src*="captcha" i]') ||
+                  document.querySelector('img[alt*="captcha" i]');
+      if (!img) return null;
+      return new Promise(resolve => {
+        const draw = () => {
+          try {
+            const c = document.createElement('canvas');
+            c.width  = img.naturalWidth  || img.width  || 250;
+            c.height = img.naturalHeight || img.height || 60;
+            c.getContext('2d').drawImage(img, 0, 0);
+            resolve(c.toDataURL('image/png').split(',')[1]);
+          } catch (_) { resolve(null); }
+        };
+        img.complete ? draw() : (img.onload = draw, img.onerror = () => resolve(null));
       });
+    };
 
-      const data = await res.json();
-      if (data.error) throw new Error(data.error.message);
+    const MAX_ATTEMPTS = 4;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      log('CAPTCHA attempt ' + attempt + '/' + MAX_ATTEMPTS + '…');
+      await wait(1200);
 
-      const raw     = data.choices?.[0]?.message?.content || '';
-      const cleaned = raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      const base64 = await readCaptchaBase64();
+      if (!base64) {
+        logErr('CAPTCHA image not found — manual entry required');
+        const inp = findInput(); if (inp) inp.focus();
+        return;
+      }
 
-      if (!cleaned) throw new Error('Empty GPT response');
+      let cleaned = '';
+      try {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + CFG.openaiApiKey },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [{ role: 'user', content: [
+              { type: 'text',      text: 'This is a CAPTCHA image. Reply with ONLY the characters visible. No spaces, no explanation.' },
+              { type: 'image_url', image_url: { url: 'data:image/png;base64,' + base64 } }
+            ]}],
+            max_tokens: 20,
+            temperature: 0.1
+          })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        const raw = data.choices?.[0]?.message?.content || '';
+        cleaned = raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        if (!cleaned) throw new Error('Empty GPT response');
+      } catch (e) {
+        logErr('CAPTCHA API error: ' + e.message);
+        if (attempt === MAX_ATTEMPTS) {
+          const inp = findInput(); if (inp) inp.focus();
+          logErr('All attempts failed — manual entry required');
+        }
+        continue;
+      }
 
-      // Fill the CAPTCHA input
-      input.value = cleaned;
-      input.dispatchEvent(new Event('input',  { bubbles: true }));
-      input.dispatchEvent(new Event('change', { bubbles: true }));
+      // Fill CAPTCHA input
+      const inp = findInput();
+      if (!inp) return;
+      inp.value = cleaned;
+      inp.dispatchEvent(new Event('input',  { bubbles: true }));
+      inp.dispatchEvent(new Event('change', { bubbles: true }));
       log('CAPTCHA solved → ' + cleaned);
 
-      await wait(400);
-      submitNext(300);
+      // Submit the form
+      await wait(500);
+      submitNext(CFG.navDelay);
 
-    } catch (e) {
-      input.focus();
-      logErr('CAPTCHA solve failed: ' + e.message + ' — manual entry required');
+      // Wait for page response, then check if captcha was rejected
+      await wait(CFG.navDelay + 2000);
+
+      const pageText = (document.getElementById('main') || document.body).innerText || '';
+      const stillHasCaptcha = !!findInput();
+      const captchaError = /incorrect|wrong|invalid|ungültig|fehler|error/i.test(pageText);
+
+      if (!stillHasCaptcha) {
+        // Navigated away — captcha accepted
+        log('CAPTCHA accepted — proceeding…');
+        // Check for a second confirmation Next button
+        await wait(800);
+        if (document.querySelector('input[type="submit"], button[type="submit"]')) {
+          log('Confirmation page — clicking Next again');
+          submitNext(CFG.navDelay);
+        }
+        return;
+      }
+
+      if (stillHasCaptcha && attempt < MAX_ATTEMPTS) {
+        log('CAPTCHA:RETRY:' + attempt + ' — re-filling form and retrying…');
+        // Re-fill all form fields before the next attempt
+        await refillFormFields();
+        continue;
+      }
     }
+
+    // All attempts exhausted
+    const inp = findInput(); if (inp) inp.focus();
+    logErr('CAPTCHA failed ' + MAX_ATTEMPTS + ' times — manual entry required');
+  }
+
+  // Re-fill form fields only (no captcha call) — used on retry
+  async function refillFormFields() {
+    const findEl = (id) =>
+      document.getElementById(id) ||
+      document.querySelector('[name="' + id + '"]') ||
+      document.querySelector('[name$="$' + id + '"]');
+    const setVal = (id, val) => {
+      if (!val) return;
+      const el = findEl(id);
+      if (!el) return;
+      el.value = val;
+      el.dispatchEvent(new Event('input',  { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    const pickOpt = (id, labelText, fallbackCode) => {
+      const sel = findEl(id);
+      if (!sel) return;
+      const label = (labelText || '').trim().toUpperCase();
+      const opt =
+        Array.from(sel.options).find(o => o.text.trim().toUpperCase() === label) ||
+        Array.from(sel.options).find(o => o.text.trim().toUpperCase().includes(label)) ||
+        Array.from(sel.options).find(o => String(o.value) === String(fallbackCode));
+      if (opt) sel.value = opt.value;
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    const sexLabel = (P.sex || 'Male').charAt(0).toUpperCase() + (P.sex || 'Male').slice(1).toLowerCase();
+    const sexCode  = (P.sex || '').toLowerCase() === 'female' ? 2 : 1;
+    setVal('Lastname', P.lastname);           setVal('Firstname', P.firstname);
+    setVal('DateOfBirth', P.dateOfBirth);     setVal('TraveldocumentNumber', P.passportNumber);
+    pickOpt('Sex', sexLabel, sexCode);
+    setVal('Street', P.street);               setVal('Postcode', P.postcode);
+    setVal('City', P.city);                   pickOpt('Country', P.country, P.countryCode);
+    setVal('Telephone', P.telephone);         setVal('Email', P.email);
+    setVal('LastnameAtBirth', P.lastnameAtBirth || P.lastname);
+    pickOpt('NationalityAtBirth', P.nationality, P.nationalityCode);
+    pickOpt('CountryOfBirth',     P.nationality, P.nationalityCode);
+    setVal('PlaceOfBirth', P.placeOfBirth);
+    pickOpt('NationalityForApplication', P.nationality, P.nationalityCode);
+    setVal('TraveldocumentDateOfIssue', P.passportIssueDate);
+    setVal('TraveldocumentValidUntil',  P.passportExpiry);
+    pickOpt('TraveldocumentIssuingAuthority', P.nationality, P.nationalityCode);
+    const gdpr = findEl('DSGVOAccepted');
+    if (gdpr && !gdpr.checked) gdpr.click();
+    log('Form re-filled for retry');
   }
 
   // ── State: Unknown / confirmation ─────────────────────────────────────────
