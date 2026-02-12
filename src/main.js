@@ -464,13 +464,22 @@ function buildScript(config) {
         continue;
       }
 
-      // Fill CAPTCHA input
+      // Type CAPTCHA character by character (simulate human typing)
       const inp = findInput();
       if (!inp) return;
-      inp.value = cleaned;
-      inp.dispatchEvent(new Event('input',  { bubbles: true }));
+      inp.focus();
+      inp.value = '';
+      inp.dispatchEvent(new Event('input', { bubbles: true }));
+
+      for (const ch of cleaned) {
+        inp.value += ch;
+        inp.dispatchEvent(new KeyboardEvent('keydown',  { key: ch, bubbles: true }));
+        inp.dispatchEvent(new Event('input',            { bubbles: true }));
+        inp.dispatchEvent(new KeyboardEvent('keyup',    { key: ch, bubbles: true }));
+        await wait(80 + Math.random() * 80);   // 80–160ms per character
+      }
       inp.dispatchEvent(new Event('change', { bubbles: true }));
-      log('CAPTCHA solved → ' + cleaned);
+      log('CAPTCHA typed → ' + cleaned);
 
       // Submit the form
       await wait(500);
