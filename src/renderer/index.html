@@ -112,6 +112,29 @@
               </div>
             </div>
           </div>
+
+          <!-- ── Live iframe panel ── -->
+          <div class="frame-panel" id="frame-panel">
+            <div class="frame-toolbar">
+              <span class="frame-label">🌐 موقع الحجز — مباشر</span>
+              <div class="frame-toolbar-actions">
+                <input class="frame-url-bar" id="frame-url-bar" type="text" readonly />
+                <button class="btn btn-sm" onclick="reloadFrame()" title="تحديث">↺</button>
+                <button class="btn btn-sm" onclick="openExternal()" title="فتح في تاب جديد">⬡</button>
+              </div>
+            </div>
+            <div class="frame-body">
+              <iframe id="site-frame" src="about:blank" frameborder="0" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+              <div class="frame-blocked" id="frame-blocked" style="display:none">
+                <div class="frame-blocked-msg">
+                  <span style="font-size:36px">🚫</span>
+                  <p>الموقع لا يسمح بالعرض داخل الإطار</p>
+                  <button class="btn btn-start" onclick="openExternal()">فتح في نافذة جديدة ↗</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 

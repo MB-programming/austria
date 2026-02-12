@@ -1,6 +1,40 @@
 'use strict';
 
-let botRunning = false;
+// ─── Environment detection ────────────────────────────────────────────────────
+const IS_ELECTRON = typeof window !== 'undefined' && !!window.electronAPI;
+
+// ─── Storage abstraction (Electron IPC  OR  localStorage) ────────────────────
+const Storage = (() => {
+  const LS_KEY = 'austria_bot_v1';
+
+  function lsGet() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); }
+    catch { return {}; }
+  }
+
+  function lsSet(patch) {
+    const current = lsGet();
+    Object.entries(patch).forEach(([k, v]) => { current[k] = v; });
+    localStorage.setItem(LS_KEY, JSON.stringify(current));
+  }
+
+  return {
+    async get() {
+      if (IS_ELECTRON) return window.electronAPI.getSettings();
+      return lsGet();
+    },
+    async save(patch) {
+      if (IS_ELECTRON) return window.electronAPI.saveSettings(patch);
+      lsSet(patch);
+      return { success: true };
+    }
+  };
+})();
+
+// ─── Bot state ────────────────────────────────────────────────────────────────
+let botRunning   = false;
+let frameLoaded  = false;
+let TARGET_URL   = 'https://appointment.bmeia.gv.at/';
 
 // ─── Tab navigation ──────────────────────────────────────────────────────────
 document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -18,15 +52,37 @@ window.addEventListener('DOMContentLoaded', async () => {
   await loadAll();
   startStatusPolling();
 
-  // Receive log lines forwarded from the bot window
-  window.electronAPI.onBotLog(({ type, message }) => {
-    const clean = message.replace('[AustriaBot] ', '').replace('[AustriaBot] ERROR: ', '');
-    const logType = message.includes('ERROR') ? 'error' : type || 'success';
-    addLog(logType, clean);
+  if (IS_ELECTRON) {
+    window.electronAPI.onBotLog(({ type, message }) => {
+      const clean    = message.replace(/\[AustriaBot\]\s*(ERROR:\s*)?/, '');
+      const logType  = message.includes('ERROR') ? 'error' : type || 'success';
+      addLog(logType, clean);
+      if (logType === 'error' || message.includes('CONFIRMED')) {
+        document.querySelector('[data-tab="logs"]').click();
+      }
+    });
+    window.electronAPI.onBotStopped(() => {
+      setBotState(false);
+      addLog('warn', 'نافذة البوت أُغلقت');
+    });
+  }
 
-    // Auto-switch to logs tab for important events
-    if (logType === 'error' || message.includes('CONFIRMED')) {
-      document.querySelector('[data-tab="logs"]').click();
+  // Detect iframe blocked by X-Frame-Options
+  const frame = document.getElementById('site-frame');
+  frame.addEventListener('load', () => {
+    // Try to detect if content loaded or is blank (blocked)
+    try {
+      const loc = frame.contentWindow?.location?.href;
+      if (loc && loc !== 'about:blank') {
+        document.getElementById('frame-url-bar').value = loc;
+        document.getElementById('frame-blocked').style.display = 'none';
+        frameLoaded = true;
+      }
+    } catch (_) {
+      // Cross-origin access blocked = site DID load (just can't read it)
+      document.getElementById('frame-blocked').style.display = 'none';
+      document.getElementById('frame-url-bar').value = TARGET_URL;
+      frameLoaded = true;
     }
   });
 });
@@ -34,13 +90,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 // ─── Load saved data ──────────────────────────────────────────────────────────
 async function loadAll() {
   try {
-    const stored = await window.electronAPI.getSettings();
-    if (!stored) return;
-
+    const stored = await Storage.get();
     const p = stored.person   || {};
     const s = stored.settings || {};
 
-    // Person
     setField('p-lastname',         p.lastname);
     setField('p-firstname',        p.firstname);
     setField('p-dob',              p.dateOfBirth);
@@ -60,14 +113,16 @@ async function loadAll() {
     setField('p-passport-issue',   p.passportIssueDate);
     setField('p-passport-expiry',  p.passportExpiry);
 
-    // Settings
     setField('s-openai-key',       s.openaiApiKey);
     setField('s-office',           s.office);
     setField('s-reservation-type', s.reservationType);
     setField('s-refresh-interval', s.refreshIntervalSec);
     setField('s-target-url',       s.targetUrl);
 
+    if (s.targetUrl) TARGET_URL = s.targetUrl;
+
     updateInfoCards(stored);
+    addLog('info', IS_ELECTRON ? 'تشغيل Electron ✓' : 'تشغيل متصفح (localStorage) ✓');
   } catch (e) {
     addLog('error', 'خطأ في تحميل الإعدادات: ' + e.message);
   }
@@ -82,30 +137,30 @@ function setField(id, val) {
 // ─── Save person ──────────────────────────────────────────────────────────────
 async function savePerson() {
   const person = {
-    lastname:         getField('p-lastname'),
-    firstname:        getField('p-firstname'),
-    dateOfBirth:      getField('p-dob'),
-    sex:              getField('p-sex'),
-    lastnameAtBirth:  getField('p-lastname-birth') || getField('p-lastname'),
-    placeOfBirth:     getField('p-place-birth'),
-    street:           getField('p-street'),
-    postcode:         getField('p-postcode'),
-    city:             getField('p-city'),
-    countryCode:      parseInt(getField('p-country-code'))     || 65,
-    country:          getField('p-country'),
-    telephone:        getField('p-telephone'),
-    email:            getField('p-email'),
-    passportNumber:   getField('p-passport-num'),
-    nationalityCode:  parseInt(getField('p-nationality-code')) || 71,
-    nationality:      getField('p-nationality'),
-    passportIssueDate:getField('p-passport-issue'),
-    passportExpiry:   getField('p-passport-expiry')
+    lastname:          getField('p-lastname'),
+    firstname:         getField('p-firstname'),
+    dateOfBirth:       getField('p-dob'),
+    sex:               getField('p-sex'),
+    lastnameAtBirth:   getField('p-lastname-birth') || getField('p-lastname'),
+    placeOfBirth:      getField('p-place-birth'),
+    street:            getField('p-street'),
+    postcode:          getField('p-postcode'),
+    city:              getField('p-city'),
+    countryCode:       parseInt(getField('p-country-code'))     || 65,
+    country:           getField('p-country'),
+    telephone:         getField('p-telephone'),
+    email:             getField('p-email'),
+    passportNumber:    getField('p-passport-num'),
+    nationalityCode:   parseInt(getField('p-nationality-code')) || 71,
+    nationality:       getField('p-nationality'),
+    passportIssueDate: getField('p-passport-issue'),
+    passportExpiry:    getField('p-passport-expiry')
   };
 
   try {
-    await window.electronAPI.saveSettings({ person });
+    await Storage.save({ person });
     showSaved('person-saved', '✓ تم الحفظ');
-    const stored = await window.electronAPI.getSettings();
+    const stored = await Storage.get();
     updateInfoCards(stored);
     addLog('success', 'تم حفظ بيانات الشخص: ' + person.firstname + ' ' + person.lastname);
   } catch (e) {
@@ -117,16 +172,18 @@ async function savePerson() {
 async function saveSettings() {
   const s = {
     openaiApiKey:       getField('s-openai-key'),
-    office:             getField('s-office')           || 'KAIRO',
-    reservationType:    getField('s-reservation-type') || 'Bachelor',
+    office:             getField('s-office')            || 'KAIRO',
+    reservationType:    getField('s-reservation-type')  || 'Bachelor',
     refreshIntervalSec: parseInt(getField('s-refresh-interval')) || 30,
-    targetUrl:          getField('s-target-url')       || 'https://appointment.bmeia.gv.at/'
+    targetUrl:          getField('s-target-url')        || 'https://appointment.bmeia.gv.at/'
   };
 
+  if (s.targetUrl) TARGET_URL = s.targetUrl;
+
   try {
-    await window.electronAPI.saveSettings({ settings: s });
+    await Storage.save({ settings: s });
     showSaved('settings-saved', '✓ تم الحفظ');
-    const stored = await window.electronAPI.getSettings();
+    const stored = await Storage.get();
     updateInfoCards(stored);
     addLog('success', 'تم حفظ الإعدادات');
   } catch (e) {
@@ -136,56 +193,101 @@ async function saveSettings() {
 
 // ─── Bot control ──────────────────────────────────────────────────────────────
 async function startBot() {
-  const stored = await window.electronAPI.getSettings();
+  const stored   = await Storage.get();
   const person   = stored.person   || {};
   const settings = stored.settings || {};
 
   if (!person.lastname)       addLog('warn', 'تحذير: بيانات الشخص غير مكتملة');
-  if (!settings.openaiApiKey) addLog('warn', 'تحذير: OpenAI API Key غير مضبوط — ستحتاج لإدخال الكابتشا يدويًا');
+  if (!settings.openaiApiKey) addLog('warn', 'تحذير: OpenAI API Key غير مضبوط — الكابتشا يدوي');
 
-  const config = {
-    person,
-    settings,
-    targetUrl: settings.targetUrl || 'https://appointment.bmeia.gv.at/'
-  };
+  TARGET_URL = settings.targetUrl || 'https://appointment.bmeia.gv.at/';
 
-  try {
-    const res = await window.electronAPI.startBot(config);
-    if (res.success) {
-      setBotState(true);
-      addLog('info', 'تم تشغيل البوت ← ' + config.targetUrl);
-      addLog('info', 'السفارة: ' + (settings.office || 'KAIRO') + ' | النوع: ' + (settings.reservationType || 'Bachelor'));
-    } else {
-      addLog('warn', res.message || 'البوت يعمل بالفعل');
+  if (IS_ELECTRON) {
+    // Electron: open dedicated BrowserWindow with script injection
+    const config = { person, settings, targetUrl: TARGET_URL };
+    try {
+      const res = await window.electronAPI.startBot(config);
+      if (res.success) {
+        setBotState(true);
+        loadFrame(TARGET_URL);
+        addLog('info', 'تم تشغيل البوت (Electron) ← ' + TARGET_URL);
+      } else {
+        addLog('warn', res.message || 'البوت يعمل بالفعل');
+      }
+    } catch (e) {
+      addLog('error', 'خطأ: ' + e.message);
     }
-  } catch (e) {
-    addLog('error', 'خطأ في التشغيل: ' + e.message);
+  } else {
+    // Browser mode: load the site in the iframe for visual monitoring
+    setBotState(true);
+    loadFrame(TARGET_URL);
+    addLog('info', 'البوت يعمل (وضع المتصفح) — الموقع يظهر في الإطار أدناه');
+    addLog('warn', 'ملاحظة: الأتمتة الكاملة تعمل في تطبيق Desktop فقط. يمكنك متابعة الموقع يدوياً.');
   }
 }
 
 async function stopBot() {
-  try {
-    await window.electronAPI.stopBot();
-    setBotState(false);
-    addLog('warn', 'تم إيقاف البوت');
-  } catch (e) {
-    addLog('error', 'خطأ في الإيقاف: ' + e.message);
+  if (IS_ELECTRON) {
+    try {
+      await window.electronAPI.stopBot();
+    } catch (e) {
+      addLog('error', 'خطأ في الإيقاف: ' + e.message);
+    }
   }
+  setBotState(false);
+  clearFrame();
+  addLog('warn', 'تم إيقاف البوت');
+}
+
+// ─── Iframe helpers ───────────────────────────────────────────────────────────
+function loadFrame(url) {
+  const frame   = document.getElementById('site-frame');
+  const blocked = document.getElementById('frame-blocked');
+  const urlBar  = document.getElementById('frame-url-bar');
+
+  blocked.style.display = 'none';
+  urlBar.value          = url;
+  frame.src             = url;
+
+  // Fallback: if after 5s the frame still shows about:blank, assume blocked
+  frameLoaded = false;
+  setTimeout(() => {
+    if (!frameLoaded) {
+      blocked.style.display = 'flex';
+      addLog('warn', 'الموقع يمنع العرض داخل الإطار — استخدم "فتح في نافذة جديدة"');
+    }
+  }, 5000);
+}
+
+function clearFrame() {
+  document.getElementById('site-frame').src = 'about:blank';
+  document.getElementById('frame-url-bar').value = '';
+  document.getElementById('frame-blocked').style.display = 'none';
+  frameLoaded = false;
+}
+
+function reloadFrame() {
+  const frame = document.getElementById('site-frame');
+  if (frame.src && frame.src !== 'about:blank') {
+    frame.src = frame.src;
+  } else {
+    loadFrame(TARGET_URL);
+  }
+}
+
+function openExternal() {
+  window.open(TARGET_URL, '_blank');
 }
 
 // ─── Status polling ───────────────────────────────────────────────────────────
 function startStatusPolling() {
+  if (!IS_ELECTRON) return;
   setInterval(async () => {
     try {
       const { running } = await window.electronAPI.getBotStatus();
       if (running !== botRunning) setBotState(running);
     } catch (_) {}
   }, 2000);
-
-  window.electronAPI.onBotStopped(() => {
-    setBotState(false);
-    addLog('warn', 'نافذة البوت أُغلقت');
-  });
 }
 
 function setBotState(running) {
@@ -211,7 +313,7 @@ function setBotState(running) {
     startBtn.disabled = false;
     stopBtn.disabled  = true;
     label.textContent = 'البوت متوقف';
-    desc.textContent  = 'اضغط "تشغيل" لبدء الحجز التلقائي';
+    desc.textContent  = 'اضغط "تشغيل" لبدء الحجز';
     visual.classList.remove('running');
     dot.className     = 'status-dot stopped';
     statusTxt.textContent = 'متوقف';
@@ -225,10 +327,10 @@ function addLog(type, msg) {
   if (empty) empty.remove();
 
   const time = new Date().toLocaleTimeString('ar-EG', { hour12: false });
-
   const line = document.createElement('div');
   line.className = 'log-line ' + (type || 'info');
-  line.innerHTML = `<span class="log-time">${time}</span><span class="log-msg">${escapeHtml(msg)}</span>`;
+  line.innerHTML =
+    `<span class="log-time">${time}</span><span class="log-msg">${escapeHtml(msg)}</span>`;
   container.appendChild(line);
   container.scrollTop = container.scrollHeight;
 }
@@ -242,6 +344,12 @@ function clearLogs() {
 function getField(id) {
   const el = document.getElementById(id);
   return el ? el.value.trim() : '';
+}
+
+function setField(id, val) {
+  const el = document.getElementById(id);
+  if (!el || val === undefined || val === null || val === '') return;
+  el.value = val;
 }
 
 function showSaved(id, text) {
@@ -265,7 +373,6 @@ function updateInfoCards(stored) {
   if (!stored) return;
   const p = stored.person   || {};
   const s = stored.settings || {};
-
   const el = id => document.getElementById(id);
 
   const name = ((p.firstname || '') + ' ' + (p.lastname || '')).trim();
