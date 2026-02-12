@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تفعيل البوت</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f0f1a;
+      color: #e2e8f0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      -webkit-app-region: drag;
+    }
+
+    .card {
+      background: #1a1a2e;
+      border: 1px solid #2d2d44;
+      border-radius: 16px;
+      padding: 40px 36px;
+      width: 360px;
+      text-align: center;
+      -webkit-app-region: no-drag;
+    }
+
+    .logo {
+      font-size: 44px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #a78bfa;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 28px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+      text-align: right;
+    }
+
+    .input-wrap {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 12px 42px 12px 16px;
+      background: #0f0f1a;
+      border: 1px solid #2d2d44;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 15px;
+      letter-spacing: 2px;
+      text-align: center;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    input:focus { border-color: #7c3aed; }
+
+    .toggle-eye {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px;
+    }
+
+    .btn-activate {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+    }
+
+    .btn-activate:hover   { opacity: .9; }
+    .btn-activate:active  { transform: scale(.98); }
+    .btn-activate:disabled { opacity: .5; cursor: default; }
+
+    .error {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: rgba(239,68,68,.1);
+      border: 1px solid rgba(239,68,68,.3);
+      border-radius: 8px;
+      color: #fca5a5;
+      font-size: 13px;
+      display: none;
+    }
+
+    .error.show { display: block; }
+
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .footer {
+      margin-top: 24px;
+      font-size: 11px;
+      color: #334155;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🔐</div>
+    <h1>Austria Appointment Bot</h1>
+    <p class="subtitle">أدخل الرقم السري للمتابعة</p>
+
+    <label>الرقم السري</label>
+    <div class="input-wrap">
+      <input type="password" id="key-input" placeholder="● ● ● ● ● ● ● ●"
+             autocomplete="off" spellcheck="false" />
+      <button class="toggle-eye" onclick="toggleVis()" type="button" tabindex="-1">👁</button>
+    </div>
+
+    <button class="btn-activate" id="btn" onclick="activate()">
+      تفعيل
+    </button>
+
+    <div class="error" id="err-box"></div>
+
+    <p class="footer">Austria Appointment Bot © 2025</p>
+  </div>
+
+  <script>
+    const input = document.getElementById('key-input');
+    const btn   = document.getElementById('btn');
+    const errBox = document.getElementById('err-box');
+
+    input.focus();
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') activate(); });
+
+    function showErr(msg) {
+      errBox.textContent = msg;
+      errBox.classList.add('show');
+      btn.disabled = false;
+      btn.innerHTML = 'تفعيل';
+      input.focus();
+      input.select();
+    }
+
+    function toggleVis() {
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    async function activate() {
+      const key = input.value.trim();
+      if (!key) { showErr('أدخل الرقم السري أولاً'); return; }
+
+      btn.disabled = true;
+      btn.innerHTML = 'جاري التحقق… <span class="spinner"></span>';
+      errBox.classList.remove('show');
+
+      try {
+        const result = await window.authAPI.validate(key);
+        if (result.valid) {
+          btn.innerHTML = '✅ تم التفعيل';
+        } else {
+          showErr(result.message || 'الرقم السري غير صحيح');
+        }
+      } catch (e) {
+        showErr('تعذّر الاتصال بالخادم — تحقق من الإنترنت');
+      }
+    }
+  </script>
+</body>
+</html>

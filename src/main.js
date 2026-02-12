@@ -1,11 +1,65 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('path');
+const path  = require('path');
+const https = require('https');
 const Store = require('electron-store');
 
 const store = new Store();
 
 let mainWindow = null;
 let botWindow  = null;
+let authWindow = null;
+
+// ─── Auth window ────────────────────────────────────────────────────────────
+function createAuthWindow() {
+  authWindow = new BrowserWindow({
+    width: 420, height: 380,
+    resizable: false,
+    frame: false,
+    transparent: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload-auth.js')
+    },
+    title: 'تفعيل البوت',
+    backgroundColor: '#0f0f1a'
+  });
+
+  authWindow.loadFile(path.join(__dirname, 'renderer', 'auth.html'));
+  authWindow.on('closed', () => { authWindow = null; });
+}
+
+// ─── Key validation via HTTPS ────────────────────────────────────────────────
+function fetchKeys(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
+
+ipcMain.handle('auth-validate', async (_, key) => {
+  try {
+    const raw   = await fetchKeys('https://minaboules.com/valid-li/key.txt');
+    const valid = raw.split('\n')
+                     .map(l => l.trim())
+                     .filter(Boolean)
+                     .includes(key.trim());
+
+    if (valid) {
+      // Close auth, open main app
+      if (authWindow && !authWindow.isDestroyed()) authWindow.close();
+      createMainWindow();
+      return { valid: true };
+    }
+
+    return { valid: false, message: 'الرقم السري غير صحيح' };
+  } catch (e) {
+    return { valid: false, message: 'تعذّر التحقق — تحقق من الإنترنت' };
+  }
+});
 
 // ─── Main window ───────────────────────────────────────────────────────────
 function createMainWindow() {
@@ -595,9 +649,9 @@ function buildScript(config) {
 
 // ─── Electron lifecycle ────────────────────────────────────────────────────
 app.whenReady().then(() => {
-  createMainWindow();
+  createAuthWindow();
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
+    if (BrowserWindow.getAllWindows().length === 0) createAuthWindow();
   });
 });
 
