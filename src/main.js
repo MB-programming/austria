@@ -244,11 +244,23 @@ function buildScript(config) {
     const slots = Array.from(document.querySelectorAll('input[type="radio"][name="Start"]'));
 
     if (slots.length === 0) {
-      // No appointments available — wait, then restart from root
       const wait_s = Math.max(10, CFG.refreshIntervalSec);
-      log('No appointments available. Retrying in ' + wait_s + 's…');
+      log('NO_APPOINTMENTS:' + wait_s);
       startAlarm();
+
+      // Emit countdown every second so the UI can show it
+      let remaining = wait_s;
+      const tick = setInterval(() => {
+        remaining--;
+        if (remaining > 0) {
+          log('COUNTDOWN:' + remaining);
+        } else {
+          clearInterval(tick);
+        }
+      }, 1000);
+
       setTimeout(() => {
+        clearInterval(tick);
         stopAlarm();
         location.href = CFG.rootUrl;
       }, wait_s * 1000);

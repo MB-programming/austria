@@ -246,45 +246,101 @@ function clearActivity() {
   feed.innerHTML = '<div class="activity-idle"><span class="idle-icon">💤</span><span>البوت متوقف — اضغط "تشغيل" لبدء الحجز</span></div>';
 }
 
-// Translate bot log messages into rich activity cards
+// ─── Countdown card management ────────────────────────────────────────────────
+let _countdownCardEl = null;
+let _noApptCardEl    = null;
+
 function routeBotMessage(msg) {
   const m = msg.toLowerCase();
 
-  if (m.includes('page detected: office'))
-    return addActivity('step',    '🏛',  'الصفحة: اختيار السفارة…');
+  // ── Navigation steps ──
+  if (m.includes('page detected: office')) {
+    _noApptCardEl = null; _countdownCardEl = null;
+    return addActivity('step', '🏛', 'الصفحة: اختيار السفارة…');
+  }
   if (m.includes('office selected'))
-    return addActivity('success', '✅',  msg);
-  if (m.includes('page detected: calendar'))
-    return addActivity('step',    '📋',  'الصفحة: اختيار نوع الحجز…');
-  if (m.includes('reservation type selected'))
-    return addActivity('success', '✅',  msg);
-  if (m.includes('page detected: persons'))
-    return addActivity('step',    '👤',  'الصفحة: عدد الأشخاص…');
-  if (m.includes('personcount'))
-    return addActivity('success', '✅',  'تم اختيار عدد الأشخاص: 1');
-  if (m.includes('page detected: info'))
-    return addActivity('step',    '📄',  'الصفحة: معلومات — جاري التجاوز…');
-  if (m.includes('page detected: scheduler'))
-    return addActivity('step',    '📅',  'الصفحة: البحث عن مواعيد…');
-  if (m.includes('no appointments'))
-    return addActivity('wait',    '🔄',  msg);
-  if (m.includes('appointment slot selected'))
-    return addActivity('found',   '🎯',  '✅ تم العثور على موعد! ' + msg.split('→')[1]?.trim());
-  if (m.includes('page detected: form'))
-    return addActivity('step',    '📝',  'الصفحة: ملء البيانات الشخصية…');
-  if (m.includes('form filled'))
-    return addActivity('success', '✅',  'تم ملء جميع البيانات');
-  if (m.includes('captcha solved'))
-    return addActivity('success', '🔓',  'تم حل الكابتشا: ' + msg.split('→')[1]?.trim());
-  if (m.includes('no openai key') || m.includes('manual captcha'))
-    return addActivity('wait',    '⌨️',  'أدخل الكابتشا يدوياً');
-  if (m.includes('booking confirmed'))
-    return addActivity('confirm', '🎉',  'تم الحجز بنجاح!');
-  if (m.includes('error'))
-    return addActivity('error',   '❌',  msg);
+    return addActivity('success', '✅', msg);
 
-  // Default
-  addActivity('step', '•', msg);
+  if (m.includes('page detected: calendar')) {
+    return addActivity('step', '📋', 'الصفحة: اختيار نوع الحجز…');
+  }
+  if (m.includes('reservation type selected'))
+    return addActivity('success', '✅', msg);
+
+  if (m.includes('page detected: persons'))
+    return addActivity('step', '👤', 'الصفحة: عدد الأشخاص…');
+  if (m.includes('personcount'))
+    return addActivity('success', '✅', 'تم اختيار عدد الأشخاص: 1');
+
+  if (m.includes('page detected: info'))
+    return addActivity('step', '📄', 'الصفحة: معلومات — جاري التجاوز…');
+
+  if (m.includes('page detected: scheduler')) {
+    _noApptCardEl = null; _countdownCardEl = null;
+    return addActivity('step', '📅', 'الصفحة: البحث عن مواعيد متاحة…');
+  }
+
+  // ── No appointments + countdown ──
+  if (m.startsWith('no_appointments:')) {
+    const secs = parseInt(msg.split(':')[1]) || 30;
+    _noApptCardEl = addActivityCard('wait', '❌', 'لا توجد مواعيد متاحة حالياً');
+    _countdownCardEl = addActivityCard('wait', '⏱', 'إعادة البحث خلال ' + secs + ' ثانية…');
+    return;
+  }
+  if (m.startsWith('countdown:')) {
+    const secs = parseInt(msg.split(':')[1]) || 0;
+    if (_countdownCardEl) {
+      _countdownCardEl.querySelector('.a-text').textContent =
+        'إعادة البحث خلال ' + secs + ' ثانية…';
+    }
+    return;
+  }
+
+  // ── Appointment found ──
+  if (m.includes('appointment slot selected')) {
+    _noApptCardEl = null; _countdownCardEl = null;
+    const slotTime = msg.split('→')[1]?.trim() || '';
+    return addActivity('found', '🎯', 'تم العثور على موعد! ' + slotTime);
+  }
+
+  // ── Form ──
+  if (m.includes('page detected: form'))
+    return addActivity('step', '📝', 'الصفحة: ملء البيانات الشخصية…');
+  if (m.includes('form filled'))
+    return addActivity('success', '✅', 'تم ملء جميع البيانات');
+  if (m.includes('captcha solved'))
+    return addActivity('success', '🔓', 'تم حل الكابتشا: ' + msg.split('→')[1]?.trim());
+  if (m.includes('no openai key') || m.includes('manual captcha'))
+    return addActivity('wait', '⌨️', 'أدخل الكابتشا يدوياً في نافذة البوت');
+
+  // ── Confirmation ──
+  if (m.includes('booking confirmed'))
+    return addActivity('confirm', '🎉', 'تم الحجز بنجاح!');
+
+  // ── Errors ──
+  if (m.includes('error') || m.includes('not found'))
+    return addActivity('error', '❌', msg);
+}
+
+// addActivityCard returns the DOM element (for updating)
+function addActivityCard(type, icon, text) {
+  const feed = document.getElementById('activity-feed');
+  if (!feed) return null;
+  const idle = feed.querySelector('.activity-idle');
+  if (idle) idle.remove();
+
+  const time = new Date().toLocaleTimeString('ar-EG', { hour12: false });
+  const el = document.createElement('div');
+  el.className = 'activity-msg ' + (type || 'step');
+  el.innerHTML =
+    `<span class="a-icon">${icon}</span>` +
+    `<span class="a-body">` +
+    `<span class="a-text">${escapeHtml(text)}</span>` +
+    `<span class="a-time">${time}</span>` +
+    `</span>`;
+  feed.appendChild(el);
+  feed.scrollTop = feed.scrollHeight;
+  return el;
 }
 
 // ─── Status polling ───────────────────────────────────────────────────────────
