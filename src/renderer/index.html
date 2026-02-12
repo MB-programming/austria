@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Austria Appointment Bot</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-icon">🇦🇹</div>
+        <div class="logo-text">
+          <span class="logo-title">Austria Bot</span>
+          <span class="logo-sub">Appointment Automation</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-btn active" data-tab="bot">
+          <span class="nav-icon">🤖</span>
+          <span>التشغيل</span>
+        </button>
+        <button class="nav-btn" data-tab="person">
+          <span class="nav-icon">👤</span>
+          <span>بيانات الشخص</span>
+        </button>
+        <button class="nav-btn" data-tab="settings">
+          <span class="nav-icon">⚙️</span>
+          <span>الإعدادات</span>
+        </button>
+        <button class="nav-btn" data-tab="logs">
+          <span class="nav-icon">📋</span>
+          <span>السجل</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-badge" id="bot-status-badge">
+          <span class="status-dot stopped"></span>
+          <span id="status-text">متوقف</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+
+      <!-- ===== BOT TAB ===== -->
+      <section class="tab active" id="tab-bot">
+        <div class="tab-header">
+          <h1>لوحة التحكم</h1>
+          <p class="subtitle">تشغيل وإيقاف البوت</p>
+        </div>
+
+        <div class="bot-panel">
+          <div class="bot-card">
+            <div class="bot-visual" id="bot-animation">
+              <div class="bot-ring"></div>
+              <div class="bot-icon">🤖</div>
+            </div>
+            <div class="bot-info">
+              <h2 id="bot-state-label">البوت متوقف</h2>
+              <p id="bot-state-desc">اضغط "تشغيل" لبدء الحجز التلقائي</p>
+            </div>
+            <div class="bot-actions">
+              <button class="btn btn-start" id="start-btn" onclick="startBot()">
+                <span>▶ تشغيل البوت</span>
+              </button>
+              <button class="btn btn-stop" id="stop-btn" onclick="stopBot()" disabled>
+                <span>⏹ إيقاف</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="info-cards">
+            <div class="info-card">
+              <div class="info-icon">🌐</div>
+              <div class="info-body">
+                <span class="info-label">الموقع المستهدف</span>
+                <span class="info-value" id="display-url">appointment.bmeia.gv.at</span>
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="info-icon">👤</div>
+              <div class="info-body">
+                <span class="info-label">الاسم</span>
+                <span class="info-value" id="display-name">—</span>
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="info-icon">🔑</div>
+              <div class="info-body">
+                <span class="info-label">OpenAI API</span>
+                <span class="info-value" id="display-api">غير مضبوط</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== PERSON TAB ===== -->
+      <section class="tab" id="tab-person">
+        <div class="tab-header">
+          <h1>بيانات الشخص</h1>
+          <p class="subtitle">ملء بيانات الشخص في الفورم</p>
+        </div>
+
+        <form class="form-grid" id="person-form">
+          <div class="form-section">
+            <h3 class="section-title">البيانات الأساسية</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>اللقب (Lastname)</label>
+                <input type="text" id="p-lastname" placeholder="Kelta" />
+              </div>
+              <div class="form-group">
+                <label>الاسم الأول (Firstname)</label>
+                <input type="text" id="p-firstname" placeholder="Mena" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>تاريخ الميلاد (MM/DD/YYYY)</label>
+                <input type="text" id="p-dob" placeholder="01/15/1995" />
+              </div>
+              <div class="form-group">
+                <label>الجنس</label>
+                <select id="p-sex">
+                  <option value="Male">ذكر (Male)</option>
+                  <option value="Female">أنثى (Female)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>اللقب عند الميلاد</label>
+                <input type="text" id="p-lastname-birth" placeholder="نفس اللقب" />
+              </div>
+              <div class="form-group">
+                <label>مكان الميلاد</label>
+                <input type="text" id="p-place-birth" placeholder="GIZA" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="section-title">العنوان</h3>
+            <div class="form-row">
+              <div class="form-group full">
+                <label>الشارع والعنوان</label>
+                <input type="text" id="p-street" placeholder="5B AlSafa Third District Ismailia" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>الرمز البريدي</label>
+                <input type="text" id="p-postcode" placeholder="41511" />
+              </div>
+              <div class="form-group">
+                <label>المدينة</label>
+                <input type="text" id="p-city" placeholder="Ismailia" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>الدولة (كود)</label>
+                <input type="number" id="p-country-code" placeholder="65 (مصر)" />
+              </div>
+              <div class="form-group">
+                <label>الدولة (اسم)</label>
+                <input type="text" id="p-country" placeholder="EGYPT" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="section-title">التواصل</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>رقم الهاتف</label>
+                <input type="tel" id="p-telephone" placeholder="01222112819" />
+              </div>
+              <div class="form-group">
+                <label>البريد الإلكتروني</label>
+                <input type="email" id="p-email" placeholder="example@email.com" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="section-title">جواز السفر والجنسية</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>رقم جواز السفر</label>
+                <input type="text" id="p-passport-num" placeholder="A35945487" />
+              </div>
+              <div class="form-group">
+                <label>الجنسية (كود)</label>
+                <input type="number" id="p-nationality-code" placeholder="71 (مصر)" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>الجنسية (اسم)</label>
+                <input type="text" id="p-nationality" placeholder="EGYPT" />
+              </div>
+              <div class="form-group">
+                <label>تاريخ إصدار الجواز (MM/DD/YYYY)</label>
+                <input type="text" id="p-passport-issue" placeholder="11/29/2023" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>تاريخ انتهاء الجواز (MM/DD/YYYY)</label>
+                <input type="text" id="p-passport-expiry" placeholder="11/28/2030" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-save" onclick="savePerson()">💾 حفظ البيانات</button>
+            <span class="save-indicator" id="person-saved"></span>
+          </div>
+        </form>
+      </section>
+
+      <!-- ===== SETTINGS TAB ===== -->
+      <section class="tab" id="tab-settings">
+        <div class="tab-header">
+          <h1>الإعدادات</h1>
+          <p class="subtitle">إعدادات API والبوت</p>
+        </div>
+
+        <form class="form-grid" id="settings-form">
+          <div class="form-section">
+            <h3 class="section-title">OpenAI API (لحل الكابتشا)</h3>
+            <div class="form-row">
+              <div class="form-group full">
+                <label>مفتاح OpenAI API Key</label>
+                <div class="input-with-toggle">
+                  <input type="password" id="s-openai-key" placeholder="sk-proj-..." />
+                  <button type="button" class="toggle-visibility" onclick="toggleApiVisibility()">👁</button>
+                </div>
+                <small class="hint">مطلوب لحل الكابتشا تلقائيًا باستخدام GPT-4o</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="section-title">إعدادات البوت</h3>
+            <div class="form-row">
+              <div class="form-group full">
+                <label>الرابط المستهدف</label>
+                <input type="url" id="s-target-url" placeholder="https://appointment.bmeia.gv.at/" />
+                <small class="hint">رابط موقع الحجز (اتركه فارغًا للرابط الافتراضي)</small>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>تأخير التنقل (ميلي ثانية)</label>
+                <input type="number" id="s-step-delay" placeholder="1000" min="500" max="5000" />
+              </div>
+              <div class="form-group">
+                <label>وقت إعادة المحاولة (ميلي ثانية)</label>
+                <input type="number" id="s-stall-ms" placeholder="2000" min="1000" max="10000" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>أقصى محاولات إعادة الضغط</label>
+                <input type="number" id="s-retry-limit" placeholder="10" min="1" max="50" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-save" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+            <span class="save-indicator" id="settings-saved"></span>
+          </div>
+        </form>
+      </section>
+
+      <!-- ===== LOGS TAB ===== -->
+      <section class="tab" id="tab-logs">
+        <div class="tab-header">
+          <h1>سجل النشاط</h1>
+          <p class="subtitle">متابعة ما يفعله البوت</p>
+        </div>
+        <div class="logs-toolbar">
+          <button class="btn btn-sm" onclick="clearLogs()">🗑 مسح السجل</button>
+        </div>
+        <div class="logs-container" id="logs-container">
+          <div class="log-empty">لا يوجد نشاط بعد. قم بتشغيل البوت أولًا.</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
