@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orbtasoft — Appointment Automation</title>
-  <meta name="description" content="Orbtasoft automates your appointment booking — available for Windows, macOS, and Android." />
+  <title>Orbtasoft — أتمتة الحجز</title>
+  <meta name="description" data-i18n="meta.desc" content="Orbtasoft يُؤتمت حجز مواعيدك — متاح لـ Windows و macOS." />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -62,7 +62,7 @@
       -webkit-text-fill-color: transparent;
     }
 
-    .nav-links { display: flex; gap: 28px; align-items: center; }
+    .nav-links { display: flex; gap: 20px; align-items: center; }
     .nav-link {
       color: var(--muted);
       text-decoration: none;
@@ -81,6 +81,21 @@
     }
     .nav-link.cta:hover { background: rgba(124,58,237,.3); }
 
+    /* Language toggle */
+    .lang-btn {
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+      letter-spacing: .4px;
+    }
+    .lang-btn:hover { background: rgba(255,255,255,.12); color: var(--text); }
+
     /* ── HERO ─────────────────────────────────────────────── */
     .hero {
       min-height: 100vh;
@@ -97,11 +112,9 @@
     .hero::before {
       content: '';
       position: absolute;
-      top: 5%;
-      left: 50%;
+      top: 5%; left: 50%;
       transform: translateX(-50%);
-      width: 800px;
-      height: 800px;
+      width: 800px; height: 800px;
       background: radial-gradient(circle, rgba(124,58,237,.14) 0%, transparent 68%);
       pointer-events: none;
     }
@@ -129,19 +142,20 @@
       background: linear-gradient(160deg, #fff 35%, #a78bfa);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      white-space: pre-line;
     }
 
     .hero > p {
       font-size: clamp(15px, 2vw, 18px);
       color: var(--muted);
-      max-width: 520px;
+      max-width: 540px;
       margin: 0 auto 52px;
     }
 
     /* ── DOWNLOAD CARDS ───────────────────────────────────── */
     .download-section {
       width: 100%;
-      max-width: 920px;
+      max-width: 640px;
     }
 
     .download-heading {
@@ -154,7 +168,7 @@
 
     .download-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 18px;
     }
 
@@ -190,7 +204,6 @@
     }
     .dl-icon.windows { background: rgba(0,120,212,.15); color: #60a5fa; }
     .dl-icon.mac     { background: rgba(255,255,255,.07); color: #e2e8f0; }
-    .dl-icon.android { background: rgba(61,220,132,.12); color: #34d399; }
 
     .dl-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 3px; }
     .dl-card .version { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
@@ -213,13 +226,10 @@
       z-index: 1;
     }
     .dl-btn:active { transform: scale(.97); }
-
     .dl-btn.windows { background: rgba(0,120,212,.2); border: 1px solid rgba(0,120,212,.4); color: #93c5fd; }
     .dl-btn.windows:hover { background: rgba(0,120,212,.34); }
     .dl-btn.mac     { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); color: #e2e8f0; }
     .dl-btn.mac:hover { background: rgba(255,255,255,.14); }
-    .dl-btn.android { background: rgba(61,220,132,.12); border: 1px solid rgba(61,220,132,.3); color: #6ee7b7; }
-    .dl-btn.android:hover { background: rgba(61,220,132,.22); }
 
     .dl-meta {
       margin-top: 9px;
@@ -270,8 +280,9 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 24px 20px;
-      text-align: left;
+      text-align: right;
     }
+    html[dir="ltr"] .feature-card { text-align: left; }
 
     .feature-icon {
       width: 40px; height: 40px;
@@ -323,7 +334,8 @@
     .activate-card h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
     .activate-card > p { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
 
-    .act-form { display: flex; flex-direction: column; gap: 14px; text-align: left; }
+    .act-form { display: flex; flex-direction: column; gap: 14px; text-align: right; }
+    html[dir="ltr"] .act-form { text-align: left; }
 
     .act-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
@@ -349,14 +361,17 @@
       outline: none;
       transition: border-color .2s;
       font-family: inherit;
+      text-align: right;
     }
+    html[dir="ltr"] .act-field input,
+    html[dir="ltr"] .act-field select,
+    html[dir="ltr"] .act-field textarea { text-align: left; }
 
     .act-field input:focus,
     .act-field select:focus,
     .act-field textarea:focus { border-color: var(--accent); }
 
     .act-field textarea { resize: vertical; min-height: 88px; }
-
     .act-field select option { background: #1a1a2e; }
 
     .act-submit {
@@ -377,7 +392,6 @@
       gap: 8px;
       text-decoration: none;
     }
-
     .act-submit:hover { opacity: .9; }
     .act-submit:active { transform: scale(.98); }
 
@@ -410,14 +424,10 @@
       .download-grid  { grid-template-columns: 1fr; }
       .act-form-row   { grid-template-columns: 1fr; }
       nav { padding: 0 20px; }
-      .nav-links { gap: 16px; }
+      .nav-links { gap: 12px; }
       .activate-card { padding: 32px 22px; }
       footer { flex-direction: column; gap: 10px; text-align: center; }
       .footer-links { justify-content: center; }
-    }
-
-    @media (min-width: 681px) and (max-width: 880px) {
-      .download-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
     /* success toast */
@@ -441,7 +451,7 @@
 <body>
 
   <!-- Toast -->
-  <div class="toast" id="toast">✓ Request sent — we'll email you shortly!</div>
+  <div class="toast" id="toast">✓ تم الإرسال — سنتواصل معك على بريدك قريباً!</div>
 
   <!-- NAV -->
   <nav>
@@ -453,9 +463,10 @@
       <span class="brand-name">Orbtasoft</span>
     </a>
     <div class="nav-links">
-      <a class="nav-link" href="#download">Download</a>
-      <a class="nav-link" href="privacy.html">Privacy</a>
-      <a class="nav-link cta" href="#activate">Get Activation Key</a>
+      <a class="nav-link" href="#download" data-i18n="nav.download">التحميل</a>
+      <a class="nav-link" href="privacy.html" data-i18n="nav.privacy">الخصوصية</a>
+      <a class="nav-link cta" href="#activate" data-i18n="nav.activate">احصل على مفتاح التفعيل</a>
+      <button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button>
     </div>
   </nav>
 
@@ -463,14 +474,15 @@
   <section class="hero">
     <div class="hero-badge">
       <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-      Automation Software
+      <span data-i18n="hero.badge">برنامج الأتمتة</span>
     </div>
 
-    <h1>Book appointments<br/>without the wait</h1>
-    <p>Orbtasoft automates your appointment booking — fast, reliable, and running entirely on your device.</p>
+    <h1 data-i18n="hero.h1">احجز مواعيدك
+بدون انتظار</h1>
+    <p data-i18n="hero.p">Orbtasoft يُؤتمت حجز مواعيدك — سريع، موثوق، يعمل على جهازك فقط.</p>
 
     <div class="download-section" id="download">
-      <p class="download-heading">Choose your platform</p>
+      <p class="download-heading" data-i18n="dl.heading">اختر منصتك</p>
       <div class="download-grid">
 
         <!-- Windows -->
@@ -480,15 +492,15 @@
               <path d="M3 5.557L9.963 4.6v6.712H3V5.557zm0 12.886L9.963 19.4v-6.65H3v5.693zm7.472 1.07L21 21v-8.288h-10.528v6.8zm0-13.913v6.712H21V3L10.472 5.6z"/>
             </svg>
           </div>
-          <h3>Windows</h3>
-          <p class="version">Windows 10 / 11 &nbsp;·&nbsp; x64</p>
+          <h3 data-i18n="win.name">Windows</h3>
+          <p class="version" data-i18n="win.ver">Windows 10 / 11 &nbsp;·&nbsp; x64</p>
           <a class="dl-btn windows" href="downloads/Orbtasoft-Setup-Windows.exe" download="Orbtasoft-Setup-Windows.exe">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download .exe
+            <span data-i18n="win.btn">تحميل .exe</span>
           </a>
           <p class="dl-meta">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Installer &middot; ~90 MB
+            <span data-i18n="win.meta">مثبّت · ~90 ميجا</span>
           </p>
         </div>
 
@@ -499,34 +511,15 @@
               <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.15-2.18 1.27-2.16 3.8.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.37 2.78M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
             </svg>
           </div>
-          <h3>macOS</h3>
-          <p class="version">macOS 12+ &nbsp;·&nbsp; Intel &amp; Apple Silicon</p>
+          <h3 data-i18n="mac.name">macOS</h3>
+          <p class="version" data-i18n="mac.ver">macOS 12+ &nbsp;·&nbsp; Intel &amp; Apple Silicon</p>
           <a class="dl-btn mac" href="downloads/Orbtasoft-Mac.dmg" download="Orbtasoft-Mac.dmg">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download .dmg
+            <span data-i18n="mac.btn">تحميل .dmg</span>
           </a>
           <p class="dl-meta">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Disk Image &middot; ~95 MB
-          </p>
-        </div>
-
-        <!-- Android -->
-        <div class="dl-card">
-          <div class="dl-icon android">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C7.01 3.07 6 4.63 6 6.5h12c0-1.87-1.01-3.43-2.47-4.34zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/>
-            </svg>
-          </div>
-          <h3>Android</h3>
-          <p class="version">Android 8.0+ &nbsp;·&nbsp; ARM64</p>
-          <a class="dl-btn android" href="downloads/Orbtasoft-Android.apk" download="Orbtasoft-Android.apk">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download .apk
-          </a>
-          <p class="dl-meta">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            APK &middot; ~45 MB
+            <span data-i18n="mac.meta">Disk Image · ~95 ميجا</span>
           </p>
         </div>
 
@@ -536,57 +529,57 @@
 
   <!-- FEATURES -->
   <section class="features">
-    <p class="section-label">Features</p>
-    <h2 class="section-title">Why Orbtasoft?</h2>
-    <p class="section-sub">Everything you need to secure your appointment without the manual hassle</p>
+    <p class="section-label" data-i18n="feat.label">المميزات</p>
+    <h2 class="section-title" data-i18n="feat.title">لماذا Orbtasoft؟</h2>
+    <p class="section-sub" data-i18n="feat.sub">كل ما تحتاجه لتأمين موعدك بدون عناء يدوي</p>
 
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         </div>
-        <h4>Instant Detection</h4>
-        <p>Monitors availability 24/7 and grabs a slot the moment one opens up.</p>
+        <h4 data-i18n="feat1.title">كشف فوري</h4>
+        <p data-i18n="feat1.p">يراقب التوفر على مدار الساعة ويحجز المكان فور ظهوره.</p>
       </div>
 
       <div class="feature-card">
         <div class="feature-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         </div>
-        <h4>Auto Form Fill</h4>
-        <p>Fills in all personal information automatically — no typing required during the process.</p>
+        <h4 data-i18n="feat2.title">ملء تلقائي للنموذج</h4>
+        <p data-i18n="feat2.p">يملأ جميع البيانات الشخصية تلقائيًا — بدون كتابة يدوية.</p>
       </div>
 
       <div class="feature-card">
         <div class="feature-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 15h.01M16 15h.01"/></svg>
         </div>
-        <h4>Fully Automated</h4>
-        <p>End-to-end automation from opening the page to completing the booking confirmation.</p>
+        <h4 data-i18n="feat3.title">أتمتة كاملة</h4>
+        <p data-i18n="feat3.p">من فتح الصفحة حتى تأكيد الحجز — بدون أي تدخل يدوي.</p>
       </div>
 
       <div class="feature-card">
         <div class="feature-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
         </div>
-        <h4>Private &amp; Secure</h4>
-        <p>All your data stays on your device. Nothing is sent to external servers.</p>
+        <h4 data-i18n="feat4.title">خصوصية وأمان</h4>
+        <p data-i18n="feat4.p">بياناتك تبقى على جهازك. لا شيء يُرسل للخوادم الخارجية.</p>
       </div>
 
       <div class="feature-card">
         <div class="feature-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
         </div>
-        <h4>Cross Platform</h4>
-        <p>Native apps for Windows, macOS, and Android — pick your device and go.</p>
+        <h4 data-i18n="feat5.title">متعدد المنصات</h4>
+        <p data-i18n="feat5.p">تطبيقات أصلية لـ Windows و macOS — اختر جهازك وابدأ.</p>
       </div>
 
       <div class="feature-card">
         <div class="feature-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/></svg>
         </div>
-        <h4>Configurable Timing</h4>
-        <p>Set retry intervals as low as 0.25 seconds — or as high as 5 minutes. Full control.</p>
+        <h4 data-i18n="feat6.title">توقيت قابل للضبط</h4>
+        <p data-i18n="feat6.p">اضبط فترة إعادة المحاولة من 0.25 ثانية حتى 5 دقائق — تحكم كامل.</p>
       </div>
     </div>
   </section>
@@ -600,56 +593,55 @@
           <path d="m21 2-9.6 9.6M15.5 7.5l3 3L22 7l-3-3"/>
         </svg>
       </div>
-      <h2>Request an Activation Key</h2>
-      <p>Fill in your details and we'll send your personal activation key to your email.</p>
+      <h2 data-i18n="act.title">طلب مفتاح تفعيل</h2>
+      <p data-i18n="act.p">أدخل بياناتك وسنُرسل مفتاحك الشخصي إلى بريدك الإلكتروني.</p>
 
       <form class="act-form" id="act-form"
             action="mailto:sales@orbtasoft.com"
             method="GET"
-            enctype="text/plain"
-            onsubmit="handleSubmit(event)">
+            enctype="text/plain">
 
         <div class="act-form-row">
           <div class="act-field">
-            <label>Full Name *</label>
-            <input type="text" name="name" placeholder="John Smith" required />
+            <label data-i18n="lbl.name">الاسم الكامل *</label>
+            <input type="text" id="f-name" placeholder="محمد أحمد" required data-i18n-ph="pl.name" />
           </div>
           <div class="act-field">
-            <label>Email Address *</label>
-            <input type="email" name="email" placeholder="you@example.com" required />
+            <label data-i18n="lbl.email">البريد الإلكتروني *</label>
+            <input type="email" id="f-email" placeholder="email@example.com" required data-i18n-ph="pl.email" />
           </div>
         </div>
 
         <div class="act-form-row">
           <div class="act-field">
-            <label>Phone Number</label>
-            <input type="tel" name="phone" placeholder="+20 10x xxx xxxx" />
+            <label data-i18n="lbl.phone">رقم الهاتف</label>
+            <input type="tel" id="f-phone" placeholder="+20 10x xxx xxxx" data-i18n-ph="pl.phone" />
           </div>
           <div class="act-field">
-            <label>Platform *</label>
-            <select name="platform" required>
-              <option value="" disabled selected>Select platform…</option>
-              <option value="Windows">Windows</option>
-              <option value="macOS">macOS</option>
-              <option value="Android">Android</option>
-              <option value="Multiple">Multiple platforms</option>
+            <label data-i18n="lbl.platform">المنصة *</label>
+            <select id="f-platform" required>
+              <option value="" disabled selected data-i18n="pl.select">اختر منصة…</option>
+              <option value="Windows" data-i18n="opt.win">Windows</option>
+              <option value="macOS" data-i18n="opt.mac">macOS</option>
+              <option value="Multiple" data-i18n="opt.multi">أكثر من منصة</option>
             </select>
           </div>
         </div>
 
         <div class="act-field">
-          <label>Message (optional)</label>
-          <textarea name="message" placeholder="Any additional information…"></textarea>
+          <label data-i18n="lbl.message">رسالة (اختياري)</label>
+          <textarea id="f-message" placeholder="أي معلومات إضافية…" data-i18n-ph="pl.msg"></textarea>
         </div>
 
         <a class="act-submit" id="act-submit" href="#" onclick="submitForm(event)">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          Send Request
+          <span data-i18n="btn.send">إرسال الطلب</span>
         </a>
       </form>
 
       <p class="act-note">
-        We'll reply within 24 hours &nbsp;·&nbsp;
+        <span data-i18n="act.note">سنرد خلال 24 ساعة</span>
+        &nbsp;·&nbsp;
         <a href="mailto:sales@orbtasoft.com">sales@orbtasoft.com</a>
       </p>
     </div>
@@ -657,49 +649,210 @@
 
   <!-- FOOTER -->
   <footer>
-    <span>© 2025 Orbtasoft. All rights reserved.</span>
+    <span data-i18n="footer.copy">© 2025 Orbtasoft. جميع الحقوق محفوظة.</span>
     <div class="footer-links">
-      <a href="privacy.html">Privacy Policy</a>
-      <a href="mailto:sales@orbtasoft.com">Contact</a>
+      <a href="privacy.html" data-i18n="footer.privacy">سياسة الخصوصية</a>
+      <a href="mailto:sales@orbtasoft.com" data-i18n="footer.contact">اتصل بنا</a>
     </div>
   </footer>
 
   <script>
+    // ─── i18n ─────────────────────────────────────────────────────────────────
+    const T = {
+      ar: {
+        'meta.desc':     'Orbtasoft يُؤتمت حجز مواعيدك — متاح لـ Windows و macOS.',
+        'nav.download':  'التحميل',
+        'nav.privacy':   'الخصوصية',
+        'nav.activate':  'احصل على مفتاح التفعيل',
+        'hero.badge':    'برنامج الأتمتة',
+        'hero.h1':       'احجز مواعيدك\nبدون انتظار',
+        'hero.p':        'Orbtasoft يُؤتمت حجز مواعيدك — سريع، موثوق، يعمل على جهازك فقط.',
+        'dl.heading':    'اختر منصتك',
+        'win.name':      'Windows',
+        'win.ver':       'Windows 10 / 11 · x64',
+        'win.btn':       'تحميل .exe',
+        'win.meta':      'مثبّت · ~90 ميجا',
+        'mac.name':      'macOS',
+        'mac.ver':       'macOS 12+ · Intel & Apple Silicon',
+        'mac.btn':       'تحميل .dmg',
+        'mac.meta':      'Disk Image · ~95 ميجا',
+        'feat.label':    'المميزات',
+        'feat.title':    'لماذا Orbtasoft؟',
+        'feat.sub':      'كل ما تحتاجه لتأمين موعدك بدون عناء يدوي',
+        'feat1.title':   'كشف فوري',
+        'feat1.p':       'يراقب التوفر على مدار الساعة ويحجز المكان فور ظهوره.',
+        'feat2.title':   'ملء تلقائي للنموذج',
+        'feat2.p':       'يملأ جميع البيانات الشخصية تلقائيًا — بدون كتابة يدوية.',
+        'feat3.title':   'أتمتة كاملة',
+        'feat3.p':       'من فتح الصفحة حتى تأكيد الحجز — بدون أي تدخل يدوي.',
+        'feat4.title':   'خصوصية وأمان',
+        'feat4.p':       'بياناتك تبقى على جهازك. لا شيء يُرسل للخوادم الخارجية.',
+        'feat5.title':   'متعدد المنصات',
+        'feat5.p':       'تطبيقات أصلية لـ Windows و macOS — اختر جهازك وابدأ.',
+        'feat6.title':   'توقيت قابل للضبط',
+        'feat6.p':       'اضبط فترة إعادة المحاولة من 0.25 ثانية حتى 5 دقائق — تحكم كامل.',
+        'act.title':     'طلب مفتاح تفعيل',
+        'act.p':         'أدخل بياناتك وسنُرسل مفتاحك الشخصي إلى بريدك الإلكتروني.',
+        'lbl.name':      'الاسم الكامل *',
+        'lbl.email':     'البريد الإلكتروني *',
+        'lbl.phone':     'رقم الهاتف',
+        'lbl.platform':  'المنصة *',
+        'lbl.message':   'رسالة (اختياري)',
+        'pl.name':       'محمد أحمد',
+        'pl.email':      'email@example.com',
+        'pl.phone':      '+20 10x xxx xxxx',
+        'pl.select':     'اختر منصة…',
+        'pl.msg':        'أي معلومات إضافية…',
+        'opt.win':       'Windows',
+        'opt.mac':       'macOS',
+        'opt.multi':     'أكثر من منصة',
+        'btn.send':      'إرسال الطلب',
+        'act.note':      'سنرد خلال 24 ساعة',
+        'footer.copy':   '© 2025 Orbtasoft. جميع الحقوق محفوظة.',
+        'footer.privacy':'سياسة الخصوصية',
+        'footer.contact':'اتصل بنا',
+        'toast':         '✓ تم الإرسال — سنتواصل معك على بريدك قريباً!',
+      },
+      en: {
+        'meta.desc':     'Orbtasoft automates your appointment booking — available for Windows and macOS.',
+        'nav.download':  'Download',
+        'nav.privacy':   'Privacy',
+        'nav.activate':  'Get Activation Key',
+        'hero.badge':    'Automation Software',
+        'hero.h1':       'Book appointments\nwithout the wait',
+        'hero.p':        'Orbtasoft automates your appointment booking — fast, reliable, and running entirely on your device.',
+        'dl.heading':    'Choose your platform',
+        'win.name':      'Windows',
+        'win.ver':       'Windows 10 / 11 · x64',
+        'win.btn':       'Download .exe',
+        'win.meta':      'Installer · ~90 MB',
+        'mac.name':      'macOS',
+        'mac.ver':       'macOS 12+ · Intel & Apple Silicon',
+        'mac.btn':       'Download .dmg',
+        'mac.meta':      'Disk Image · ~95 MB',
+        'feat.label':    'Features',
+        'feat.title':    'Why Orbtasoft?',
+        'feat.sub':      'Everything you need to secure your appointment without the manual hassle',
+        'feat1.title':   'Instant Detection',
+        'feat1.p':       'Monitors availability 24/7 and grabs a slot the moment one opens up.',
+        'feat2.title':   'Auto Form Fill',
+        'feat2.p':       'Fills in all personal information automatically — no typing required.',
+        'feat3.title':   'Fully Automated',
+        'feat3.p':       'End-to-end automation from opening the page to booking confirmation.',
+        'feat4.title':   'Private & Secure',
+        'feat4.p':       'All your data stays on your device. Nothing is sent to external servers.',
+        'feat5.title':   'Cross Platform',
+        'feat5.p':       'Native apps for Windows and macOS — pick your device and go.',
+        'feat6.title':   'Configurable Timing',
+        'feat6.p':       'Set retry intervals as low as 0.25 seconds — or as high as 5 minutes.',
+        'act.title':     'Request an Activation Key',
+        'act.p':         "Fill in your details and we'll send your personal activation key to your email.",
+        'lbl.name':      'Full Name *',
+        'lbl.email':     'Email Address *',
+        'lbl.phone':     'Phone Number',
+        'lbl.platform':  'Platform *',
+        'lbl.message':   'Message (optional)',
+        'pl.name':       'John Smith',
+        'pl.email':      'you@example.com',
+        'pl.phone':      '+20 10x xxx xxxx',
+        'pl.select':     'Select platform…',
+        'pl.msg':        'Any additional information…',
+        'opt.win':       'Windows',
+        'opt.mac':       'macOS',
+        'opt.multi':     'Multiple platforms',
+        'btn.send':      'Send Request',
+        'act.note':      "We'll reply within 24 hours",
+        'footer.copy':   '© 2025 Orbtasoft. All rights reserved.',
+        'footer.privacy':'Privacy Policy',
+        'footer.contact':'Contact',
+        'toast':         "✓ Request sent — we'll email you shortly!",
+      }
+    };
+
+    let _lang = localStorage.getItem('orbtasoft_lang') || 'ar';
+
+    function setLang(lang) {
+      _lang = lang;
+      localStorage.setItem('orbtasoft_lang', lang);
+
+      const html = document.documentElement;
+      html.setAttribute('lang', lang);
+      html.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+
+      const dict = T[lang];
+
+      // Update text content
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key] !== undefined) el.textContent = dict[key];
+      });
+
+      // Update placeholders
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const key = el.getAttribute('data-i18n-ph');
+        if (dict[key] !== undefined) el.placeholder = dict[key];
+      });
+
+      // Update select options
+      document.querySelectorAll('option[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key] !== undefined) el.textContent = dict[key];
+      });
+
+      // Update page title & meta description
+      document.title = lang === 'ar'
+        ? 'Orbtasoft — أتمتة الحجز'
+        : 'Orbtasoft — Appointment Automation';
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc && dict['meta.desc']) metaDesc.setAttribute('content', dict['meta.desc']);
+
+      // Lang button label
+      document.getElementById('lang-btn').textContent = lang === 'ar' ? 'EN' : 'عربي';
+
+      // Toast text
+      document.getElementById('toast').textContent = dict['toast'] || '';
+    }
+
+    function toggleLang() {
+      setLang(_lang === 'ar' ? 'en' : 'ar');
+    }
+
+    // ─── Form submit ──────────────────────────────────────────────────────────
     function submitForm(e) {
       e.preventDefault();
-      const form = document.getElementById('act-form');
-
-      // Basic validation
-      const name     = form.querySelector('[name=name]').value.trim();
-      const email    = form.querySelector('[name=email]').value.trim();
-      const platform = form.querySelector('[name=platform]').value;
+      const name     = document.getElementById('f-name').value.trim();
+      const email    = document.getElementById('f-email').value.trim();
+      const platform = document.getElementById('f-platform').value;
 
       if (!name || !email || !platform) {
-        form.querySelector('[name=' + (!name ? 'name' : !email ? 'email' : 'platform') + ']').focus();
+        if (!name)     document.getElementById('f-name').focus();
+        else if (!email) document.getElementById('f-email').focus();
+        else           document.getElementById('f-platform').focus();
         return;
       }
 
-      const phone   = form.querySelector('[name=phone]').value.trim();
-      const message = form.querySelector('[name=message]').value.trim();
+      const phone   = document.getElementById('f-phone').value.trim();
+      const message = document.getElementById('f-message').value.trim();
 
       const body = [
-        'Name: ' + name,
-        'Email: ' + email,
-        'Phone: ' + (phone || '—'),
+        'Name: '     + name,
+        'Email: '    + email,
+        'Phone: '    + (phone || '—'),
         'Platform: ' + platform,
-        'Message: ' + (message || '—'),
+        'Message: '  + (message || '—'),
       ].join('\n');
 
       const subject = encodeURIComponent('Orbtasoft Activation Request — ' + name);
       const bodyEnc = encodeURIComponent(body);
-
       window.location.href = 'mailto:sales@orbtasoft.com?subject=' + subject + '&body=' + bodyEnc;
 
-      // Show toast
       const toast = document.getElementById('toast');
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 4000);
     }
+
+    // Init
+    setLang(_lang);
   </script>
 
 </body>

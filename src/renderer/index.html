@@ -101,34 +101,37 @@
       <nav class="nav">
         <button class="nav-btn active" data-tab="bot">
           <span class="nav-icon"><svg width="18" height="18"><use href="#ic-bot"/></svg></span>
-          <span>التشغيل</span>
+          <span data-i18n="nav.bot">التشغيل</span>
         </button>
         <button class="nav-btn" data-tab="person">
           <span class="nav-icon"><svg width="18" height="18"><use href="#ic-user"/></svg></span>
-          <span>بيانات الشخص</span>
+          <span data-i18n="nav.person">بيانات الشخص</span>
         </button>
         <button class="nav-btn" data-tab="settings">
           <span class="nav-icon"><svg width="18" height="18"><use href="#ic-settings"/></svg></span>
-          <span>الإعدادات</span>
+          <span data-i18n="nav.settings">الإعدادات</span>
         </button>
         <button class="nav-btn" data-tab="logs">
           <span class="nav-icon"><svg width="18" height="18"><use href="#ic-logs"/></svg></span>
-          <span>السجل</span>
+          <span data-i18n="nav.logs">السجل</span>
         </button>
         <button class="nav-btn" data-tab="terms">
           <span class="nav-icon"><svg width="18" height="18"><use href="#ic-shield"/></svg></span>
-          <span>سياسة الاستخدام</span>
+          <span data-i18n="nav.terms">سياسة الاستخدام</span>
         </button>
       </nav>
 
       <div class="sidebar-footer">
         <button class="support-btn" onclick="openSupport()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <span>التواصل مع الدعم</span>
+          <span data-i18n="nav.support">التواصل مع الدعم</span>
         </button>
-        <div class="status-badge" id="bot-status-badge">
-          <span class="status-dot stopped"></span>
-          <span id="status-text">متوقف</span>
+        <div class="sidebar-footer-row">
+          <div class="status-badge" id="bot-status-badge">
+            <span class="status-dot stopped"></span>
+            <span id="status-text" data-i18n="status.stopped">متوقف</span>
+          </div>
+          <button class="lang-toggle" id="lang-toggle" onclick="toggleLang()">EN</button>
         </div>
       </div>
     </aside>
@@ -139,8 +142,8 @@
       <!-- ===== BOT TAB ===== -->
       <section class="tab active" id="tab-bot">
         <div class="tab-header">
-          <h1>لوحة التحكم</h1>
-          <p class="subtitle">تشغيل وإيقاف البوت</p>
+          <h1 data-i18n="bot.title">لوحة التحكم</h1>
+          <p class="subtitle" data-i18n="bot.subtitle">تشغيل وإيقاف البوت</p>
         </div>
 
         <div class="bot-panel">
@@ -157,10 +160,10 @@
             </div>
             <div class="bot-actions">
               <button class="btn btn-start" id="start-btn" onclick="startBot()">
-                <span>&#9654; تشغيل البوت</span>
+                <span data-i18n="btn.start">▶ تشغيل البوت</span>
               </button>
               <button class="btn btn-stop" id="stop-btn" onclick="stopBot()" disabled>
-                <span>&#9632; إيقاف</span>
+                <span data-i18n="btn.stop">■ إيقاف</span>
               </button>
             </div>
           </div>
@@ -169,36 +172,36 @@
             <div class="info-card">
               <div class="info-icon"><svg width="22" height="22"><use href="#ic-building"/></svg></div>
               <div class="info-body">
-                <span class="info-label">المنظمة / الجهة</span>
+                <span class="info-label" data-i18n="info.office">المنظمة / الجهة</span>
                 <span class="info-value" id="display-office">KAIRO</span>
               </div>
             </div>
             <div class="info-card">
               <div class="info-icon"><svg width="22" height="22"><use href="#ic-logs"/></svg></div>
               <div class="info-body">
-                <span class="info-label">نوع الحجز</span>
+                <span class="info-label" data-i18n="info.type">نوع الحجز</span>
                 <span class="info-value" id="display-type">Bachelor</span>
               </div>
             </div>
             <div class="info-card">
               <div class="info-icon"><svg width="22" height="22"><use href="#ic-user"/></svg></div>
               <div class="info-body">
-                <span class="info-label">الاسم</span>
+                <span class="info-label" data-i18n="info.name">الاسم</span>
                 <span class="info-value" id="display-name">—</span>
               </div>
             </div>
             <div class="info-card">
               <div class="info-icon"><svg width="22" height="22"><use href="#ic-refresh"/></svg></div>
               <div class="info-body">
-                <span class="info-label">إعادة البحث</span>
+                <span class="info-label" data-i18n="info.refresh">إعادة البحث</span>
                 <span class="info-value" id="display-refresh">30s</span>
               </div>
             </div>
             <div class="info-card">
               <div class="info-icon"><svg width="22" height="22"><use href="#ic-key"/></svg></div>
               <div class="info-body">
-                <span class="info-label">تفعيل البوت</span>
-                <span class="info-value" id="display-api">غير مضبوط</span>
+                <span class="info-label" data-i18n="info.api">تفعيل البوت</span>
+                <span class="info-value" id="display-api" data-i18n-val="display.api.unset">غير مضبوط</span>
               </div>
             </div>
           </div>
@@ -208,9 +211,9 @@
             <div class="activity-header">
               <span class="activity-title">
                 <svg width="16" height="16" style="vertical-align:middle;margin-left:4px"><use href="#ic-zap"/></svg>
-                النشاط المباشر
+                <span data-i18n="activity.title">النشاط المباشر</span>
               </span>
-              <button class="btn btn-sm btn-clear" onclick="clearActivity()">مسح</button>
+              <button class="btn btn-sm btn-clear" onclick="clearActivity()" data-i18n="btn.clear">مسح</button>
             </div>
             <div class="activity-feed" id="activity-feed">
               <div class="activity-idle">
@@ -226,117 +229,117 @@
       <!-- ===== PERSON TAB ===== -->
       <section class="tab" id="tab-person">
         <div class="tab-header">
-          <h1>بيانات الشخص</h1>
-          <p class="subtitle">ملء بيانات الشخص في الفورم</p>
+          <h1 data-i18n="person.title">بيانات الشخص</h1>
+          <p class="subtitle" data-i18n="person.subtitle">ملء بيانات الشخص في الفورم</p>
         </div>
 
         <form class="form-grid" id="person-form">
           <div class="form-section">
-            <h3 class="section-title">البيانات الأساسية</h3>
+            <h3 class="section-title" data-i18n="person.basic">البيانات الأساسية</h3>
             <div class="form-row">
               <div class="form-group">
-                <label>اللقب (Lastname)</label>
-                <input type="text" id="p-lastname" placeholder="SMITH" />
+                <label data-i18n="p.lastname">اللقب (Lastname)</label>
+                <input type="text" id="p-lastname" placeholder="SMITH" data-i18n-ph="ph.smith" />
               </div>
               <div class="form-group">
-                <label>الاسم الأول (Firstname)</label>
-                <input type="text" id="p-firstname" placeholder="JOHN" />
+                <label data-i18n="p.firstname">الاسم الأول (Firstname)</label>
+                <input type="text" id="p-firstname" placeholder="JOHN" data-i18n-ph="ph.john" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>تاريخ الميلاد (MM/DD/YYYY)</label>
+                <label data-i18n="p.dob">تاريخ الميلاد (MM/DD/YYYY)</label>
                 <input type="text" id="p-dob" placeholder="mm/dd/yyyy" />
               </div>
               <div class="form-group">
-                <label>الجنس</label>
+                <label data-i18n="p.sex">الجنس</label>
                 <select id="p-sex">
-                  <option value="Male">ذكر (Male)</option>
-                  <option value="Female">أنثى (Female)</option>
+                  <option value="Male" data-i18n="p.sex.male">ذكر (Male)</option>
+                  <option value="Female" data-i18n="p.sex.female">أنثى (Female)</option>
                 </select>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>اللقب عند الميلاد</label>
-                <input type="text" id="p-lastname-birth" placeholder="SMITH (نفس اللقب إن لم يتغير)" />
+                <label data-i18n="p.lastname.birth">اللقب عند الميلاد</label>
+                <input type="text" id="p-lastname-birth" placeholder="SMITH" data-i18n-ph="ph.smith" />
               </div>
               <div class="form-group">
-                <label>مكان الميلاد</label>
+                <label data-i18n="p.place.birth">مكان الميلاد</label>
                 <input type="text" id="p-place-birth" placeholder="CAIRO" />
               </div>
             </div>
           </div>
 
           <div class="form-section">
-            <h3 class="section-title">العنوان</h3>
+            <h3 class="section-title" data-i18n="person.address">العنوان</h3>
             <div class="form-row">
               <div class="form-group full">
-                <label>الشارع والعنوان</label>
+                <label data-i18n="p.street">الشارع والعنوان</label>
                 <input type="text" id="p-street" placeholder="123 Main Street" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>الرمز البريدي</label>
+                <label data-i18n="p.postcode">الرمز البريدي</label>
                 <input type="text" id="p-postcode" placeholder="11511" />
               </div>
               <div class="form-group">
-                <label>المدينة</label>
+                <label data-i18n="p.city">المدينة</label>
                 <input type="text" id="p-city" placeholder="CAIRO" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>الدولة (كود)</label>
-                <input type="number" id="p-country-code" placeholder="مثال: 65 (مصر)" />
+                <label data-i18n="p.country.code">الدولة (كود)</label>
+                <input type="number" id="p-country-code" placeholder="65" data-i18n-ph="ph.country.code" />
               </div>
               <div class="form-group">
-                <label>الدولة (اسم)</label>
+                <label data-i18n="p.country">الدولة (اسم)</label>
                 <input type="text" id="p-country" placeholder="EGYPT" />
               </div>
             </div>
           </div>
 
           <div class="form-section">
-            <h3 class="section-title">التواصل</h3>
+            <h3 class="section-title" data-i18n="person.contact">التواصل</h3>
             <div class="form-row">
               <div class="form-group">
-                <label>رقم الهاتف</label>
+                <label data-i18n="p.telephone">رقم الهاتف</label>
                 <input type="tel" id="p-telephone" placeholder="01XXXXXXXXX" />
               </div>
               <div class="form-group">
-                <label>البريد الإلكتروني</label>
+                <label data-i18n="p.email">البريد الإلكتروني</label>
                 <input type="email" id="p-email" placeholder="example@email.com" />
               </div>
             </div>
           </div>
 
           <div class="form-section">
-            <h3 class="section-title">جواز السفر والجنسية</h3>
+            <h3 class="section-title" data-i18n="person.passport">جواز السفر والجنسية</h3>
             <div class="form-row">
               <div class="form-group">
-                <label>رقم جواز السفر</label>
+                <label data-i18n="p.passport.num">رقم جواز السفر</label>
                 <input type="text" id="p-passport-num" placeholder="A00000000" />
               </div>
               <div class="form-group">
-                <label>الجنسية (كود)</label>
-                <input type="number" id="p-nationality-code" placeholder="مثال: 71 (مصر)" />
+                <label data-i18n="p.nationality.code">الجنسية (كود)</label>
+                <input type="number" id="p-nationality-code" placeholder="71" data-i18n-ph="ph.nat.code" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>الجنسية (اسم)</label>
+                <label data-i18n="p.nationality">الجنسية (اسم)</label>
                 <input type="text" id="p-nationality" placeholder="EGYPT" />
               </div>
               <div class="form-group">
-                <label>تاريخ إصدار الجواز (MM/DD/YYYY)</label>
+                <label data-i18n="p.passport.issue">تاريخ إصدار الجواز (MM/DD/YYYY)</label>
                 <input type="text" id="p-passport-issue" placeholder="mm/dd/yyyy" />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>تاريخ انتهاء الجواز (MM/DD/YYYY)</label>
+                <label data-i18n="p.passport.expiry">تاريخ انتهاء الجواز (MM/DD/YYYY)</label>
                 <input type="text" id="p-passport-expiry" placeholder="mm/dd/yyyy" />
               </div>
             </div>
@@ -345,7 +348,7 @@
           <div class="form-actions">
             <button type="button" class="btn btn-save" onclick="savePerson()">
               <svg width="15" height="15" style="vertical-align:middle;margin-left:6px"><use href="#ic-save"/></svg>
-              حفظ البيانات
+              <span data-i18n="btn.save.person">حفظ البيانات</span>
             </button>
             <span class="save-indicator" id="person-saved"></span>
           </div>
@@ -355,18 +358,18 @@
       <!-- ===== SETTINGS TAB ===== -->
       <section class="tab" id="tab-settings">
         <div class="tab-header">
-          <h1>الإعدادات</h1>
-          <p class="subtitle">إعدادات API والبوت</p>
+          <h1 data-i18n="settings.title">الإعدادات</h1>
+          <p class="subtitle" data-i18n="settings.subtitle">إعدادات API والبوت</p>
         </div>
 
         <form class="form-grid" id="settings-form">
           <div class="form-section">
-            <h3 class="section-title">تفعيل البوت</h3>
+            <h3 class="section-title" data-i18n="settings.activation">تفعيل البوت</h3>
             <div class="form-row">
               <div class="form-group full">
-                <label>مفتاح التفعيل</label>
+                <label data-i18n="s.apikey">مفتاح التفعيل</label>
                 <div class="input-with-toggle">
-                  <input type="password" id="s-openai-key" placeholder="أدخل مفتاح التفعيل…" />
+                  <input type="password" id="s-openai-key" placeholder="أدخل مفتاح التفعيل…" data-i18n-ph="ph.apikey" />
                   <button type="button" class="toggle-visibility" onclick="toggleApiVisibility()">
                     <svg width="16" height="16"><use href="#ic-eye"/></svg>
                   </button>
@@ -376,10 +379,10 @@
           </div>
 
           <div class="form-section">
-            <h3 class="section-title">إعدادات البوت</h3>
+            <h3 class="section-title" data-i18n="settings.bot">إعدادات البوت</h3>
             <div class="form-row">
               <div class="form-group">
-                <label>المنظمة / الجهة (Office)</label>
+                <label data-i18n="s.office">المنظمة / الجهة (Office)</label>
                 <input type="text" id="s-office" placeholder="KAIRO" list="office-list" />
                 <datalist id="office-list">
                   <option value="KAIRO">
@@ -390,37 +393,37 @@
                   <option value="RIYADH"><option value="ROM"><option value="TUNIS">
                   <option value="WASHINGTON">
                 </datalist>
-                <small class="hint">الاسم الألماني كما يظهر في الموقع (الافتراضي: KAIRO)</small>
+                <small class="hint" data-i18n="s.office.hint">الاسم الألماني كما يظهر في الموقع (الافتراضي: KAIRO)</small>
               </div>
               <div class="form-group">
-                <label>نوع الحجز (كلمة مفتاحية)</label>
+                <label data-i18n="s.reservation">نوع الحجز (كلمة مفتاحية)</label>
                 <input type="text" id="s-reservation-type" placeholder="Bachelor" />
-                <small class="hint">جزء من اسم نوع الحجز — مثال: Bachelor أو Master أو Visum</small>
+                <small class="hint" data-i18n="s.reservation.hint">جزء من اسم نوع الحجز — مثال: Bachelor أو Master أو Visum</small>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>فترة إعادة البحث عند عدم وجود مواعيد (ثانية)</label>
+                <label data-i18n="s.refresh">فترة إعادة البحث عند عدم وجود مواعيد (ثانية)</label>
                 <input type="number" id="s-refresh-interval" placeholder="30" min="0.25" max="300" step="0.25" />
-                <small class="hint">الافتراضي 30 ثانية</small>
+                <small class="hint" data-i18n="s.refresh.hint">الافتراضي 30 ثانية</small>
               </div>
               <div class="form-group">
-                <label>تأخير الانتقال بين الصفحات (مللي ثانية)</label>
+                <label data-i18n="s.navdelay">تأخير الانتقال بين الصفحات (مللي ثانية)</label>
                 <input type="number" id="s-nav-delay" placeholder="800" min="100" max="5000" />
-                <small class="hint">الوقت قبل الضغط على Next — الافتراضي 800ms</small>
+                <small class="hint" data-i18n="s.navdelay.hint">الوقت قبل الضغط على Next — الافتراضي 800ms</small>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>الرابط المستهدف</label>
+                <label data-i18n="s.url">الرابط المستهدف</label>
                 <input type="url" id="s-target-url" placeholder="https://appointment.bmeia.gv.at/" />
-                <small class="hint">اتركه فارغًا للرابط الافتراضي</small>
+                <small class="hint" data-i18n="s.url.hint">اتركه فارغًا للرابط الافتراضي</small>
               </div>
             </div>
           </div>
 
           <div class="form-section">
-            <h3 class="section-title">صوت الإشعار عند إيجاد موعد</h3>
+            <h3 class="section-title" data-i18n="sound.title">صوت الإشعار عند إيجاد موعد</h3>
             <div class="sound-grid">
 
               <label class="sound-card-label">
@@ -428,7 +431,7 @@
                 <div class="sound-card">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
                   <span class="sound-name">Beep</span>
-                  <span class="sound-desc">ثلاث نبضات</span>
+                  <span class="sound-desc" data-i18n="sound.beep.desc">ثلاث نبضات</span>
                   <button type="button" class="sound-preview" onclick="previewSound('beep')">▶</button>
                 </div>
               </label>
@@ -438,7 +441,7 @@
                 <div class="sound-card">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                   <span class="sound-name">Chime</span>
-                  <span class="sound-desc">نغمة صاعدة</span>
+                  <span class="sound-desc" data-i18n="sound.chime.desc">نغمة صاعدة</span>
                   <button type="button" class="sound-preview" onclick="previewSound('chime')">▶</button>
                 </div>
               </label>
@@ -448,7 +451,7 @@
                 <div class="sound-card">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                   <span class="sound-name">Alert</span>
-                  <span class="sound-desc">تنبيه سريع</span>
+                  <span class="sound-desc" data-i18n="sound.alert.desc">تنبيه سريع</span>
                   <button type="button" class="sound-preview" onclick="previewSound('alert')">▶</button>
                 </div>
               </label>
@@ -458,7 +461,7 @@
                 <div class="sound-card">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                   <span class="sound-name">Ding</span>
-                  <span class="sound-desc">جرس واحد</span>
+                  <span class="sound-desc" data-i18n="sound.ding.desc">جرس واحد</span>
                   <button type="button" class="sound-preview" onclick="previewSound('ding')">▶</button>
                 </div>
               </label>
@@ -467,8 +470,8 @@
                 <input type="radio" name="s-sound" value="custom" class="sound-radio" id="sound-custom-radio" />
                 <div class="sound-card">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  <span class="sound-name">مخصص</span>
-                  <span class="sound-desc">رفع ملف صوتي</span>
+                  <span class="sound-name" data-i18n="sound.custom.name">مخصص</span>
+                  <span class="sound-desc" data-i18n="sound.custom.desc">رفع ملف صوتي</span>
                   <button type="button" class="sound-preview" id="custom-preview-btn" onclick="previewSound('custom')" style="display:none">▶</button>
                 </div>
               </label>
@@ -477,9 +480,9 @@
 
             <div class="form-row" id="custom-file-row" style="display:none;margin-top:12px">
               <div class="form-group full">
-                <label>اختر ملف صوتي من جهازك</label>
+                <label data-i18n="sound.file.label">اختر ملف صوتي من جهازك</label>
                 <input type="file" id="s-custom-sound" accept="audio/*" onchange="loadCustomSound(this)" />
-                <small class="hint">MP3 · WAV · OGG · الحجم الأقصى 8 ميجا</small>
+                <small class="hint" data-i18n="sound.file.hint">MP3 · WAV · OGG · الحجم الأقصى 8 ميجا</small>
                 <span id="custom-sound-name" class="custom-sound-name"></span>
               </div>
             </div>
@@ -488,7 +491,7 @@
           <div class="form-actions">
             <button type="button" class="btn btn-save" onclick="saveSettings()">
               <svg width="15" height="15" style="vertical-align:middle;margin-left:6px"><use href="#ic-save"/></svg>
-              حفظ الإعدادات
+              <span data-i18n="btn.save.settings">حفظ الإعدادات</span>
             </button>
             <span class="save-indicator" id="settings-saved"></span>
           </div>
@@ -498,25 +501,25 @@
       <!-- ===== LOGS TAB ===== -->
       <section class="tab" id="tab-logs">
         <div class="tab-header">
-          <h1>سجل النشاط</h1>
-          <p class="subtitle">متابعة ما يفعله البوت</p>
+          <h1 data-i18n="logs.title">سجل النشاط</h1>
+          <p class="subtitle" data-i18n="logs.subtitle">متابعة ما يفعله البوت</p>
         </div>
         <div class="logs-toolbar">
           <button class="btn btn-sm" onclick="clearLogs()">
             <svg width="14" height="14" style="vertical-align:middle;margin-left:4px"><use href="#ic-trash"/></svg>
-            مسح السجل
+            <span data-i18n="btn.clear.log">مسح السجل</span>
           </button>
         </div>
         <div class="logs-container" id="logs-container">
-          <div class="log-empty">لا يوجد نشاط بعد. قم بتشغيل البوت أولًا.</div>
+          <div class="log-empty" data-i18n="log.empty">لا يوجد نشاط بعد. قم بتشغيل البوت أولًا.</div>
         </div>
       </section>
 
       <!-- ===== TERMS TAB ===== -->
       <section class="tab" id="tab-terms">
         <div class="tab-header">
-          <h1>Terms of Use</h1>
-          <p class="subtitle">Usage Policy — سياسة الاستخدام</p>
+          <h1 data-i18n="terms.title">شروط الاستخدام</h1>
+          <p class="subtitle" data-i18n="terms.subtitle">سياسة الاستخدام</p>
         </div>
         <div class="terms-content">
           <div class="terms-card">

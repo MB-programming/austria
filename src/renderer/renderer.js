@@ -1,5 +1,273 @@
 'use strict';
 
+// ─── i18n ─────────────────────────────────────────────────────────────────────
+const I18N = {
+  ar: {
+    // nav
+    'nav.bot':      'التشغيل',           'nav.person':   'بيانات الشخص',
+    'nav.settings': 'الإعدادات',         'nav.logs':     'السجل',
+    'nav.terms':    'سياسة الاستخدام',   'nav.support':  'التواصل مع الدعم',
+    // bot tab
+    'bot.title':    'لوحة التحكم',       'bot.subtitle': 'تشغيل وإيقاف البوت',
+    'bot.stopped.label': 'البوت متوقف',
+    'bot.stopped.desc':  'اضغط "تشغيل" لبدء الحجز التلقائي',
+    'bot.running.label': 'البوت يعمل الآن',
+    'bot.running.desc':  'جاري البحث عن موعد وإتمام الحجز…',
+    'btn.start':    '▶ تشغيل البوت',     'btn.stop':     '■ إيقاف',
+    'status.running':'يعمل',             'status.stopped':'متوقف',
+    // info cards
+    'info.office':  'المنظمة / الجهة',   'info.type':    'نوع الحجز',
+    'info.name':    'الاسم',             'info.refresh': 'إعادة البحث',
+    'info.api':     'تفعيل البوت',
+    'display.api.set':   'مضبوط ✓',      'display.api.unset': 'غير مضبوط',
+    // activity
+    'activity.title': 'النشاط المباشر',  'btn.clear': 'مسح',
+    'activity.idle':  'البوت متوقف — اضغط "تشغيل" لبدء الحجز',
+    // person
+    'person.title':   'بيانات الشخص',   'person.subtitle': 'ملء بيانات الشخص في الفورم',
+    'person.basic':   'البيانات الأساسية', 'person.address': 'العنوان',
+    'person.contact': 'التواصل',         'person.passport': 'جواز السفر والجنسية',
+    'p.lastname':     'اللقب (Lastname)', 'p.firstname':    'الاسم الأول (Firstname)',
+    'p.dob':          'تاريخ الميلاد (MM/DD/YYYY)',
+    'p.sex':          'الجنس',           'p.sex.male': 'ذكر (Male)', 'p.sex.female': 'أنثى (Female)',
+    'p.lastname.birth': 'اللقب عند الميلاد', 'p.place.birth': 'مكان الميلاد',
+    'p.street':       'الشارع والعنوان', 'p.postcode': 'الرمز البريدي',
+    'p.city':         'المدينة',         'p.country.code': 'الدولة (كود)',
+    'p.country':      'الدولة (اسم)',    'p.telephone': 'رقم الهاتف',
+    'p.email':        'البريد الإلكتروني',
+    'p.passport.num': 'رقم جواز السفر',  'p.nationality.code': 'الجنسية (كود)',
+    'p.nationality':  'الجنسية (اسم)',
+    'p.passport.issue':  'تاريخ إصدار الجواز (MM/DD/YYYY)',
+    'p.passport.expiry': 'تاريخ انتهاء الجواز (MM/DD/YYYY)',
+    'btn.save.person': 'حفظ البيانات',
+    // settings
+    'settings.title':      'الإعدادات',   'settings.subtitle': 'إعدادات API والبوت',
+    'settings.activation': 'تفعيل البوت', 'settings.bot':      'إعدادات البوت',
+    's.apikey':   'مفتاح التفعيل',
+    's.office':   'المنظمة / الجهة (Office)',
+    's.office.hint': 'الاسم الألماني كما يظهر في الموقع (الافتراضي: KAIRO)',
+    's.reservation': 'نوع الحجز (كلمة مفتاحية)',
+    's.reservation.hint': 'جزء من اسم نوع الحجز — مثال: Bachelor أو Master أو Visum',
+    's.refresh': 'فترة إعادة البحث عند عدم وجود مواعيد (ثانية)',
+    's.refresh.hint': 'الافتراضي 30 ثانية',
+    's.navdelay': 'تأخير الانتقال بين الصفحات (مللي ثانية)',
+    's.navdelay.hint': 'الوقت قبل الضغط على Next — الافتراضي 800ms',
+    's.url':      'الرابط المستهدف',
+    's.url.hint': 'اتركه فارغًا للرابط الافتراضي',
+    // sound
+    'sound.title':       'صوت الإشعار عند إيجاد موعد',
+    'sound.beep.desc':   'ثلاث نبضات',    'sound.chime.desc': 'نغمة صاعدة',
+    'sound.alert.desc':  'تنبيه سريع',    'sound.ding.desc':  'جرس واحد',
+    'sound.custom.name': 'مخصص',          'sound.custom.desc':'رفع ملف صوتي',
+    'sound.file.label':  'اختر ملف صوتي من جهازك',
+    'sound.file.hint':   'MP3 · WAV · OGG · الحجم الأقصى 8 ميجا',
+    'btn.save.settings': 'حفظ الإعدادات',
+    // logs
+    'logs.title':    'سجل النشاط',        'logs.subtitle': 'متابعة ما يفعله البوت',
+    'btn.clear.log': 'مسح السجل',
+    'log.empty':     'لا يوجد نشاط بعد. قم بتشغيل البوت أولًا.',
+    // terms
+    'terms.title':   'شروط الاستخدام',   'terms.subtitle': 'سياسة الاستخدام',
+    // placeholders
+    'ph.apikey':     'أدخل مفتاح التفعيل…',
+    'ph.smith':      'SMITH',             'ph.john':       'JOHN',
+    'ph.country.code': 'مثال: 65 (مصر)', 'ph.nat.code':  'مثال: 71 (مصر)',
+    // dynamic messages
+    'msg.mode.electron':  'وضع Electron',
+    'msg.mode.browser':   'وضع المتصفح (localStorage)',
+    'msg.saved.person':   'تم حفظ بيانات الشخص: ',
+    'msg.save.error':     'خطأ في الحفظ: ',
+    'msg.saved.settings': 'تم حفظ الإعدادات',
+    'msg.load.error':     'خطأ في تحميل الإعدادات: ',
+    'msg.missing':        '✕ بيانات مطلوبة ناقصة: ',
+    'msg.fill.all':       'اذهب لتبويب "البيانات الشخصية" واملأ جميع الحقول ثم اضغط حفظ',
+    'msg.no.key':         'تحذير: مفتاح التفعيل غير مضبوط — الكابتشا يدوي',
+    'msg.bot.started':    'تم تشغيل البوت ← ',
+    'msg.bot.already':    'البوت يعمل بالفعل',
+    'msg.bot.error':      'خطأ في التشغيل: ',
+    'msg.browser.mode':   'وضع المتصفح — الأتمتة الكاملة تحتاج تطبيق Desktop',
+    'msg.open.manual':    'افتح الموقع يدوياً: ',
+    'msg.browser.no.auto':'وضع المتصفح: الأتمتة غير متاحة',
+    'msg.stop.error':     'خطأ في الإيقاف: ',
+    'msg.window.closed':  'نافذة البوت أُغلقت',
+    'msg.file.big':       'حجم الملف أكبر من 8 ميجا — اختر ملفاً أصغر',
+    // activity messages
+    'act.loading':     'البوت انطلق — جاري تحميل الموقع…',
+    'act.office.page': 'الصفحة: اختيار المنظمة / الجهة…',
+    'act.calendar':    'الصفحة: اختيار نوع الحجز…',
+    'act.persons':     'الصفحة: عدد الأشخاص…',
+    'act.persons.ok':  'تم اختيار عدد الأشخاص: 1',
+    'act.info':        'الصفحة: معلومات — جاري التجاوز…',
+    'act.scheduler':   'الصفحة: البحث عن مواعيد متاحة…',
+    'act.no.appts':    'لا توجد مواعيد متاحة حالياً',
+    'act.retry':       'إعادة البحث خلال ',
+    'act.retry.unit':  ' ثانية…',
+    'act.found':       'تم العثور على موعد! ',
+    'act.form':        'الصفحة: ملء البيانات الشخصية…',
+    'act.form.done':   'تم ملء جميع البيانات',
+    'act.captcha.ok':  'تم حل الكابتشا: ',
+    'act.captcha.manual': 'أدخل الكابتشا يدوياً في نافذة البوت',
+    'act.booked':      'تم الحجز بنجاح!',
+    'act.bot.stopped': 'تم إيقاف البوت',
+    'act.idle':        'البوت متوقف — اضغط "تشغيل" لبدء الحجز',
+  },
+  en: {
+    // nav
+    'nav.bot':      'Control',            'nav.person':   'Personal Data',
+    'nav.settings': 'Settings',           'nav.logs':     'Logs',
+    'nav.terms':    'Terms of Use',       'nav.support':  'Contact Support',
+    // bot tab
+    'bot.title':    'Dashboard',          'bot.subtitle': 'Start and Stop the Bot',
+    'bot.stopped.label': 'Bot Stopped',
+    'bot.stopped.desc':  'Press "Start" to begin automatic booking',
+    'bot.running.label': 'Bot is Running',
+    'bot.running.desc':  'Searching for an appointment and completing booking…',
+    'btn.start':    '▶ Start Bot',        'btn.stop':     '■ Stop',
+    'status.running':'Running',           'status.stopped':'Stopped',
+    // info cards
+    'info.office':  'Office / Organization','info.type':  'Booking Type',
+    'info.name':    'Name',               'info.refresh': 'Retry Interval',
+    'info.api':     'Bot Activation',
+    'display.api.set':   'Set ✓',         'display.api.unset': 'Not set',
+    // activity
+    'activity.title': 'Live Activity',    'btn.clear': 'Clear',
+    'activity.idle':  'Bot stopped — press "Start" to begin booking',
+    // person
+    'person.title':   'Personal Data',    'person.subtitle': 'Fill in your personal details for the form',
+    'person.basic':   'Basic Information','person.address': 'Address',
+    'person.contact': 'Contact',          'person.passport': 'Passport & Nationality',
+    'p.lastname':     'Last Name',        'p.firstname':    'First Name',
+    'p.dob':          'Date of Birth (MM/DD/YYYY)',
+    'p.sex':          'Gender',           'p.sex.male': 'Male', 'p.sex.female': 'Female',
+    'p.lastname.birth': 'Last Name at Birth', 'p.place.birth': 'Place of Birth',
+    'p.street':       'Street & Address', 'p.postcode': 'Postal Code',
+    'p.city':         'City',             'p.country.code': 'Country (Code)',
+    'p.country':      'Country (Name)',   'p.telephone': 'Phone Number',
+    'p.email':        'Email Address',
+    'p.passport.num': 'Passport Number',  'p.nationality.code': 'Nationality (Code)',
+    'p.nationality':  'Nationality (Name)',
+    'p.passport.issue':  'Passport Issue Date (MM/DD/YYYY)',
+    'p.passport.expiry': 'Passport Expiry Date (MM/DD/YYYY)',
+    'btn.save.person': 'Save Data',
+    // settings
+    'settings.title':      'Settings',    'settings.subtitle': 'API & Bot Settings',
+    'settings.activation': 'Bot Activation','settings.bot':   'Bot Settings',
+    's.apikey':   'Activation Key',
+    's.office':   'Office / Organization',
+    's.office.hint': 'German name as shown on the website (default: KAIRO)',
+    's.reservation': 'Reservation Type (keyword)',
+    's.reservation.hint': 'Part of the reservation type name — e.g. Bachelor or Master or Visum',
+    's.refresh': 'Retry interval when no appointments available (seconds)',
+    's.refresh.hint': 'Default 30 seconds',
+    's.navdelay': 'Navigation delay between pages (milliseconds)',
+    's.navdelay.hint': 'Time before clicking Next — default 800ms',
+    's.url':      'Target URL',
+    's.url.hint': 'Leave empty for the default URL',
+    // sound
+    'sound.title':       'Notification Sound on Appointment Found',
+    'sound.beep.desc':   'Three pulses',   'sound.chime.desc': 'Rising tone',
+    'sound.alert.desc':  'Quick alert',    'sound.ding.desc':  'Single ding',
+    'sound.custom.name': 'Custom',         'sound.custom.desc':'Upload audio file',
+    'sound.file.label':  'Choose an audio file from your device',
+    'sound.file.hint':   'MP3 · WAV · OGG · Max size 8 MB',
+    'btn.save.settings': 'Save Settings',
+    // logs
+    'logs.title':    'Activity Log',       'logs.subtitle': 'Track what the bot is doing',
+    'btn.clear.log': 'Clear Log',
+    'log.empty':     'No activity yet. Start the bot first.',
+    // terms
+    'terms.title':   'Terms of Use',       'terms.subtitle': 'Usage Policy',
+    // placeholders
+    'ph.apikey':     'Enter activation key…',
+    'ph.smith':      'SMITH',              'ph.john':       'JOHN',
+    'ph.country.code': 'e.g. 65 (Egypt)', 'ph.nat.code':  'e.g. 71 (Egypt)',
+    // dynamic messages
+    'msg.mode.electron':  'Electron mode',
+    'msg.mode.browser':   'Browser mode (localStorage)',
+    'msg.saved.person':   'Person data saved: ',
+    'msg.save.error':     'Save error: ',
+    'msg.saved.settings': 'Settings saved',
+    'msg.load.error':     'Error loading settings: ',
+    'msg.missing':        '✕ Required fields missing: ',
+    'msg.fill.all':       'Go to "Personal Data" tab, fill all fields and press save',
+    'msg.no.key':         'Warning: activation key not set — captcha is manual',
+    'msg.bot.started':    'Bot started ← ',
+    'msg.bot.already':    'Bot is already running',
+    'msg.bot.error':      'Start error: ',
+    'msg.browser.mode':   'Browser mode — full automation requires Desktop app',
+    'msg.open.manual':    'Open the website manually: ',
+    'msg.browser.no.auto':'Browser mode: automation not available',
+    'msg.stop.error':     'Stop error: ',
+    'msg.window.closed':  'Bot window was closed',
+    'msg.file.big':       'File size exceeds 8 MB — choose a smaller file',
+    // activity messages
+    'act.loading':     'Bot started — loading the website…',
+    'act.office.page': 'Page: select office / organization…',
+    'act.calendar':    'Page: select reservation type…',
+    'act.persons':     'Page: number of persons…',
+    'act.persons.ok':  'Persons count set: 1',
+    'act.info':        'Page: info — skipping…',
+    'act.scheduler':   'Page: searching for available appointments…',
+    'act.no.appts':    'No appointments available right now',
+    'act.retry':       'Retrying in ',
+    'act.retry.unit':  ' seconds…',
+    'act.found':       'Appointment found! ',
+    'act.form':        'Page: filling personal data…',
+    'act.form.done':   'All data filled successfully',
+    'act.captcha.ok':  'Captcha solved: ',
+    'act.captcha.manual': 'Enter captcha manually in the bot window',
+    'act.booked':      'Booking confirmed!',
+    'act.bot.stopped': 'Bot stopped',
+    'act.idle':        'Bot stopped — press "Start" to begin booking',
+  }
+};
+
+let _appLang = 'ar'; // default
+
+function t(key) {
+  return (I18N[_appLang] || I18N.ar)[key] || (I18N.ar)[key] || key;
+}
+
+function setLang(lang) {
+  _appLang = lang;
+  try { localStorage.setItem('orbtasoft_app_lang', lang); } catch (_) {}
+
+  const html = document.documentElement;
+  html.setAttribute('lang', lang);
+  html.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+
+  const dict = I18N[lang] || I18N.ar;
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key] !== undefined) el.textContent = dict[key];
+  });
+
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const key = el.getAttribute('data-i18n-ph');
+    if (dict[key] !== undefined) el.placeholder = dict[key];
+  });
+
+  document.querySelectorAll('option[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key] !== undefined) el.textContent = dict[key];
+  });
+
+  const langBtn = document.getElementById('lang-toggle');
+  if (langBtn) langBtn.textContent = lang === 'ar' ? 'EN' : 'عربي';
+
+  // Re-apply dynamic bot state
+  setBotState(botRunning);
+
+  // Update log empty placeholder if still shown
+  const logEmpty = document.querySelector('#logs-container .log-empty');
+  if (logEmpty) logEmpty.textContent = t('log.empty');
+}
+
+function toggleLang() {
+  setLang(_appLang === 'ar' ? 'en' : 'ar');
+}
+
 // ─── Environment detection ────────────────────────────────────────────────────
 const IS_ELECTRON = typeof window !== 'undefined' && !!window.electronAPI;
 
@@ -60,8 +328,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
     window.electronAPI.onBotStopped(() => {
       setBotState(false);
-      addActivity('error', '⛔', 'نافذة البوت أُغلقت');
-      addLog('warn', 'نافذة البوت أُغلقت');
+      addActivity('error', '⛔', t('msg.window.closed'));
+      addLog('warn', t('msg.window.closed'));
     });
   }
 });
@@ -126,9 +394,14 @@ async function loadAll() {
     if (s.targetUrl) TARGET_URL = s.targetUrl;
 
     updateInfoCards(stored);
-    addLog('info', IS_ELECTRON ? 'وضع Electron' : 'وضع المتصفح (localStorage)');
+    addLog('info', IS_ELECTRON ? t('msg.mode.electron') : t('msg.mode.browser'));
+    // Load saved language preference
+    try {
+      const savedLang = localStorage.getItem('orbtasoft_app_lang') || 'ar';
+      setLang(savedLang);
+    } catch (_) { setLang('ar'); }
   } catch (e) {
-    addLog('error', 'خطأ في تحميل الإعدادات: ' + e.message);
+    addLog('error', t('msg.load.error') + e.message);
   }
 }
 
@@ -166,9 +439,9 @@ async function savePerson() {
     showSaved('person-saved', '✓ تم الحفظ');
     const stored = await Storage.get();
     updateInfoCards(stored);
-    addLog('success', 'تم حفظ بيانات الشخص: ' + person.firstname + ' ' + person.lastname);
+    addLog('success', t('msg.saved.person') + person.firstname + ' ' + person.lastname);
   } catch (e) {
-    addLog('error', 'خطأ في الحفظ: ' + e.message);
+    addLog('error', t('msg.save.error') + e.message);
   }
 }
 
@@ -180,7 +453,7 @@ function loadCustomSound(input) {
   const file = input.files[0];
   if (!file) return;
   if (file.size > 8 * 1024 * 1024) {
-    alert('حجم الملف أكبر من 8 ميجا — اختر ملفاً أصغر');
+    alert(t('msg.file.big'));
     input.value = '';
     return;
   }
@@ -260,9 +533,9 @@ async function saveSettings() {
     showSaved('settings-saved', '✓ تم الحفظ');
     const stored = await Storage.get();
     updateInfoCards(stored);
-    addLog('success', 'تم حفظ الإعدادات');
+    addLog('success', t('msg.saved.settings'));
   } catch (e) {
-    addLog('error', 'خطأ في الحفظ: ' + e.message);
+    addLog('error', t('msg.save.error') + e.message);
   }
 }
 
@@ -278,11 +551,11 @@ async function startBot() {
                    'nationality','passportIssueDate','passportExpiry']
     .filter(f => !person[f]);
   if (missing.length) {
-    addLog('error', '✕ بيانات مطلوبة ناقصة: ' + missing.join(', '));
-    addLog('warn',  'اذهب لتبويب "البيانات الشخصية" واملأ جميع الحقول ثم اضغط حفظ');
+    addLog('error', t('msg.missing') + missing.join(', '));
+    addLog('warn',  t('msg.fill.all'));
     return;
   }
-  if (!settings.openaiApiKey) addLog('warn', 'تحذير: مفتاح التفعيل غير مضبوط — الكابتشا يدوي');
+  if (!settings.openaiApiKey) addLog('warn', t('msg.no.key'));
 
   TARGET_URL = settings.targetUrl || 'https://appointment.bmeia.gv.at/';
 
@@ -294,32 +567,32 @@ async function startBot() {
       const res = await window.electronAPI.startBot(config);
       if (res.success) {
         setBotState(true);
-        addActivity('step', '▶', 'البوت انطلق — جاري تحميل الموقع…');
-        addLog('info', 'تم تشغيل البوت ← ' + TARGET_URL);
+        addActivity('step', '▶', t('act.loading'));
+        addLog('info', t('msg.bot.started') + TARGET_URL);
       } else {
-        addActivity('error', '⚠', res.message || 'البوت يعمل بالفعل');
+        addActivity('error', '⚠', res.message || t('msg.bot.already'));
         addLog('warn', res.message);
       }
     } catch (e) {
-      addActivity('error', '✕', 'خطأ في التشغيل: ' + e.message);
+      addActivity('error', '✕', t('msg.bot.error') + e.message);
       addLog('error', e.message);
     }
   } else {
     setBotState(true);
-    addActivity('wait', 'ℹ', 'وضع المتصفح — الأتمتة الكاملة تحتاج تطبيق Desktop');
-    addActivity('step', '⊕', 'افتح الموقع يدوياً: ' + TARGET_URL);
-    addLog('warn', 'وضع المتصفح: الأتمتة غير متاحة');
+    addActivity('wait', 'ℹ', t('msg.browser.mode'));
+    addActivity('step', '⊕', t('msg.open.manual') + TARGET_URL);
+    addLog('warn', t('msg.browser.no.auto'));
   }
 }
 
 async function stopBot() {
   if (IS_ELECTRON) {
     try { await window.electronAPI.stopBot(); }
-    catch (e) { addLog('error', 'خطأ في الإيقاف: ' + e.message); }
+    catch (e) { addLog('error', t('msg.stop.error') + e.message); }
   }
   setBotState(false);
-  addActivity('error', '◼', 'تم إيقاف البوت');
-  addLog('warn', 'تم إيقاف البوت');
+  addActivity('error', '◼', t('act.bot.stopped'));
+  addLog('warn', t('act.bot.stopped'));
 }
 
 // ─── Activity feed ────────────────────────────────────────────────────────────
@@ -348,7 +621,7 @@ function addActivity(type, icon, text) {
 function clearActivity() {
   const feed = document.getElementById('activity-feed');
   if (!feed) return;
-  feed.innerHTML = '<div class="activity-idle"><span class="idle-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></span><span>البوت متوقف — اضغط "تشغيل" لبدء الحجز</span></div>';
+  feed.innerHTML = '<div class="activity-idle"><span class="idle-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></span><span>' + escapeHtml(t('act.idle')) + '</span></div>';
 }
 
 // ─── Countdown card management ────────────────────────────────────────────────
@@ -361,42 +634,41 @@ function routeBotMessage(msg) {
   // ── Navigation steps ──
   if (m.includes('page detected: office')) {
     _noApptCardEl = null; _countdownCardEl = null;
-    return addActivity('step', '◈', 'الصفحة: اختيار المنظمة / الجهة…');
+    return addActivity('step', '◈', t('act.office.page'));
   }
   if (m.includes('office selected'))
     return addActivity('success', '✓', msg);
 
-  if (m.includes('page detected: calendar')) {
-    return addActivity('step', '≡', 'الصفحة: اختيار نوع الحجز…');
-  }
+  if (m.includes('page detected: calendar'))
+    return addActivity('step', '≡', t('act.calendar'));
   if (m.includes('reservation type selected'))
     return addActivity('success', '✓', msg);
 
   if (m.includes('page detected: persons'))
-    return addActivity('step', '◉', 'الصفحة: عدد الأشخاص…');
+    return addActivity('step', '◉', t('act.persons'));
   if (m.includes('personcount'))
-    return addActivity('success', '✅', 'تم اختيار عدد الأشخاص: 1');
+    return addActivity('success', '✅', t('act.persons.ok'));
 
   if (m.includes('page detected: info'))
-    return addActivity('step', '◻', 'الصفحة: معلومات — جاري التجاوز…');
+    return addActivity('step', '◻', t('act.info'));
 
   if (m.includes('page detected: scheduler')) {
     _noApptCardEl = null; _countdownCardEl = null;
-    return addActivity('step', '◷', 'الصفحة: البحث عن مواعيد متاحة…');
+    return addActivity('step', '◷', t('act.scheduler'));
   }
 
   // ── No appointments + countdown ──
   if (m.startsWith('no_appointments:')) {
     const secs = parseInt(msg.split(':')[1]) || 30;
-    _noApptCardEl = addActivityCard('wait', '✕', 'لا توجد مواعيد متاحة حالياً');
-    _countdownCardEl = addActivityCard('wait', '◌', 'إعادة البحث خلال ' + secs + ' ثانية…');
+    _noApptCardEl = addActivityCard('wait', '✕', t('act.no.appts'));
+    _countdownCardEl = addActivityCard('wait', '◌', t('act.retry') + secs + t('act.retry.unit'));
     return;
   }
   if (m.startsWith('countdown:')) {
     const secs = parseInt(msg.split(':')[1]) || 0;
     if (_countdownCardEl) {
       _countdownCardEl.querySelector('.a-text').textContent =
-        'إعادة البحث خلال ' + secs + ' ثانية…';
+        t('act.retry') + secs + t('act.retry.unit');
     }
     return;
   }
@@ -405,22 +677,22 @@ function routeBotMessage(msg) {
   if (m.includes('appointment slot selected')) {
     _noApptCardEl = null; _countdownCardEl = null;
     const slotTime = msg.split('→')[1]?.trim() || '';
-    return addActivity('found', '◆', 'تم العثور على موعد! ' + slotTime);
+    return addActivity('found', '◆', t('act.found') + slotTime);
   }
 
   // ── Form ──
   if (m.includes('page detected: form'))
-    return addActivity('step', '✎', 'الصفحة: ملء البيانات الشخصية…');
+    return addActivity('step', '✎', t('act.form'));
   if (m.includes('form filled'))
-    return addActivity('success', '✅', 'تم ملء جميع البيانات');
+    return addActivity('success', '✅', t('act.form.done'));
   if (m.includes('captcha solved'))
-    return addActivity('success', '✓', 'تم حل الكابتشا: ' + msg.split('→')[1]?.trim());
+    return addActivity('success', '✓', t('act.captcha.ok') + msg.split('→')[1]?.trim());
   if (m.includes('no openai key') || m.includes('manual captcha'))
-    return addActivity('wait', '⌨', 'أدخل الكابتشا يدوياً في نافذة البوت');
+    return addActivity('wait', '⌨', t('act.captcha.manual'));
 
   // ── Confirmation ──
   if (m.includes('booking confirmed'))
-    return addActivity('confirm', '★', 'تم الحجز بنجاح!');
+    return addActivity('confirm', '★', t('act.booked'));
 
   // ── Errors ──
   if (m.includes('error') || m.includes('not found'))
@@ -473,19 +745,19 @@ function setBotState(running) {
   if (running) {
     startBtn.disabled = true;
     stopBtn.disabled  = false;
-    label.textContent = 'البوت يعمل الآن';
-    desc.textContent  = 'جاري البحث عن موعد وإتمام الحجز…';
+    label.textContent = t('bot.running.label');
+    desc.textContent  = t('bot.running.desc');
     visual.classList.add('running');
     dot.className     = 'status-dot running';
-    statusTxt.textContent = 'يعمل';
+    statusTxt.textContent = t('status.running');
   } else {
     startBtn.disabled = false;
     stopBtn.disabled  = true;
-    label.textContent = 'البوت متوقف';
-    desc.textContent  = 'اضغط "تشغيل" لبدء الحجز';
+    label.textContent = t('bot.stopped.label');
+    desc.textContent  = t('bot.stopped.desc');
     visual.classList.remove('running');
     dot.className     = 'status-dot stopped';
-    statusTxt.textContent = 'متوقف';
+    statusTxt.textContent = t('status.stopped');
   }
 }
 
@@ -506,7 +778,7 @@ function addLog(type, msg) {
 
 function clearLogs() {
   document.getElementById('logs-container').innerHTML =
-    '<div class="log-empty">تم مسح السجل.</div>';
+    '<div class="log-empty" data-i18n="log.empty">' + escapeHtml(t('log.empty')) + '</div>';
 }
 
 // ─── UI helpers ───────────────────────────────────────────────────────────────
@@ -546,7 +818,7 @@ function updateInfoCards(stored) {
 
   const name = ((p.firstname || '') + ' ' + (p.lastname || '')).trim();
   if (el('display-name'))    el('display-name').textContent    = name || '—';
-  if (el('display-api'))     el('display-api').textContent     = s.openaiApiKey ? 'مضبوط ✓' : 'غير مضبوط';
+  if (el('display-api'))     el('display-api').textContent     = s.openaiApiKey ? t('display.api.set') : t('display.api.unset');
   if (el('display-office'))  el('display-office').textContent  = s.office || 'KAIRO';
   if (el('display-type'))    el('display-type').textContent    = s.reservationType || 'Bachelor';
   if (el('display-refresh')) el('display-refresh').textContent = (s.refreshIntervalSec || 30) + 's';
