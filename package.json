@@ -1,7 +1,7 @@
 {
-  "name": "austria-appointment-bot",
+  "name": "orbtasoft-automation",
   "version": "1.0.0",
-  "description": "Austria BMEIA Appointment Automation Desktop App",
+  "description": "Orbtasoft Appointment Automation Desktop App",
   "main": "src/main.js",
   "scripts": {
     "start":     "electron .",
@@ -11,8 +11,8 @@
     "build:all": "electron-builder --mac --win --x64"
   },
   "build": {
-    "appId":       "com.austria.appointment-bot",
-    "productName": "Austria Appointment Bot",
+    "appId":       "com.orbtasoft.automation",
+    "productName": "Orbtasoft Automation",
     "copyright":   "Copyright © 2025",
     "directories": { "output": "dist" },
     "files": [
