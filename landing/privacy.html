@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Orbtasoft</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0b0b14;
+      --surface: #1a1a2e;
+      --border:  #252538;
+      --accent:  #7c3aed;
+      --text:    #e2e8f0;
+      --muted:   #64748b;
+      --sub:     #94a3b8;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ──────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(11,11,20,.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 48px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      text-decoration: none;
+    }
+
+    .brand-name {
+      font-size: 17px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-back {
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: color .2s;
+    }
+    .nav-back:hover { color: var(--text); }
+
+    /* ── PAGE ─────────────────────────────────────────── */
+    .page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 60px 24px 100px;
+    }
+
+    .page-header {
+      margin-bottom: 44px;
+    }
+
+    .page-header h1 {
+      font-size: 34px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .page-header .badge {
+      display: inline-block;
+      background: rgba(124,58,237,.12);
+      border: 1px solid rgba(124,58,237,.3);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 12px;
+      color: #a78bfa;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+
+    /* ── SECTIONS ─────────────────────────────────────── */
+    .section {
+      margin-bottom: 40px;
+    }
+
+    .section h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section h2 .num {
+      color: var(--accent);
+      margin-left: 6px;
+      font-size: 13px;
+    }
+
+    .section p {
+      font-size: 14px;
+      color: var(--sub);
+      margin-bottom: 10px;
+    }
+
+    .section ul {
+      padding-left: 20px;
+      margin-top: 8px;
+    }
+
+    .section li {
+      font-size: 14px;
+      color: var(--sub);
+      margin-bottom: 5px;
+    }
+
+    .section strong { color: var(--text); }
+
+    .highlight-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      font-size: 14px;
+      color: var(--sub);
+    }
+
+    /* ── CONTACT BOX ──────────────────────────────────── */
+    .contact-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-top: 48px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .contact-icon {
+      width: 44px; height: 44px;
+      background: rgba(124,58,237,.12);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .contact-box h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .contact-box p  { font-size: 13px; color: var(--muted); }
+    .contact-box a  { color: #a78bfa; text-decoration: none; }
+    .contact-box a:hover { text-decoration: underline; }
+
+    /* ── FOOTER ───────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 48px;
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 20px; }
+      footer { flex-direction: column; gap: 8px; text-align: center; padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-brand" href="index.html">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+        <path d="M20 3v4M22 5h-4M4 17v2M5 18H3"/>
+      </svg>
+      <span class="brand-name">Orbtasoft</span>
+    </a>
+    <a class="nav-back" href="index.html">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to Home
+    </a>
+  </nav>
+
+  <div class="page">
+
+    <div class="page-header">
+      <span class="badge">Legal</span>
+      <h1>Privacy Policy</h1>
+      <p>Last updated: January 2025 &nbsp;·&nbsp; Effective for all Orbtasoft products and this website</p>
+    </div>
+
+    <div class="section">
+      <h2>Overview <span class="num">§0</span></h2>
+      <p>This Privacy Policy explains how Orbtasoft ("we", "our", or "the software") handles information when you visit this website or use the Orbtasoft desktop/mobile application.</p>
+      <div class="highlight-box">
+        <strong>Short version:</strong> The Orbtasoft <em>application</em> does not collect, transmit, or store any personal data on external servers. All data you enter stays on your device.
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Information We Collect on This Website <span class="num">§1</span></h2>
+      <p>When you visit <strong>orbtasoft.com</strong>, we may collect the following non-personal technical data through standard web server logs:</p>
+      <ul>
+        <li>IP address (anonymized where possible)</li>
+        <li>Browser type and version</li>
+        <li>Operating system</li>
+        <li>Pages visited and referral URL</li>
+        <li>Date and time of access</li>
+      </ul>
+      <p>This information is used solely for diagnosing server issues and understanding general traffic patterns. It is <strong>not</strong> used to identify individuals or build user profiles.</p>
+    </div>
+
+    <div class="section">
+      <h2>Activation Request Form <span class="num">§2</span></h2>
+      <p>When you submit the "Request an Activation Key" form, the data you provide (name, email, phone, and platform) is sent directly to <a href="mailto:sales@orbtasoft.com" style="color:#a78bfa">sales@orbtasoft.com</a> via your email client using a <code>mailto:</code> link.</p>
+      <p>We do <strong>not</strong> use a third-party form processor or store your submission in a database. The information is used only to:</p>
+      <ul>
+        <li>Verify your identity and process your activation key request</li>
+        <li>Contact you with your activation key</li>
+        <li>Respond to any follow-up support inquiries</li>
+      </ul>
+      <p>We will <strong>not</strong> share your contact information with third parties or use it for marketing without your explicit consent.</p>
+    </div>
+
+    <div class="section">
+      <h2>The Orbtasoft Application — Data Handling <span class="num">§3</span></h2>
+      <p>The Orbtasoft desktop (Windows / macOS) and mobile (Android) application:</p>
+      <ul>
+        <li><strong>Does not transmit</strong> any personal data (name, passport, contact details) to our servers or any external party</li>
+        <li><strong>Stores all settings and personal information locally</strong> on your device using the OS-provided app data directory</li>
+        <li><strong>Connects only</strong> to the target booking website you configure — no other outbound connections are made except the license key validation check (see §4)</li>
+        <li>Does <strong>not</strong> track usage, send analytics, or phone home in any way</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>License Key Validation <span class="num">§4</span></h2>
+      <p>On application startup, Orbtasoft makes a single HTTP request to our license server to verify your activation key. This request contains:</p>
+      <ul>
+        <li>Your activation key (hashed)</li>
+        <li>No personal information, device identifiers, or usage data</li>
+      </ul>
+      <p>This check is performed solely to confirm software entitlement and prevent unauthorized use.</p>
+    </div>
+
+    <div class="section">
+      <h2>Cookies <span class="num">§5</span></h2>
+      <p>This website does <strong>not</strong> use cookies, tracking pixels, or any persistent client-side storage for analytics or advertising purposes. No third-party tracking scripts (Google Analytics, Facebook Pixel, etc.) are included on this site.</p>
+    </div>
+
+    <div class="section">
+      <h2>Third-Party Services <span class="num">§6</span></h2>
+      <p>This website and application do not integrate with any third-party advertising, analytics, or social media services. The only external connection made by the application is to the booking website you configure and the license server described in §4.</p>
+    </div>
+
+    <div class="section">
+      <h2>Data Retention <span class="num">§7</span></h2>
+      <p>We retain activation request emails for as long as necessary to support your license. You may request deletion of your contact information at any time by emailing us. Web server logs are retained for a maximum of 30 days and then deleted automatically.</p>
+    </div>
+
+    <div class="section">
+      <h2>Your Rights <span class="num">§8</span></h2>
+      <p>Depending on your jurisdiction, you may have the right to:</p>
+      <ul>
+        <li>Request access to any personal data we hold about you</li>
+        <li>Request correction or deletion of that data</li>
+        <li>Object to processing of your data</li>
+        <li>Lodge a complaint with your local data protection authority</li>
+      </ul>
+      <p>To exercise any of these rights, contact us at <a href="mailto:sales@orbtasoft.com" style="color:#a78bfa">sales@orbtasoft.com</a>.</p>
+    </div>
+
+    <div class="section">
+      <h2>Changes to This Policy <span class="num">§9</span></h2>
+      <p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated "Last updated" date. Continued use of the software or website after changes constitutes acceptance of the revised policy.</p>
+    </div>
+
+    <div class="contact-box">
+      <div class="contact-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </div>
+      <div>
+        <h3>Privacy Questions?</h3>
+        <p>If you have any questions about this policy or how we handle your data, please reach out:<br/>
+          <a href="mailto:sales@orbtasoft.com">sales@orbtasoft.com</a>
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <span>© 2025 Orbtasoft. All rights reserved.</span>
+    <a href="index.html">Back to Home</a>
+  </footer>
+
+</body>
+</html>

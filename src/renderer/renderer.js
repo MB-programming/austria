@@ -267,7 +267,7 @@ function routeBotMessage(msg) {
   // ── Navigation steps ──
   if (m.includes('page detected: office')) {
     _noApptCardEl = null; _countdownCardEl = null;
-    return addActivity('step', '◈', 'الصفحة: اختيار السفارة…');
+    return addActivity('step', '◈', 'الصفحة: اختيار المنظمة / الجهة…');
   }
   if (m.includes('office selected'))
     return addActivity('success', '✓', msg);

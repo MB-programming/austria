@@ -31,15 +31,15 @@
       min-height: 100vh;
     }
 
-    /* ── NAV ─────────────────────────────────────────────────── */
+    /* ── NAV ─────────────────────────────────────────────── */
     nav {
       position: fixed;
       top: 0; left: 0; right: 0;
       z-index: 100;
-      background: rgba(11,11,20,.85);
-      backdrop-filter: blur(12px);
+      background: rgba(11,11,20,.88);
+      backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border);
-      padding: 0 40px;
+      padding: 0 48px;
       height: 64px;
       display: flex;
       align-items: center;
@@ -53,9 +53,7 @@
       text-decoration: none;
       color: var(--text);
     }
-
     .nav-brand svg { color: var(--accent); }
-
     .brand-name {
       font-size: 18px;
       font-weight: 700;
@@ -64,6 +62,7 @@
       -webkit-text-fill-color: transparent;
     }
 
+    .nav-links { display: flex; gap: 28px; align-items: center; }
     .nav-link {
       color: var(--muted);
       text-decoration: none;
@@ -71,8 +70,18 @@
       transition: color .2s;
     }
     .nav-link:hover { color: var(--text); }
+    .nav-link.cta {
+      background: rgba(124,58,237,.18);
+      border: 1px solid rgba(124,58,237,.35);
+      color: #a78bfa;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: background .2s;
+    }
+    .nav-link.cta:hover { background: rgba(124,58,237,.3); }
 
-    /* ── HERO ─────────────────────────────────────────────────── */
+    /* ── HERO ─────────────────────────────────────────────── */
     .hero {
       min-height: 100vh;
       display: flex;
@@ -80,7 +89,7 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 100px 24px 60px;
+      padding: 100px 24px 70px;
       position: relative;
       overflow: hidden;
     }
@@ -88,12 +97,12 @@
     .hero::before {
       content: '';
       position: absolute;
-      top: 10%;
+      top: 5%;
       left: 50%;
       transform: translateX(-50%);
-      width: 700px;
-      height: 700px;
-      background: radial-gradient(circle, rgba(124,58,237,.15) 0%, transparent 70%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(124,58,237,.14) 0%, transparent 68%);
       pointer-events: none;
     }
 
@@ -104,7 +113,7 @@
       background: rgba(124,58,237,.12);
       border: 1px solid rgba(124,58,237,.3);
       border-radius: 999px;
-      padding: 5px 14px;
+      padding: 5px 16px;
       font-size: 12px;
       color: #a78bfa;
       margin-bottom: 24px;
@@ -113,39 +122,47 @@
     }
 
     .hero h1 {
-      font-size: clamp(36px, 6vw, 72px);
+      font-size: clamp(38px, 6vw, 74px);
       font-weight: 800;
       line-height: 1.1;
       margin-bottom: 20px;
-      background: linear-gradient(160deg, #fff 40%, #a78bfa);
+      background: linear-gradient(160deg, #fff 35%, #a78bfa);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    .hero p {
+    .hero > p {
       font-size: clamp(15px, 2vw, 18px);
       color: var(--muted);
-      max-width: 540px;
-      margin: 0 auto 44px;
+      max-width: 520px;
+      margin: 0 auto 52px;
     }
 
-    /* ── DOWNLOAD CARDS ───────────────────────────────────────── */
+    /* ── DOWNLOAD CARDS ───────────────────────────────────── */
     .download-section {
       width: 100%;
-      max-width: 900px;
+      max-width: 920px;
+    }
+
+    .download-heading {
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 18px;
     }
 
     .download-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
+      gap: 18px;
     }
 
     .dl-card {
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 28px 24px;
+      padding: 26px 22px;
       text-align: center;
       transition: border-color .25s, transform .2s, box-shadow .25s;
       position: relative;
@@ -159,83 +176,53 @@
       background: linear-gradient(135deg, var(--glow), transparent);
       opacity: 0;
       transition: opacity .3s;
+      pointer-events: none;
     }
 
-    .dl-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-4px);
-      box-shadow: 0 16px 40px rgba(124,58,237,.2);
-    }
-
+    .dl-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(124,58,237,.18); }
     .dl-card:hover::before { opacity: 1; }
 
     .dl-icon {
-      width: 64px;
-      height: 64px;
+      width: 62px; height: 62px;
       border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px;
     }
-
     .dl-icon.windows { background: rgba(0,120,212,.15); color: #60a5fa; }
-    .dl-icon.mac     { background: rgba(255,255,255,.08); color: #e2e8f0; }
+    .dl-icon.mac     { background: rgba(255,255,255,.07); color: #e2e8f0; }
     .dl-icon.android { background: rgba(61,220,132,.12); color: #34d399; }
 
-    .dl-card h3 {
-      font-size: 17px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .dl-card .version {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 20px;
-    }
+    .dl-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 3px; }
+    .dl-card .version { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
 
     .dl-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 7px;
       width: 100%;
-      padding: 11px 20px;
+      padding: 11px 18px;
       border-radius: 10px;
       font-size: 14px;
       font-weight: 600;
       text-decoration: none;
-      cursor: pointer;
       border: none;
-      transition: opacity .2s, transform .1s;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      position: relative;
+      z-index: 1;
     }
-
     .dl-btn:active { transform: scale(.97); }
 
-    .dl-btn.windows {
-      background: rgba(0,120,212,.2);
-      border: 1px solid rgba(0,120,212,.4);
-      color: #93c5fd;
-    }
-    .dl-btn.windows:hover { background: rgba(0,120,212,.35); }
-
-    .dl-btn.mac {
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.15);
-      color: #e2e8f0;
-    }
+    .dl-btn.windows { background: rgba(0,120,212,.2); border: 1px solid rgba(0,120,212,.4); color: #93c5fd; }
+    .dl-btn.windows:hover { background: rgba(0,120,212,.34); }
+    .dl-btn.mac     { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); color: #e2e8f0; }
     .dl-btn.mac:hover { background: rgba(255,255,255,.14); }
-
-    .dl-btn.android {
-      background: rgba(61,220,132,.12);
-      border: 1px solid rgba(61,220,132,.3);
-      color: #6ee7b7;
-    }
+    .dl-btn.android { background: rgba(61,220,132,.12); border: 1px solid rgba(61,220,132,.3); color: #6ee7b7; }
     .dl-btn.android:hover { background: rgba(61,220,132,.22); }
 
     .dl-meta {
-      margin-top: 10px;
+      margin-top: 9px;
       font-size: 11px;
       color: var(--muted);
       display: flex;
@@ -244,29 +231,37 @@
       gap: 4px;
     }
 
-    /* ── FEATURES ─────────────────────────────────────────────── */
+    /* ── FEATURES ─────────────────────────────────────────── */
     .features {
-      padding: 80px 24px;
+      padding: 90px 24px;
       text-align: center;
     }
 
+    .section-label {
+      font-size: 12px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
     .section-title {
-      font-size: 28px;
+      font-size: 30px;
       font-weight: 700;
       margin-bottom: 8px;
     }
 
     .section-sub {
-      font-size: 14px;
+      font-size: 15px;
       color: var(--muted);
-      margin-bottom: 48px;
+      margin-bottom: 52px;
     }
 
     .features-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      max-width: 900px;
+      gap: 18px;
+      max-width: 920px;
       margin: 0 auto;
     }
 
@@ -282,29 +277,123 @@
       width: 40px; height: 40px;
       background: rgba(124,58,237,.12);
       border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       color: var(--accent);
       margin-bottom: 14px;
     }
 
-    .feature-card h4 {
+    .feature-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .feature-card p  { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    /* ── ACTIVATION FORM ──────────────────────────────────── */
+    .activate-section {
+      padding: 0 24px 100px;
+      text-align: center;
+    }
+
+    .activate-card {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 44px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .activate-card::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 220px; height: 220px;
+      background: radial-gradient(circle, rgba(124,58,237,.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .activate-icon {
+      width: 52px; height: 52px;
+      background: rgba(124,58,237,.14);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--accent);
+      margin: 0 auto 18px;
+    }
+
+    .activate-card h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .activate-card > p { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+
+    .act-form { display: flex; flex-direction: column; gap: 14px; text-align: left; }
+
+    .act-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .act-field label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .act-field input,
+    .act-field select,
+    .act-field textarea {
+      width: 100%;
+      background: #0b0b14;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color .2s;
+      font-family: inherit;
+    }
+
+    .act-field input:focus,
+    .act-field select:focus,
+    .act-field textarea:focus { border-color: var(--accent); }
+
+    .act-field textarea { resize: vertical; min-height: 88px; }
+
+    .act-field select option { background: #1a1a2e; }
+
+    .act-submit {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
       font-size: 15px;
       font-weight: 600;
-      margin-bottom: 6px;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
     }
 
-    .feature-card p {
-      font-size: 13px;
+    .act-submit:hover { opacity: .9; }
+    .act-submit:active { transform: scale(.98); }
+
+    .act-note {
+      margin-top: 14px;
+      font-size: 12px;
       color: var(--muted);
-      line-height: 1.6;
+      text-align: center;
     }
+    .act-note a { color: #a78bfa; text-decoration: none; }
+    .act-note a:hover { text-decoration: underline; }
 
-    /* ── FOOTER ───────────────────────────────────────────────── */
+    /* ── FOOTER ───────────────────────────────────────────── */
     footer {
       border-top: 1px solid var(--border);
-      padding: 28px 40px;
+      padding: 28px 48px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -312,26 +401,47 @@
       color: var(--muted);
     }
 
-    footer a {
-      color: var(--muted);
-      text-decoration: none;
-      transition: color .2s;
-    }
+    footer a { color: var(--muted); text-decoration: none; transition: color .2s; }
     footer a:hover { color: var(--text); }
+    .footer-links { display: flex; gap: 20px; }
 
-    /* ── RESPONSIVE ───────────────────────────────────────────── */
+    /* ── RESPONSIVE ───────────────────────────────────────── */
     @media (max-width: 680px) {
-      .download-grid { grid-template-columns: 1fr; }
+      .download-grid  { grid-template-columns: 1fr; }
+      .act-form-row   { grid-template-columns: 1fr; }
       nav { padding: 0 20px; }
-      footer { flex-direction: column; gap: 8px; text-align: center; }
+      .nav-links { gap: 16px; }
+      .activate-card { padding: 32px 22px; }
+      footer { flex-direction: column; gap: 10px; text-align: center; }
+      .footer-links { justify-content: center; }
     }
 
-    @media (min-width: 681px) and (max-width: 860px) {
+    @media (min-width: 681px) and (max-width: 880px) {
       .download-grid { grid-template-columns: repeat(2, 1fr); }
     }
+
+    /* success toast */
+    .toast {
+      position: fixed;
+      bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: #10b981;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+      z-index: 999;
+      pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">✓ Request sent — we'll email you shortly!</div>
 
   <!-- NAV -->
   <nav>
@@ -342,7 +452,11 @@
       </svg>
       <span class="brand-name">Orbtasoft</span>
     </a>
-    <a class="nav-link" href="#download">Download</a>
+    <div class="nav-links">
+      <a class="nav-link" href="#download">Download</a>
+      <a class="nav-link" href="privacy.html">Privacy</a>
+      <a class="nav-link cta" href="#activate">Get Activation Key</a>
+    </div>
   </nav>
 
   <!-- HERO -->
@@ -353,9 +467,10 @@
     </div>
 
     <h1>Book appointments<br/>without the wait</h1>
-    <p>Orbtasoft automates your embassy appointment booking — fast, reliable, and running on your device.</p>
+    <p>Orbtasoft automates your appointment booking — fast, reliable, and running entirely on your device.</p>
 
     <div class="download-section" id="download">
+      <p class="download-heading">Choose your platform</p>
       <div class="download-grid">
 
         <!-- Windows -->
@@ -367,13 +482,13 @@
           </div>
           <h3>Windows</h3>
           <p class="version">Windows 10 / 11 &nbsp;·&nbsp; x64</p>
-          <a class="dl-btn windows" href="downloads/Orbtasoft-Setup-Windows.exe" download>
+          <a class="dl-btn windows" href="downloads/Orbtasoft-Setup-Windows.exe" download="Orbtasoft-Setup-Windows.exe">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Download .exe
           </a>
           <p class="dl-meta">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Installer · ~90 MB
+            Installer &middot; ~90 MB
           </p>
         </div>
 
@@ -386,13 +501,13 @@
           </div>
           <h3>macOS</h3>
           <p class="version">macOS 12+ &nbsp;·&nbsp; Intel &amp; Apple Silicon</p>
-          <a class="dl-btn mac" href="downloads/Orbtasoft-Mac.dmg" download>
+          <a class="dl-btn mac" href="downloads/Orbtasoft-Mac.dmg" download="Orbtasoft-Mac.dmg">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Download .dmg
           </a>
           <p class="dl-meta">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Disk Image · ~95 MB
+            Disk Image &middot; ~95 MB
           </p>
         </div>
 
@@ -405,27 +520,27 @@
           </div>
           <h3>Android</h3>
           <p class="version">Android 8.0+ &nbsp;·&nbsp; ARM64</p>
-          <a class="dl-btn android" href="downloads/Orbtasoft-Android.apk" download>
+          <a class="dl-btn android" href="downloads/Orbtasoft-Android.apk" download="Orbtasoft-Android.apk">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Download .apk
           </a>
           <p class="dl-meta">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            APK · ~45 MB
+            APK &middot; ~45 MB
           </p>
         </div>
 
-      </div><!-- /download-grid -->
-    </div><!-- /download-section -->
+      </div>
+    </div>
   </section>
 
   <!-- FEATURES -->
   <section class="features">
+    <p class="section-label">Features</p>
     <h2 class="section-title">Why Orbtasoft?</h2>
     <p class="section-sub">Everything you need to secure your appointment without the manual hassle</p>
 
     <div class="features-grid">
-
       <div class="feature-card">
         <div class="feature-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -454,7 +569,7 @@
         <div class="feature-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
         </div>
-        <h4>Private & Secure</h4>
+        <h4>Private &amp; Secure</h4>
         <p>All your data stays on your device. Nothing is sent to external servers.</p>
       </div>
 
@@ -473,18 +588,119 @@
         <h4>Configurable Timing</h4>
         <p>Set retry intervals as low as 0.25 seconds — or as high as 5 minutes. Full control.</p>
       </div>
+    </div>
+  </section>
 
+  <!-- ACTIVATION REQUEST FORM -->
+  <section class="activate-section" id="activate">
+    <div class="activate-card">
+      <div class="activate-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7.5" cy="15.5" r="5.5"/>
+          <path d="m21 2-9.6 9.6M15.5 7.5l3 3L22 7l-3-3"/>
+        </svg>
+      </div>
+      <h2>Request an Activation Key</h2>
+      <p>Fill in your details and we'll send your personal activation key to your email.</p>
+
+      <form class="act-form" id="act-form"
+            action="mailto:sales@orbtasoft.com"
+            method="GET"
+            enctype="text/plain"
+            onsubmit="handleSubmit(event)">
+
+        <div class="act-form-row">
+          <div class="act-field">
+            <label>Full Name *</label>
+            <input type="text" name="name" placeholder="John Smith" required />
+          </div>
+          <div class="act-field">
+            <label>Email Address *</label>
+            <input type="email" name="email" placeholder="you@example.com" required />
+          </div>
+        </div>
+
+        <div class="act-form-row">
+          <div class="act-field">
+            <label>Phone Number</label>
+            <input type="tel" name="phone" placeholder="+20 10x xxx xxxx" />
+          </div>
+          <div class="act-field">
+            <label>Platform *</label>
+            <select name="platform" required>
+              <option value="" disabled selected>Select platform…</option>
+              <option value="Windows">Windows</option>
+              <option value="macOS">macOS</option>
+              <option value="Android">Android</option>
+              <option value="Multiple">Multiple platforms</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="act-field">
+          <label>Message (optional)</label>
+          <textarea name="message" placeholder="Any additional information…"></textarea>
+        </div>
+
+        <a class="act-submit" id="act-submit" href="#" onclick="submitForm(event)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Send Request
+        </a>
+      </form>
+
+      <p class="act-note">
+        We'll reply within 24 hours &nbsp;·&nbsp;
+        <a href="mailto:sales@orbtasoft.com">sales@orbtasoft.com</a>
+      </p>
     </div>
   </section>
 
   <!-- FOOTER -->
   <footer>
     <span>© 2025 Orbtasoft. All rights reserved.</span>
-    <span>
-      For automation use only &nbsp;·&nbsp;
-      <a href="../src/renderer/index.html#terms">Terms of Use</a>
-    </span>
+    <div class="footer-links">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="mailto:sales@orbtasoft.com">Contact</a>
+    </div>
   </footer>
+
+  <script>
+    function submitForm(e) {
+      e.preventDefault();
+      const form = document.getElementById('act-form');
+
+      // Basic validation
+      const name     = form.querySelector('[name=name]').value.trim();
+      const email    = form.querySelector('[name=email]').value.trim();
+      const platform = form.querySelector('[name=platform]').value;
+
+      if (!name || !email || !platform) {
+        form.querySelector('[name=' + (!name ? 'name' : !email ? 'email' : 'platform') + ']').focus();
+        return;
+      }
+
+      const phone   = form.querySelector('[name=phone]').value.trim();
+      const message = form.querySelector('[name=message]').value.trim();
+
+      const body = [
+        'Name: ' + name,
+        'Email: ' + email,
+        'Phone: ' + (phone || '—'),
+        'Platform: ' + platform,
+        'Message: ' + (message || '—'),
+      ].join('\n');
+
+      const subject = encodeURIComponent('Orbtasoft Activation Request — ' + name);
+      const bodyEnc = encodeURIComponent(body);
+
+      window.location.href = 'mailto:sales@orbtasoft.com?subject=' + subject + '&body=' + bodyEnc;
+
+      // Show toast
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+  </script>
 
 </body>
 </html>
