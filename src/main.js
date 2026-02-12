@@ -277,55 +277,60 @@ function buildScript(config) {
 
   // ── State: Personal data form ─────────────────────────────────────────────
   async function handleForm() {
+
+    // Find field by id, then by name, then by ASP.NET postback name (ends with $Id)
+    const findEl = (id) =>
+      document.getElementById(id) ||
+      document.querySelector('[name="' + id + '"]') ||
+      document.querySelector('[name$="$' + id + '"]');
+
     const setVal = (id, val) => {
       if (!val) return;
-      const el = document.getElementById(id);
-      if (!el) return;
+      const el = findEl(id);
+      if (!el) { log('Field not found: ' + id); return; }
       el.value = val;
       el.dispatchEvent(new Event('input',  { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     };
 
     const pickOpt = (id, labelText, fallbackCode) => {
-      const sel = document.getElementById(id);
-      if (!sel) return;
+      const sel = findEl(id);
+      if (!sel) { log('Select not found: ' + id); return; }
       const label = (labelText || '').trim().toUpperCase();
-      const opt = Array.from(sel.options).find(o =>
-        o.text.trim().toUpperCase() === label
-      ) || Array.from(sel.options).find(o =>
-        String(o.value) === String(fallbackCode)
-      );
+      const opt =
+        Array.from(sel.options).find(o => o.text.trim().toUpperCase() === label) ||
+        Array.from(sel.options).find(o => o.text.trim().toUpperCase().includes(label)) ||
+        Array.from(sel.options).find(o => String(o.value) === String(fallbackCode));
       if (opt) sel.value = opt.value;
       sel.dispatchEvent(new Event('change', { bubbles: true }));
     };
+
+    // Sex: map stored "Male"/"Female" → site text "Male"/"Female"
+    const sexLabel = (P.sex || 'Male').charAt(0).toUpperCase() + (P.sex || 'Male').slice(1).toLowerCase();
+    const sexCode  = (P.sex || '').toLowerCase() === 'female' ? 2 : 1;
 
     setVal('Lastname',                  P.lastname);
     setVal('Firstname',                 P.firstname);
     setVal('DateOfBirth',               P.dateOfBirth);
     setVal('TraveldocumentNumber',      P.passportNumber);
-
-    pickOpt('Sex', P.sex, P.sex === 'Female' ? 2 : 1);
-
+    pickOpt('Sex',                      sexLabel, sexCode);
     setVal('Street',                    P.street);
     setVal('Postcode',                  P.postcode);
     setVal('City',                      P.city);
-
     pickOpt('Country',                  P.country,    P.countryCode);
-
     setVal('Telephone',                 P.telephone);
     setVal('Email',                     P.email);
     setVal('LastnameAtBirth',           P.lastnameAtBirth || P.lastname);
-
     pickOpt('NationalityAtBirth',       P.nationality, P.nationalityCode);
     pickOpt('CountryOfBirth',           P.nationality, P.nationalityCode);
     setVal('PlaceOfBirth',              P.placeOfBirth);
     pickOpt('NationalityForApplication',P.nationality, P.nationalityCode);
-
     setVal('TraveldocumentDateOfIssue', P.passportIssueDate);
     setVal('TraveldocumentValidUntil',  P.passportExpiry);
     pickOpt('TraveldocumentIssuingAuthority', P.nationality, P.nationalityCode);
 
-    const gdpr = document.getElementById('DSGVOAccepted');
+    // GDPR consent checkbox
+    const gdpr = findEl('DSGVOAccepted');
     if (gdpr && !gdpr.checked) gdpr.click();
 
     log('Form filled — solving CAPTCHA…');

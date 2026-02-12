@@ -176,7 +176,16 @@ async function startBot() {
   const person   = stored.person   || {};
   const settings = stored.settings || {};
 
-  if (!person.lastname)       addLog('warn', 'تحذير: بيانات الشخص غير مكتملة');
+  // Block start if critical person fields are missing
+  const missing = ['lastname','firstname','dateOfBirth','passportNumber',
+                   'street','city','country','telephone','email',
+                   'nationality','passportIssueDate','passportExpiry']
+    .filter(f => !person[f]);
+  if (missing.length) {
+    addLog('error', '🛑 بيانات مطلوبة ناقصة: ' + missing.join(', '));
+    addLog('warn',  'اذهب لتبويب "البيانات الشخصية" واملأ جميع الحقول ثم اضغط حفظ');
+    return;
+  }
   if (!settings.openaiApiKey) addLog('warn', 'تحذير: مفتاح التفعيل غير مضبوط — الكابتشا يدوي');
 
   TARGET_URL = settings.targetUrl || 'https://appointment.bmeia.gv.at/';
