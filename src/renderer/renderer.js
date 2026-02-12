@@ -32,9 +32,8 @@ const Storage = (() => {
 })();
 
 // ─── Bot state ────────────────────────────────────────────────────────────────
-let botRunning   = false;
-let frameLoaded  = false;
-let TARGET_URL   = 'https://appointment.bmeia.gv.at/';
+let botRunning  = false;
+let TARGET_URL  = 'https://appointment.bmeia.gv.at/';
 
 // ─── Tab navigation ──────────────────────────────────────────────────────────
 document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -54,37 +53,17 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   if (IS_ELECTRON) {
     window.electronAPI.onBotLog(({ type, message }) => {
-      const clean    = message.replace(/\[AustriaBot\]\s*(ERROR:\s*)?/, '');
-      const logType  = message.includes('ERROR') ? 'error' : type || 'success';
-      addLog(logType, clean);
-      if (logType === 'error' || message.includes('CONFIRMED')) {
-        document.querySelector('[data-tab="logs"]').click();
-      }
+      const clean = message.replace(/\[AustriaBot\]\s*(ERROR:\s*)?/, '');
+      // Route to activity feed AND logs tab
+      routeBotMessage(clean);
+      addLog(message.includes('ERROR') ? 'error' : 'info', clean);
     });
     window.electronAPI.onBotStopped(() => {
       setBotState(false);
+      addActivity('error', '⛔', 'نافذة البوت أُغلقت');
       addLog('warn', 'نافذة البوت أُغلقت');
     });
   }
-
-  // Detect iframe blocked by X-Frame-Options
-  const frame = document.getElementById('site-frame');
-  frame.addEventListener('load', () => {
-    // Try to detect if content loaded or is blank (blocked)
-    try {
-      const loc = frame.contentWindow?.location?.href;
-      if (loc && loc !== 'about:blank') {
-        document.getElementById('frame-url-bar').value = loc;
-        document.getElementById('frame-blocked').style.display = 'none';
-        frameLoaded = true;
-      }
-    } catch (_) {
-      // Cross-origin access blocked = site DID load (just can't read it)
-      document.getElementById('frame-blocked').style.display = 'none';
-      document.getElementById('frame-url-bar').value = TARGET_URL;
-      frameLoaded = true;
-    }
-  });
 });
 
 // ─── Load saved data ──────────────────────────────────────────────────────────
@@ -122,7 +101,7 @@ async function loadAll() {
     if (s.targetUrl) TARGET_URL = s.targetUrl;
 
     updateInfoCards(stored);
-    addLog('info', IS_ELECTRON ? 'تشغيل Electron ✓' : 'تشغيل متصفح (localStorage) ✓');
+    addLog('info', IS_ELECTRON ? 'وضع Electron' : 'وضع المتصفح (localStorage)');
   } catch (e) {
     addLog('error', 'خطأ في تحميل الإعدادات: ' + e.message);
   }
@@ -202,81 +181,110 @@ async function startBot() {
 
   TARGET_URL = settings.targetUrl || 'https://appointment.bmeia.gv.at/';
 
+  clearActivity();
+
   if (IS_ELECTRON) {
-    // Electron: open dedicated BrowserWindow with script injection
     const config = { person, settings, targetUrl: TARGET_URL };
     try {
       const res = await window.electronAPI.startBot(config);
       if (res.success) {
         setBotState(true);
-        loadFrame(TARGET_URL);
-        addLog('info', 'تم تشغيل البوت (Electron) ← ' + TARGET_URL);
+        addActivity('step', '🚀', 'البوت انطلق — جاري تحميل الموقع…');
+        addLog('info', 'تم تشغيل البوت ← ' + TARGET_URL);
       } else {
-        addLog('warn', res.message || 'البوت يعمل بالفعل');
+        addActivity('error', '⚠️', res.message || 'البوت يعمل بالفعل');
+        addLog('warn', res.message);
       }
     } catch (e) {
-      addLog('error', 'خطأ: ' + e.message);
+      addActivity('error', '❌', 'خطأ في التشغيل: ' + e.message);
+      addLog('error', e.message);
     }
   } else {
-    // Browser mode: load the site in the iframe for visual monitoring
     setBotState(true);
-    loadFrame(TARGET_URL);
-    addLog('info', 'البوت يعمل (وضع المتصفح) — الموقع يظهر في الإطار أدناه');
-    addLog('warn', 'ملاحظة: الأتمتة الكاملة تعمل في تطبيق Desktop فقط. يمكنك متابعة الموقع يدوياً.');
+    addActivity('wait', 'ℹ️', 'وضع المتصفح — الأتمتة الكاملة تحتاج تطبيق Desktop');
+    addActivity('step', '🌐', 'افتح الموقع يدوياً: ' + TARGET_URL);
+    addLog('warn', 'وضع المتصفح: الأتمتة غير متاحة');
   }
 }
 
 async function stopBot() {
   if (IS_ELECTRON) {
-    try {
-      await window.electronAPI.stopBot();
-    } catch (e) {
-      addLog('error', 'خطأ في الإيقاف: ' + e.message);
-    }
+    try { await window.electronAPI.stopBot(); }
+    catch (e) { addLog('error', 'خطأ في الإيقاف: ' + e.message); }
   }
   setBotState(false);
-  clearFrame();
+  addActivity('error', '⛔', 'تم إيقاف البوت');
   addLog('warn', 'تم إيقاف البوت');
 }
 
-// ─── Iframe helpers ───────────────────────────────────────────────────────────
-function loadFrame(url) {
-  const frame   = document.getElementById('site-frame');
-  const blocked = document.getElementById('frame-blocked');
-  const urlBar  = document.getElementById('frame-url-bar');
+// ─── Activity feed ────────────────────────────────────────────────────────────
+// type: 'step' | 'success' | 'wait' | 'found' | 'error' | 'confirm'
+function addActivity(type, icon, text) {
+  const feed = document.getElementById('activity-feed');
+  if (!feed) return;
 
-  blocked.style.display = 'none';
-  urlBar.value          = url;
-  frame.src             = url;
+  // Remove idle placeholder
+  const idle = feed.querySelector('.activity-idle');
+  if (idle) idle.remove();
 
-  // Fallback: if after 5s the frame still shows about:blank, assume blocked
-  frameLoaded = false;
-  setTimeout(() => {
-    if (!frameLoaded) {
-      blocked.style.display = 'flex';
-      addLog('warn', 'الموقع يمنع العرض داخل الإطار — استخدم "فتح في نافذة جديدة"');
-    }
-  }, 5000);
+  const time = new Date().toLocaleTimeString('ar-EG', { hour12: false });
+  const el = document.createElement('div');
+  el.className = 'activity-msg ' + (type || 'step');
+  el.innerHTML =
+    `<span class="a-icon">${icon}</span>` +
+    `<span class="a-body">` +
+    `<span class="a-text">${escapeHtml(text)}</span>` +
+    `<span class="a-time">${time}</span>` +
+    `</span>`;
+  feed.appendChild(el);
+  feed.scrollTop = feed.scrollHeight;
 }
 
-function clearFrame() {
-  document.getElementById('site-frame').src = 'about:blank';
-  document.getElementById('frame-url-bar').value = '';
-  document.getElementById('frame-blocked').style.display = 'none';
-  frameLoaded = false;
+function clearActivity() {
+  const feed = document.getElementById('activity-feed');
+  if (!feed) return;
+  feed.innerHTML = '<div class="activity-idle"><span class="idle-icon">💤</span><span>البوت متوقف — اضغط "تشغيل" لبدء الحجز</span></div>';
 }
 
-function reloadFrame() {
-  const frame = document.getElementById('site-frame');
-  if (frame.src && frame.src !== 'about:blank') {
-    frame.src = frame.src;
-  } else {
-    loadFrame(TARGET_URL);
-  }
-}
+// Translate bot log messages into rich activity cards
+function routeBotMessage(msg) {
+  const m = msg.toLowerCase();
 
-function openExternal() {
-  window.open(TARGET_URL, '_blank');
+  if (m.includes('page detected: office'))
+    return addActivity('step',    '🏛',  'الصفحة: اختيار السفارة…');
+  if (m.includes('office selected'))
+    return addActivity('success', '✅',  msg);
+  if (m.includes('page detected: calendar'))
+    return addActivity('step',    '📋',  'الصفحة: اختيار نوع الحجز…');
+  if (m.includes('reservation type selected'))
+    return addActivity('success', '✅',  msg);
+  if (m.includes('page detected: persons'))
+    return addActivity('step',    '👤',  'الصفحة: عدد الأشخاص…');
+  if (m.includes('personcount'))
+    return addActivity('success', '✅',  'تم اختيار عدد الأشخاص: 1');
+  if (m.includes('page detected: info'))
+    return addActivity('step',    '📄',  'الصفحة: معلومات — جاري التجاوز…');
+  if (m.includes('page detected: scheduler'))
+    return addActivity('step',    '📅',  'الصفحة: البحث عن مواعيد…');
+  if (m.includes('no appointments'))
+    return addActivity('wait',    '🔄',  msg);
+  if (m.includes('appointment slot selected'))
+    return addActivity('found',   '🎯',  '✅ تم العثور على موعد! ' + msg.split('→')[1]?.trim());
+  if (m.includes('page detected: form'))
+    return addActivity('step',    '📝',  'الصفحة: ملء البيانات الشخصية…');
+  if (m.includes('form filled'))
+    return addActivity('success', '✅',  'تم ملء جميع البيانات');
+  if (m.includes('captcha solved'))
+    return addActivity('success', '🔓',  'تم حل الكابتشا: ' + msg.split('→')[1]?.trim());
+  if (m.includes('no openai key') || m.includes('manual captcha'))
+    return addActivity('wait',    '⌨️',  'أدخل الكابتشا يدوياً');
+  if (m.includes('booking confirmed'))
+    return addActivity('confirm', '🎉',  'تم الحجز بنجاح!');
+  if (m.includes('error'))
+    return addActivity('error',   '❌',  msg);
+
+  // Default
+  addActivity('step', '•', msg);
 }
 
 // ─── Status polling ───────────────────────────────────────────────────────────
