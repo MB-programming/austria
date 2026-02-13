@@ -648,6 +648,156 @@ input[type="file"]#s-custom-sound {
 }
 
 /* ===========================
+   LICENSE / TRIAL MODAL
+   =========================== */
+.license-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.88);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(6px);
+}
+
+.license-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px 36px 32px;
+  width: 380px;
+  max-width: 92vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0,0,0,.6);
+}
+
+.license-logo {
+  color: var(--accent-glow);
+  margin-bottom: 4px;
+}
+
+.license-card h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.license-subtitle {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: -4px;
+}
+
+.license-input-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.license-input-row input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 9px 12px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s;
+}
+
+.license-input-row input:focus { border-color: var(--accent); }
+
+.license-activate-btn { flex-shrink: 0; padding: 9px 18px; }
+
+.license-error {
+  color: var(--danger);
+  font-size: 12px;
+  margin-top: -6px;
+}
+
+.license-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.license-divider::before,
+.license-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.btn-trial {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 11px 20px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  width: 100%;
+  transition: border-color .15s, color .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btn-trial:hover {
+  border-color: var(--accent-glow);
+  color: var(--accent-glow);
+}
+
+/* Input shake animation */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%,60%  { transform: translateX(-5px); }
+  40%,80%  { transform: translateX(5px); }
+}
+.input-shake { animation: shake .4s ease; border-color: var(--danger) !important; }
+
+/* ===========================
+   TRIAL MODE — LOCKED NAV
+   =========================== */
+.trial-badge {
+  display: none;
+  font-size: 9px;
+  font-weight: 700;
+  background: var(--warning);
+  color: #1a1a00;
+  border-radius: 3px;
+  padding: 1px 5px;
+  letter-spacing: .3px;
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+body.trial-mode .nav-btn[data-trial-locked] .trial-badge {
+  display: inline-flex;
+}
+
+body.trial-mode .nav-btn[data-trial-locked] {
+  opacity: 0.55;
+  cursor: pointer;
+  position: relative;
+}
+
+body.trial-mode .nav-btn[data-trial-locked]:hover {
+  opacity: 0.8;
+  background: rgba(255,255,255,.04);
+}
+
+/* ===========================
    SLOT PREFERENCES
    =========================== */
 .slot-prefs-grid {

@@ -111,6 +111,14 @@ const I18N = {
     'mon.retry.unit': ' ثانية…',
     'mon.found':      'تم إيجاد مواعيد متاحة! عدد: ',
     'mon.nav':        'جاري التنقل للوصول لصفحة المواعيد…',
+    // license / trial
+    'trial.modal.title':    'تفعيل البرنامج',
+    'trial.modal.subtitle': 'أدخل مفتاح التفعيل للوصول الكامل',
+    'trial.modal.unlock':   'تفعيل',
+    'trial.modal.or':       'أو',
+    'trial.modal.try':      'تجربة مراقبة المواعيد فقط',
+    'trial.modal.error':    'المفتاح فارغ — أدخل مفتاحك أو اختر التجربة',
+    'trial.badge':          'باشتراك',
     // placeholders
     'ph.apikey':     'أدخل مفتاح التفعيل…',
     'ph.smith':      'SMITH',             'ph.john':       'JOHN',
@@ -263,6 +271,14 @@ const I18N = {
     'mon.retry.unit': ' seconds…',
     'mon.found':      'Appointments found! Count: ',
     'mon.nav':        'Navigating to appointments page…',
+    // license / trial
+    'trial.modal.title':    'Activate Software',
+    'trial.modal.subtitle': 'Enter your activation key for full access',
+    'trial.modal.unlock':   'Activate',
+    'trial.modal.or':       'or',
+    'trial.modal.try':      'Try Monitor-Only (Free)',
+    'trial.modal.error':    'Key is empty — enter your key or choose trial',
+    'trial.badge':          'Subscription',
     // placeholders
     'ph.apikey':     'Enter activation key…',
     'ph.smith':      'SMITH',              'ph.john':       'JOHN',
@@ -389,11 +405,19 @@ const Storage = (() => {
 // ─── Bot / Monitor state ──────────────────────────────────────────────────────
 let botRunning     = false;
 let monitorRunning = false;
+let trialMode      = false;
 let TARGET_URL     = 'https://appointment.bmeia.gv.at/';
 
 // ─── Tab navigation ──────────────────────────────────────────────────────────
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    if (trialMode && btn.hasAttribute('data-trial-locked')) {
+      // Open subscription page
+      const url = 'https://orbtasoft.com';
+      if (IS_ELECTRON && window.electronAPI.openExternal) window.electronAPI.openExternal(url);
+      else window.open(url, '_blank');
+      return;
+    }
     const tabId = btn.dataset.tab;
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -515,9 +539,94 @@ async function loadAll() {
       const savedLang = localStorage.getItem('orbtasoft_app_lang') || 'ar';
       setLang(savedLang);
     } catch (_) { setLang('ar'); }
+
+    // Check license / trial gate
+    await checkLicense(stored);
   } catch (e) {
     addLog('error', t('msg.load.error') + e.message);
   }
+}
+
+// ─── License / Trial ──────────────────────────────────────────────────────────
+async function checkLicense(stored) {
+  const s = (stored || {}).settings || {};
+  const savedMode = localStorage.getItem('orbtasoft_mode');
+
+  if (s.openaiApiKey || savedMode === 'full') {
+    setFullMode(false); // no animation, silent
+    return;
+  }
+  if (savedMode === 'trial') {
+    setTrialMode();
+    return;
+  }
+  // First launch — show modal
+  const overlay = document.getElementById('license-overlay');
+  if (overlay) overlay.style.display = 'flex';
+}
+
+async function activateFullMode() {
+  const keyInput = document.getElementById('license-key-input');
+  const key = keyInput ? keyInput.value.trim() : '';
+
+  if (!key) {
+    const errEl = document.getElementById('license-error');
+    if (errEl) { errEl.style.display = ''; setTimeout(() => { errEl.style.display = 'none'; }, 3000); }
+    if (keyInput) keyInput.classList.add('input-shake');
+    setTimeout(() => { if (keyInput) keyInput.classList.remove('input-shake'); }, 500);
+    return;
+  }
+
+  // Save key to settings
+  try {
+    const stored = await Storage.get();
+    const s = stored.settings || {};
+    s.openaiApiKey = key;
+    await Storage.save({ settings: s });
+    setField('s-openai-key', key);
+    const fresh = await Storage.get();
+    updateInfoCards(fresh);
+  } catch (_) {}
+
+  localStorage.setItem('orbtasoft_mode', 'full');
+  setFullMode(true);
+}
+
+function enterTrialMode() {
+  localStorage.setItem('orbtasoft_mode', 'trial');
+  setTrialMode();
+}
+
+function setFullMode(switchToBot) {
+  trialMode = false;
+  const overlay = document.getElementById('license-overlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.classList.remove('trial-mode');
+
+  if (switchToBot) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    const botBtn = document.querySelector('.nav-btn[data-tab="bot"]');
+    if (botBtn) {
+      botBtn.classList.add('active');
+      document.getElementById('tab-bot').classList.add('active');
+    }
+  }
+}
+
+function setTrialMode() {
+  trialMode = true;
+  const overlay = document.getElementById('license-overlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.classList.add('trial-mode');
+
+  // Switch to monitor tab
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const monBtn = document.querySelector('.nav-btn[data-tab="monitor"]');
+  if (monBtn) monBtn.classList.add('active');
+  const monTab = document.getElementById('tab-monitor');
+  if (monTab) monTab.classList.add('active');
 }
 
 function setField(id, val) {
@@ -660,6 +769,11 @@ async function saveSettings() {
     const stored = await Storage.get();
     updateInfoCards(stored);
     addLog('success', t('msg.saved.settings'));
+    // If key was just added and we're in trial → upgrade to full
+    if (s.openaiApiKey && trialMode) {
+      localStorage.setItem('orbtasoft_mode', 'full');
+      setFullMode(true);
+    }
   } catch (e) {
     addLog('error', t('msg.save.error') + e.message);
   }
