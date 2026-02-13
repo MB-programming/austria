@@ -659,27 +659,32 @@ input[type="file"]#s-custom-sound {
   justify-content: center;
   z-index: 9999;
   backdrop-filter: blur(6px);
+  overflow-y: auto;
+  padding: 20px;
 }
 
 .license-card {
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 40px 36px 32px;
+  padding: 36px 32px 28px;
   width: 380px;
-  max-width: 92vw;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   text-align: center;
   box-shadow: 0 8px 40px rgba(0,0,0,.6);
+  flex-shrink: 0;
 }
 
 .license-logo {
   color: var(--accent-glow);
-  margin-bottom: 4px;
+  margin-bottom: 0;
+  line-height: 1;
 }
+.license-logo svg { width: 38px; height: 38px; }
 
 .license-card h2 {
   font-size: 20px;
@@ -739,21 +744,23 @@ input[type="file"]#s-custom-sound {
 }
 
 .btn-trial {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  padding: 11px 20px;
+  background: rgba(92,107,192,.12);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  padding: 12px 20px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 13px;
   width: 100%;
-  transition: border-color .15s, color .15s;
+  transition: background .15s, border-color .15s, color .15s;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  line-height: 1.4;
 }
 .btn-trial:hover {
+  background: rgba(92,107,192,.25);
   border-color: var(--accent-glow);
   color: var(--accent-glow);
 }
