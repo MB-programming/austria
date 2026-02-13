@@ -115,6 +115,10 @@
           <span class="nav-icon"><svg width="18" height="18"><use href="#ic-logs"/></svg></span>
           <span data-i18n="nav.logs">السجل</span>
         </button>
+        <button class="nav-btn" data-tab="monitor">
+          <span class="nav-icon"><svg width="18" height="18"><use href="#ic-eye"/></svg></span>
+          <span data-i18n="nav.monitor">مراقبة المواعيد</span>
+        </button>
         <button class="nav-btn" data-tab="terms">
           <span class="nav-icon"><svg width="18" height="18"><use href="#ic-shield"/></svg></span>
           <span data-i18n="nav.terms">سياسة الاستخدام</span>
@@ -423,6 +427,83 @@
           </div>
 
           <div class="form-section">
+            <h3 class="section-title" data-i18n="settings.slot">اختيار الموعد</h3>
+            <p class="hint" style="margin-bottom:12px" data-i18n="settings.slot.hint">حدد الموعد المفضل — لو مش موجود هيجرب البديل التالي تلقائياً</p>
+            <div class="slot-prefs-grid">
+              <div class="slot-pref-row">
+                <label class="slot-pref-label" data-i18n="s.slot.0">الاختيار الأساسي</label>
+                <select id="s-slot-0" class="slot-pref-select">
+                  <option value="1"  data-i18n="slot.n1">الموعد الأول</option>
+                  <option value="2"  data-i18n="slot.n2">الموعد الثاني</option>
+                  <option value="3"  data-i18n="slot.n3">الموعد الثالث</option>
+                  <option value="4"  data-i18n="slot.n4">الموعد الرابع</option>
+                  <option value="5"  data-i18n="slot.n5">الموعد الخامس</option>
+                  <option value="6"  data-i18n="slot.n6">الموعد السادس</option>
+                  <option value="7"  data-i18n="slot.n7">الموعد السابع</option>
+                  <option value="8"  data-i18n="slot.n8">الموعد الثامن</option>
+                  <option value="9"  data-i18n="slot.n9">الموعد التاسع</option>
+                  <option value="10" data-i18n="slot.n10">الموعد العاشر</option>
+                  <option value="random" selected data-i18n="slot.random">عشوائي</option>
+                </select>
+              </div>
+              <div class="slot-pref-row">
+                <label class="slot-pref-label" data-i18n="s.slot.1">البديل الأول</label>
+                <select id="s-slot-1" class="slot-pref-select">
+                  <option value="none" selected data-i18n="slot.none">لا يوجد</option>
+                  <option value="1"  data-i18n="slot.n1">الموعد الأول</option>
+                  <option value="2"  data-i18n="slot.n2">الموعد الثاني</option>
+                  <option value="3"  data-i18n="slot.n3">الموعد الثالث</option>
+                  <option value="4"  data-i18n="slot.n4">الموعد الرابع</option>
+                  <option value="5"  data-i18n="slot.n5">الموعد الخامس</option>
+                  <option value="6"  data-i18n="slot.n6">الموعد السادس</option>
+                  <option value="7"  data-i18n="slot.n7">الموعد السابع</option>
+                  <option value="8"  data-i18n="slot.n8">الموعد الثامن</option>
+                  <option value="9"  data-i18n="slot.n9">الموعد التاسع</option>
+                  <option value="10" data-i18n="slot.n10">الموعد العاشر</option>
+                  <option value="any"    data-i18n="slot.any">أي موعد متاح</option>
+                  <option value="random" data-i18n="slot.random">عشوائي</option>
+                </select>
+              </div>
+              <div class="slot-pref-row">
+                <label class="slot-pref-label" data-i18n="s.slot.2">البديل الثاني</label>
+                <select id="s-slot-2" class="slot-pref-select">
+                  <option value="none" selected data-i18n="slot.none">لا يوجد</option>
+                  <option value="1"  data-i18n="slot.n1">الموعد الأول</option>
+                  <option value="2"  data-i18n="slot.n2">الموعد الثاني</option>
+                  <option value="3"  data-i18n="slot.n3">الموعد الثالث</option>
+                  <option value="4"  data-i18n="slot.n4">الموعد الرابع</option>
+                  <option value="5"  data-i18n="slot.n5">الموعد الخامس</option>
+                  <option value="6"  data-i18n="slot.n6">الموعد السادس</option>
+                  <option value="7"  data-i18n="slot.n7">الموعد السابع</option>
+                  <option value="8"  data-i18n="slot.n8">الموعد الثامن</option>
+                  <option value="9"  data-i18n="slot.n9">الموعد التاسع</option>
+                  <option value="10" data-i18n="slot.n10">الموعد العاشر</option>
+                  <option value="any"    data-i18n="slot.any">أي موعد متاح</option>
+                  <option value="random" data-i18n="slot.random">عشوائي</option>
+                </select>
+              </div>
+              <div class="slot-pref-row">
+                <label class="slot-pref-label" data-i18n="s.slot.3">البديل الثالث</label>
+                <select id="s-slot-3" class="slot-pref-select">
+                  <option value="none" selected data-i18n="slot.none">لا يوجد</option>
+                  <option value="1"  data-i18n="slot.n1">الموعد الأول</option>
+                  <option value="2"  data-i18n="slot.n2">الموعد الثاني</option>
+                  <option value="3"  data-i18n="slot.n3">الموعد الثالث</option>
+                  <option value="4"  data-i18n="slot.n4">الموعد الرابع</option>
+                  <option value="5"  data-i18n="slot.n5">الموعد الخامس</option>
+                  <option value="6"  data-i18n="slot.n6">الموعد السادس</option>
+                  <option value="7"  data-i18n="slot.n7">الموعد السابع</option>
+                  <option value="8"  data-i18n="slot.n8">الموعد الثامن</option>
+                  <option value="9"  data-i18n="slot.n9">الموعد التاسع</option>
+                  <option value="10" data-i18n="slot.n10">الموعد العاشر</option>
+                  <option value="any"    data-i18n="slot.any">أي موعد متاح</option>
+                  <option value="random" data-i18n="slot.random">عشوائي</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
             <h3 class="section-title" data-i18n="sound.title">صوت الإشعار عند إيجاد موعد</h3>
             <div class="sound-grid">
 
@@ -512,6 +593,112 @@
         </div>
         <div class="logs-container" id="logs-container">
           <div class="log-empty" data-i18n="log.empty">لا يوجد نشاط بعد. قم بتشغيل البوت أولًا.</div>
+        </div>
+      </section>
+
+      <!-- ===== MONITOR TAB ===== -->
+      <section class="tab" id="tab-monitor">
+        <div class="tab-header">
+          <h1 data-i18n="monitor.title">مراقبة المواعيد</h1>
+          <p class="subtitle" data-i18n="monitor.subtitle">مراقبة توافر المواعيد دون حجز</p>
+        </div>
+
+        <div class="bot-panel">
+          <!-- Control card -->
+          <div class="bot-card">
+            <div class="bot-visual" id="monitor-animation">
+              <div class="bot-ring"></div>
+              <div class="bot-icon">
+                <svg width="40" height="40"><use href="#ic-eye"/></svg>
+              </div>
+            </div>
+            <div class="bot-info">
+              <h2 id="monitor-state-label" data-i18n="monitor.stopped.label">المراقبة متوقفة</h2>
+              <p id="monitor-state-desc" data-i18n="monitor.stopped.desc">اضغط "بدء المراقبة" للبدء</p>
+            </div>
+            <div class="bot-actions">
+              <button class="btn btn-start" id="monitor-start-btn" onclick="startMonitor()">
+                <span data-i18n="btn.monitor.start">◉ بدء المراقبة</span>
+              </button>
+              <button class="btn btn-stop" id="monitor-stop-btn" onclick="stopMonitor()" disabled>
+                <span data-i18n="btn.monitor.stop">■ إيقاف</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Monitor settings -->
+          <form class="form-grid" id="monitor-form">
+            <div class="form-section">
+              <h3 class="section-title" data-i18n="monitor.settings">إعدادات المراقبة</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label data-i18n="m.office">المنظمة / الجهة</label>
+                  <input type="text" id="m-office" placeholder="KAIRO" list="m-office-list" />
+                  <datalist id="m-office-list">
+                    <option value="KAIRO">
+                    <option value="ABU-DHABI"><option value="AMMAN"><option value="ANKARA">
+                    <option value="BEIRUT"><option value="BERLIN"><option value="BRUESSEL">
+                    <option value="DOHA"><option value="DUBAI"><option value="ISTANBUL">
+                    <option value="LONDON"><option value="MADRID"><option value="PARIS">
+                    <option value="RIYADH"><option value="ROM"><option value="TUNIS">
+                    <option value="WASHINGTON">
+                  </datalist>
+                </div>
+                <div class="form-group">
+                  <label data-i18n="m.type">نوع الحجز (كلمة مفتاحية)</label>
+                  <input type="text" id="m-reservation-type" placeholder="Bachelor" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label data-i18n="m.refresh">فترة إعادة الفحص (ثانية)</label>
+                  <input type="number" id="m-refresh-interval" placeholder="30" min="5" max="300" step="1" />
+                  <small class="hint" data-i18n="m.refresh.hint">الحد الأدنى 5 ثوان</small>
+                </div>
+                <div class="form-group">
+                  <label data-i18n="m.url">الرابط</label>
+                  <input type="url" id="m-target-url" placeholder="https://appointment.bmeia.gv.at/" />
+                  <small class="hint" data-i18n="m.url.hint">اتركه فارغًا للرابط الافتراضي</small>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label data-i18n="m.sound">صوت التنبيه عند إيجاد موعد</label>
+                  <select id="m-sound">
+                    <option value="beep"  data-i18n="m.sound.beep">Beep — ثلاث نبضات</option>
+                    <option value="chime" data-i18n="m.sound.chime">Chime — نغمة صاعدة</option>
+                    <option value="alert" data-i18n="m.sound.alert">Alert — تنبيه سريع</option>
+                    <option value="ding"  data-i18n="m.sound.ding">Ding — جرس واحد</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn btn-save" onclick="saveMonitorSettings()">
+                  <svg width="15" height="15" style="vertical-align:middle;margin-left:6px"><use href="#ic-save"/></svg>
+                  <span data-i18n="btn.save.monitor">حفظ إعدادات المراقبة</span>
+                </button>
+                <span class="save-indicator" id="monitor-saved"></span>
+              </div>
+            </div>
+          </form>
+
+          <!-- Chat-style monitor feed -->
+          <div class="activity-panel">
+            <div class="activity-header">
+              <span class="activity-title">
+                <svg width="16" height="16" style="vertical-align:middle;margin-left:4px"><use href="#ic-eye"/></svg>
+                <span data-i18n="monitor.feed.title">نشاط المراقبة</span>
+              </span>
+              <button class="btn btn-sm btn-clear" onclick="clearMonitorFeed()" data-i18n="btn.clear">مسح</button>
+            </div>
+            <div class="activity-feed" id="monitor-feed">
+              <div class="activity-idle">
+                <span class="idle-icon"><svg width="20" height="20"><use href="#ic-eye"/></svg></span>
+                <span data-i18n="monitor.idle">المراقبة متوقفة — اضغط "بدء" للبدء</span>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 

@@ -5,9 +5,10 @@ const Store = require('electron-store');
 
 const store = new Store();
 
-let mainWindow = null;
-let botWindow  = null;
-let authWindow = null;
+let mainWindow    = null;
+let botWindow     = null;
+let authWindow    = null;
+let monitorWindow = null;
 
 // ─── Auth window ────────────────────────────────────────────────────────────
 function createAuthWindow() {
@@ -143,6 +144,259 @@ ipcMain.handle('start-bot', async (_, config) => {
   return { success: true };
 });
 
+// ─── Monitor IPC handlers ──────────────────────────────────────────────────
+ipcMain.handle('monitor-status', () => ({ running: monitorWindow !== null }));
+
+ipcMain.handle('stop-monitor', () => {
+  if (monitorWindow) { monitorWindow.close(); monitorWindow = null; }
+  return { success: true };
+});
+
+ipcMain.handle('start-monitor', async (_, config) => {
+  if (monitorWindow) { monitorWindow.focus(); return { success: false, message: 'Monitor already running' }; }
+
+  monitorWindow = new BrowserWindow({
+    width: 1200, height: 850,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: false,
+      webSecurity: true
+    },
+    title: 'Orbtasoft — Monitor'
+  });
+
+  monitorWindow.webContents.on('console-message', (_, level, message) => {
+    if (!message.startsWith('[AustriaMonitor]')) return;
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    const type = level >= 3 ? 'error' : level === 2 ? 'warn' : 'success';
+    mainWindow.webContents.send('monitor-log', { type, message });
+  });
+
+  monitorWindow.webContents.on('dom-ready', () => {
+    const url = monitorWindow.webContents.getURL();
+    if (!url.includes('appointment.bmeia.gv.at')) return;
+    monitorWindow.webContents.executeJavaScript(buildMonitorScript(config)).catch(e => {
+      console.error('[main] monitor inject error:', e.message);
+    });
+  });
+
+  monitorWindow.loadURL(config.targetUrl || 'https://appointment.bmeia.gv.at/');
+
+  monitorWindow.on('closed', () => {
+    monitorWindow = null;
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('monitor-stopped');
+    }
+  });
+
+  return { success: true };
+});
+
+// ─── Monitor script builder ────────────────────────────────────────────────
+function buildMonitorScript(config) {
+  const s = config.settings || {};
+
+  const CFG = {
+    office:             s.office             || 'KAIRO',
+    reservationType:    s.reservationType    || 'Bachelor',
+    refreshIntervalSec: s.refreshIntervalSec || 30,
+    navDelay:           s.navigationDelayMs  || 800,
+    rootUrl:            config.targetUrl     || 'https://appointment.bmeia.gv.at/',
+    notificationSound:  s.notificationSound  || 'beep',
+    customSoundB64:     s.customSoundB64     || ''
+  };
+
+  return `(function () {
+  'use strict';
+
+  const CFG = ${JSON.stringify(CFG)};
+
+  const wait   = ms => new Promise(r => setTimeout(r, ms));
+  const log    = msg => console.log('[AustriaMonitor] ' + msg);
+  const logErr = msg => console.error('[AustriaMonitor] ERROR: ' + msg);
+
+  // ── Audio alarm ───────────────────────────────────────────────────────────
+  let alarmTimer = null;
+
+  function playBeep() {
+    try {
+      if (CFG.notificationSound === 'custom' && CFG.customSoundB64) {
+        const audio = new Audio(CFG.customSoundB64);
+        audio.volume = 1;
+        audio.play().catch(() => {});
+        return;
+      }
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const now = ctx.currentTime;
+      function tone(freq, start, dur, vol, type) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = type || 'sine';
+        gain.gain.setValueAtTime(vol, now + start);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + start + dur);
+        osc.start(now + start);
+        osc.stop(now + start + dur + 0.01);
+      }
+      const snd = CFG.notificationSound || 'beep';
+      if (snd === 'beep')  { tone(880, 0, 0.18, 0.55); tone(1100, 0.22, 0.18, 0.55); tone(880, 0.44, 0.18, 0.55); }
+      else if (snd === 'chime')  { tone(523, 0, 0.35, 0.5); tone(659, 0.18, 0.35, 0.5); tone(784, 0.36, 0.45, 0.5); }
+      else if (snd === 'alert')  { [0, 0.12, 0.24, 0.36, 0.48].forEach(t => tone(1400, t, 0.09, 0.6, 'square')); }
+      else if (snd === 'ding')   { tone(1047, 0, 0.6, 0.7); tone(1319, 0, 0.3, 0.3); }
+    } catch (_) {}
+  }
+
+  function startAlarm() {
+    playBeep();
+    if (alarmTimer) clearInterval(alarmTimer);
+    alarmTimer = setInterval(playBeep, 2500);
+  }
+
+  // ── Page detection ────────────────────────────────────────────────────────
+  function detectPage() {
+    const path   = location.pathname;
+    const search = location.search;
+    const text   = (document.getElementById('main') || document.body).innerText || '';
+
+    if (
+      document.getElementById('Lastname') ||
+      document.querySelector('[name$="$Lastname"]') ||
+      document.querySelector('[name*="Lastname"]') ||
+      document.getElementById('TraveldocumentNumber') ||
+      document.querySelector('[name$="$TraveldocumentNumber"]') ||
+      document.getElementById('DSGVOAccepted')
+    ) return 'form';
+
+    if (
+      document.querySelector('input[type="radio"][name="Start"]') ||
+      /\\/HomeWeb\\/Scheduler/i.test(path) ||
+      /\\/Scheduler/i.test(path) ||
+      /no appointments available/i.test(text) ||
+      /keine termine/i.test(text) ||
+      /unfortunately no appointment/i.test(text) ||
+      (document.querySelector('input[type="radio"]') && /Start/i.test(path))
+    ) return 'scheduler';
+
+    if (/fromspecificinfo=true/i.test(search)) return 'info';
+    if (
+      /\\/Info/i.test(path) ||
+      /\\/Instructions/i.test(path) ||
+      (/information|instructions|hinweise/i.test(text) && document.querySelector('input[type="submit"]'))
+    ) return 'info';
+
+    const calEl = document.getElementById('CalendarId');
+    if (calEl && calEl.tagName === 'SELECT') return 'calendar';
+
+    if (document.getElementById('PersonCount')) return 'persons';
+
+    const offEl = document.getElementById('Office');
+    if (offEl && offEl.tagName === 'SELECT') return 'office';
+
+    return 'unknown';
+  }
+
+  // ── Submit helpers ────────────────────────────────────────────────────────
+  function submitNext(delayMs) {
+    setTimeout(() => {
+      const allSubmits = [
+        ...Array.from(document.querySelectorAll('input[type="submit"]')),
+        ...Array.from(document.querySelectorAll('button[type="submit"]')),
+        ...Array.from(document.querySelectorAll('button')),
+      ];
+      const btn =
+        allSubmits.find(b => /^next$/i.test((b.value || b.textContent || '').trim())) ||
+        allSubmits.find(b => /next|weiter|continue|إرسال|submit/i.test(b.value || b.textContent || '')) ||
+        allSubmits[0];
+      if (!btn) { logErr('Next button not found'); return; }
+      const form = btn.form || document.querySelector('form');
+      if (form && form.requestSubmit) form.requestSubmit(btn);
+      else btn.click();
+    }, delayMs || 800);
+  }
+
+  function pickByText(selectEl, keyword) {
+    if (!selectEl || selectEl.tagName !== 'SELECT') return false;
+    const kw  = keyword.trim().toUpperCase();
+    const opt = Array.from(selectEl.options).find(
+      o => o.value !== '0' && o.text.trim().toUpperCase().includes(kw)
+    );
+    if (!opt) return false;
+    selectEl.value = opt.value;
+    selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+    return opt.text.trim();
+  }
+
+  // ── Navigation handlers (same as bot) ────────────────────────────────────
+  function handleOffice() {
+    const sel = document.getElementById('Office');
+    const chosen = pickByText(sel, CFG.office);
+    if (chosen) { log('Office → ' + chosen); submitNext(CFG.navDelay); }
+    else logErr('Office "' + CFG.office + '" not found');
+  }
+
+  function handleCalendar() {
+    const sel = document.getElementById('CalendarId');
+    const chosen = pickByText(sel, CFG.reservationType);
+    if (chosen) { log('Type → ' + chosen); submitNext(CFG.navDelay); }
+    else logErr('Type "' + CFG.reservationType + '" not found');
+  }
+
+  function handlePersons() {
+    const sel = document.getElementById('PersonCount');
+    if (!sel) { logErr('PersonCount not found'); return; }
+    sel.value = '1';
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    submitNext(CFG.navDelay);
+  }
+
+  function handleInfo() { submitNext(CFG.navDelay); }
+
+  // ── Monitor: check scheduler page — no booking ───────────────────────────
+  function handleScheduler() {
+    const slots = Array.from(document.querySelectorAll('input[type="radio"][name="Start"]'));
+
+    if (slots.length === 0) {
+      const wait_s = Math.max(5, CFG.refreshIntervalSec);
+      log('MONITOR_NO_APPTS:' + wait_s);
+
+      let remaining = wait_s;
+      const tick = setInterval(() => {
+        remaining--;
+        if (remaining > 0) log('MONITOR_COUNTDOWN:' + remaining);
+        else clearInterval(tick);
+      }, 1000);
+
+      setTimeout(() => { clearInterval(tick); location.reload(); }, wait_s * 1000);
+      return;
+    }
+
+    // Appointments available — alarm!
+    log('MONITOR_FOUND:' + slots.length);
+    startAlarm();
+
+    // Keep refreshing so the user stays notified
+    const wait_s = Math.max(5, CFG.refreshIntervalSec);
+    setTimeout(() => { location.reload(); }, wait_s * 1000);
+  }
+
+  // ── Router ────────────────────────────────────────────────────────────────
+  async function run() {
+    await wait(900);
+    const page = detectPage();
+    log('PAGE:' + page);
+    if      (page === 'office')    handleOffice();
+    else if (page === 'calendar')  handleCalendar();
+    else if (page === 'persons')   handlePersons();
+    else if (page === 'info')      handleInfo();
+    else if (page === 'scheduler') handleScheduler();
+    else if (page === 'form')      log('MONITOR_FORM_PAGE'); // shouldn't happen
+  }
+
+  run();
+})();`;
+}
+
 // ─── Injection script builder ──────────────────────────────────────────────
 function buildScript(config) {
   const p  = config.person   || {};
@@ -157,7 +411,8 @@ function buildScript(config) {
     openaiApiKey:       s.openaiApiKey       || '',
     rootUrl:            config.targetUrl     || 'https://appointment.bmeia.gv.at/',
     notificationSound:  s.notificationSound  || 'beep',
-    customSoundB64:     s.customSoundB64     || ''
+    customSoundB64:     s.customSoundB64     || '',
+    slotPreferences:    s.slotPreferences    || ['random']
   };
 
   return `(function () {
@@ -397,8 +652,17 @@ function buildScript(config) {
     // Slot found — play alarm to alert the user
     startAlarm();
 
-    // Pick a random available slot
-    const slot = slots[Math.floor(Math.random() * slots.length)];
+    // Pick slot based on user preferences (with fallback chain)
+    const prefs = CFG.slotPreferences || ['random'];
+    let slot = null;
+    for (const pref of prefs) {
+      if (!pref || pref === 'none') continue;
+      if (pref === 'random') { slot = slots[Math.floor(Math.random() * slots.length)]; break; }
+      if (pref === 'any')    { slot = slots[0]; break; }
+      const idx = parseInt(pref) - 1;
+      if (!isNaN(idx) && idx >= 0 && idx < slots.length) { slot = slots[idx]; break; }
+    }
+    if (!slot) slot = slots[0]; // ultimate fallback
     slot.checked = true;
     slot.dispatchEvent(new Event('change', { bubbles: true }));
     log('Appointment slot selected → ' + slot.value);

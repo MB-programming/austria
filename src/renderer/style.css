@@ -646,3 +646,40 @@ input[type="file"]#s-custom-sound {
   .sound-grid { grid-template-columns: repeat(3, 1fr); }
   .support-btn span { display: none; }
 }
+
+/* ===========================
+   SLOT PREFERENCES
+   =========================== */
+.slot-prefs-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slot-pref-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slot-pref-label {
+  min-width: 120px;
+  font-size: 13px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.slot-pref-select {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 7px 10px;
+  font-size: 13px;
+  outline: none;
+}
+
+.slot-pref-select:focus {
+  border-color: var(--accent);
+}

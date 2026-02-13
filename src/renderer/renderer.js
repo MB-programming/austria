@@ -68,6 +68,49 @@ const I18N = {
     'log.empty':     'لا يوجد نشاط بعد. قم بتشغيل البوت أولًا.',
     // terms
     'terms.title':   'شروط الاستخدام',   'terms.subtitle': 'سياسة الاستخدام',
+    // slot preferences
+    'settings.slot':      'اختيار الموعد',
+    'settings.slot.hint': 'حدد الموعد المفضل — لو مش موجود هيجرب البديل التالي تلقائياً',
+    's.slot.0': 'الاختيار الأساسي',
+    's.slot.1': 'البديل الأول',
+    's.slot.2': 'البديل الثاني',
+    's.slot.3': 'البديل الثالث',
+    'slot.n1': 'الموعد الأول',   'slot.n2':  'الموعد الثاني',  'slot.n3':  'الموعد الثالث',
+    'slot.n4': 'الموعد الرابع',  'slot.n5':  'الموعد الخامس', 'slot.n6':  'الموعد السادس',
+    'slot.n7': 'الموعد السابع',  'slot.n8':  'الموعد الثامن',  'slot.n9':  'الموعد التاسع',
+    'slot.n10':'الموعد العاشر',  'slot.random': 'عشوائي',
+    'slot.any':'أي موعد متاح',   'slot.none': 'لا يوجد',
+    // monitor
+    'nav.monitor': 'مراقبة المواعيد',
+    'monitor.title':   'مراقبة المواعيد',   'monitor.subtitle': 'مراقبة توافر المواعيد دون حجز',
+    'monitor.stopped.label': 'المراقبة متوقفة',
+    'monitor.stopped.desc':  'اضغط "بدء المراقبة" للبدء',
+    'monitor.running.label': 'المراقبة تعمل',
+    'monitor.running.desc':  'جاري فحص توافر المواعيد…',
+    'btn.monitor.start': '◉ بدء المراقبة',
+    'btn.monitor.stop':  '■ إيقاف',
+    'monitor.settings':  'إعدادات المراقبة',
+    'm.office':   'المنظمة / الجهة',     'm.type': 'نوع الحجز (كلمة مفتاحية)',
+    'm.refresh':  'فترة إعادة الفحص (ثانية)',
+    'm.refresh.hint': 'الحد الأدنى 5 ثوان',
+    'm.url':      'الرابط',             'm.url.hint': 'اتركه فارغًا للرابط الافتراضي',
+    'm.sound':    'صوت التنبيه عند إيجاد موعد',
+    'm.sound.beep':  'Beep — ثلاث نبضات', 'm.sound.chime': 'Chime — نغمة صاعدة',
+    'm.sound.alert': 'Alert — تنبيه سريع','m.sound.ding':  'Ding — جرس واحد',
+    'btn.save.monitor': 'حفظ إعدادات المراقبة',
+    'monitor.feed.title': 'نشاط المراقبة',
+    'monitor.idle': 'المراقبة متوقفة — اضغط "بدء" للبدء',
+    'msg.monitor.started': 'تم تشغيل المراقبة ← ',
+    'msg.monitor.already': 'المراقبة تعمل بالفعل',
+    'msg.monitor.error':   'خطأ في تشغيل المراقبة: ',
+    'msg.monitor.stopped': 'تم إيقاف المراقبة',
+    'msg.monitor.closed':  'نافذة المراقبة أُغلقت',
+    'msg.saved.monitor':   'تم حفظ إعدادات المراقبة',
+    'mon.no.appts':   'لا توجد مواعيد متاحة الآن',
+    'mon.retry':      'إعادة الفحص خلال ',
+    'mon.retry.unit': ' ثانية…',
+    'mon.found':      'تم إيجاد مواعيد متاحة! عدد: ',
+    'mon.nav':        'جاري التنقل للوصول لصفحة المواعيد…',
     // placeholders
     'ph.apikey':     'أدخل مفتاح التفعيل…',
     'ph.smith':      'SMITH',             'ph.john':       'JOHN',
@@ -177,6 +220,49 @@ const I18N = {
     'log.empty':     'No activity yet. Start the bot first.',
     // terms
     'terms.title':   'Terms of Use',       'terms.subtitle': 'Usage Policy',
+    // slot preferences
+    'settings.slot':      'Slot Selection',
+    'settings.slot.hint': 'Set preferred slot — if not available, next fallback is tried automatically',
+    's.slot.0': 'Primary Choice',
+    's.slot.1': 'Fallback 1',
+    's.slot.2': 'Fallback 2',
+    's.slot.3': 'Fallback 3',
+    'slot.n1': '1st Slot',  'slot.n2':  '2nd Slot',  'slot.n3': '3rd Slot',
+    'slot.n4': '4th Slot',  'slot.n5':  '5th Slot',  'slot.n6': '6th Slot',
+    'slot.n7': '7th Slot',  'slot.n8':  '8th Slot',  'slot.n9': '9th Slot',
+    'slot.n10':'10th Slot', 'slot.random': 'Random',
+    'slot.any':'Any available slot', 'slot.none': 'None',
+    // monitor
+    'nav.monitor': 'Monitor',
+    'monitor.title':   'Appointment Monitor',   'monitor.subtitle': 'Check availability without booking',
+    'monitor.stopped.label': 'Monitor Stopped',
+    'monitor.stopped.desc':  'Press "Start Monitor" to begin',
+    'monitor.running.label': 'Monitor Running',
+    'monitor.running.desc':  'Checking appointment availability…',
+    'btn.monitor.start': '◉ Start Monitor',
+    'btn.monitor.stop':  '■ Stop',
+    'monitor.settings':  'Monitor Settings',
+    'm.office':   'Office / Organization', 'm.type': 'Reservation Type (keyword)',
+    'm.refresh':  'Check interval (seconds)',
+    'm.refresh.hint': 'Minimum 5 seconds',
+    'm.url':      'Target URL',            'm.url.hint': 'Leave empty for default URL',
+    'm.sound':    'Alarm sound when slots found',
+    'm.sound.beep':  'Beep — Three pulses', 'm.sound.chime': 'Chime — Rising tone',
+    'm.sound.alert': 'Alert — Quick alert', 'm.sound.ding':  'Ding — Single bell',
+    'btn.save.monitor': 'Save Monitor Settings',
+    'monitor.feed.title': 'Monitor Activity',
+    'monitor.idle': 'Monitor stopped — press "Start" to begin',
+    'msg.monitor.started': 'Monitor started ← ',
+    'msg.monitor.already': 'Monitor is already running',
+    'msg.monitor.error':   'Monitor start error: ',
+    'msg.monitor.stopped': 'Monitor stopped',
+    'msg.monitor.closed':  'Monitor window was closed',
+    'msg.saved.monitor':   'Monitor settings saved',
+    'mon.no.appts':   'No appointments available right now',
+    'mon.retry':      'Rechecking in ',
+    'mon.retry.unit': ' seconds…',
+    'mon.found':      'Appointments found! Count: ',
+    'mon.nav':        'Navigating to appointments page…',
     // placeholders
     'ph.apikey':     'Enter activation key…',
     'ph.smith':      'SMITH',              'ph.john':       'JOHN',
@@ -256,8 +342,9 @@ function setLang(lang) {
   const langBtn = document.getElementById('lang-toggle');
   if (langBtn) langBtn.textContent = lang === 'ar' ? 'EN' : 'عربي';
 
-  // Re-apply dynamic bot state
+  // Re-apply dynamic bot & monitor state
   setBotState(botRunning);
+  setMonitorState(monitorRunning);
 
   // Update log empty placeholder if still shown
   const logEmpty = document.querySelector('#logs-container .log-empty');
@@ -299,9 +386,10 @@ const Storage = (() => {
   };
 })();
 
-// ─── Bot state ────────────────────────────────────────────────────────────────
-let botRunning  = false;
-let TARGET_URL  = 'https://appointment.bmeia.gv.at/';
+// ─── Bot / Monitor state ──────────────────────────────────────────────────────
+let botRunning     = false;
+let monitorRunning = false;
+let TARGET_URL     = 'https://appointment.bmeia.gv.at/';
 
 // ─── Tab navigation ──────────────────────────────────────────────────────────
 document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -322,7 +410,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (IS_ELECTRON) {
     window.electronAPI.onBotLog(({ type, message }) => {
       const clean = message.replace(/\[AustriaBot\]\s*(ERROR:\s*)?/, '');
-      // Route to activity feed AND logs tab
       routeBotMessage(clean);
       addLog(message.includes('ERROR') ? 'error' : 'info', clean);
     });
@@ -330,6 +417,16 @@ window.addEventListener('DOMContentLoaded', async () => {
       setBotState(false);
       addActivity('error', '⛔', t('msg.window.closed'));
       addLog('warn', t('msg.window.closed'));
+    });
+    window.electronAPI.onMonitorLog(({ type, message }) => {
+      const clean = message.replace(/\[AustriaMonitor\]\s*(ERROR:\s*)?/, '');
+      routeMonitorMessage(clean);
+      addLog(message.includes('ERROR') ? 'error' : 'info', '[Monitor] ' + clean);
+    });
+    window.electronAPI.onMonitorStopped(() => {
+      setMonitorState(false);
+      addMonitorFeed('error', '⛔', t('msg.monitor.closed'));
+      addLog('warn', t('msg.monitor.closed'));
     });
   }
 });
@@ -366,6 +463,24 @@ async function loadAll() {
     setField('s-refresh-interval', s.refreshIntervalSec);
     setField('s-nav-delay',        s.navigationDelayMs);
     setField('s-target-url',       s.targetUrl);
+
+    // Restore slot preferences
+    const prefs = s.slotPreferences || ['random', 'none', 'none', 'none'];
+    ['s-slot-0','s-slot-1','s-slot-2','s-slot-3'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el && prefs[i] !== undefined) el.value = prefs[i];
+    });
+
+    // Restore monitor settings
+    const ms = stored.monitorSettings || {};
+    setField('m-office',           ms.office);
+    setField('m-reservation-type', ms.reservationType);
+    setField('m-refresh-interval', ms.refreshIntervalSec);
+    setField('m-target-url',       ms.targetUrl);
+    if (ms.notificationSound) {
+      const mSnd = document.getElementById('m-sound');
+      if (mSnd) mSnd.value = ms.notificationSound;
+    }
 
     // Restore custom sound from store into memory
     if (s.customSoundB64)     _customSoundB64      = s.customSoundB64;
@@ -514,6 +629,16 @@ function openSupport() {
 
 // ─── Save settings ────────────────────────────────────────────────────────────
 async function saveSettings() {
+  // Build slot preferences array (filter out 'none' from end)
+  const rawPrefs = ['s-slot-0','s-slot-1','s-slot-2','s-slot-3'].map(id => getField(id) || 'none');
+  // Keep at least the primary; trim trailing 'none'
+  const slotPreferences = rawPrefs.reduce((acc, val, i) => {
+    if (i === 0) return [val];
+    if (acc.length > 0 || val !== 'none') acc.push(val);
+    return acc;
+  }, []);
+  if (slotPreferences.length === 0) slotPreferences.push('random');
+
   const s = {
     openaiApiKey:       getField('s-openai-key'),
     office:             getField('s-office')            || 'KAIRO',
@@ -523,7 +648,8 @@ async function saveSettings() {
     targetUrl:          getField('s-target-url')        || 'https://appointment.bmeia.gv.at/',
     notificationSound:  (document.querySelector('input[name="s-sound"]:checked') || {}).value || 'beep',
     customSoundB64:     _customSoundB64  || '',
-    customSoundFileName: _customSoundFileName || ''
+    customSoundFileName: _customSoundFileName || '',
+    slotPreferences
   };
 
   if (s.targetUrl) TARGET_URL = s.targetUrl;
@@ -593,6 +719,158 @@ async function stopBot() {
   setBotState(false);
   addActivity('error', '◼', t('act.bot.stopped'));
   addLog('warn', t('act.bot.stopped'));
+}
+
+// ─── Monitor control ──────────────────────────────────────────────────────────
+async function saveMonitorSettings() {
+  const ms = {
+    office:             getField('m-office')            || 'KAIRO',
+    reservationType:    getField('m-reservation-type')  || 'Bachelor',
+    refreshIntervalSec: parseFloat(getField('m-refresh-interval')) || 30,
+    navigationDelayMs:  800,
+    targetUrl:          getField('m-target-url')        || 'https://appointment.bmeia.gv.at/',
+    notificationSound:  (document.getElementById('m-sound') || {}).value || 'beep'
+  };
+  try {
+    await Storage.save({ monitorSettings: ms });
+    showSaved('monitor-saved', '✓ تم الحفظ');
+    addLog('success', t('msg.saved.monitor'));
+  } catch (e) {
+    addLog('error', t('msg.save.error') + e.message);
+  }
+}
+
+async function startMonitor() {
+  const stored = await Storage.get();
+  const ms = stored.monitorSettings || {};
+
+  const targetUrl = (ms.targetUrl || '').trim() || 'https://appointment.bmeia.gv.at/';
+  clearMonitorFeed();
+
+  if (IS_ELECTRON) {
+    const config = { settings: ms, targetUrl };
+    try {
+      const res = await window.electronAPI.startMonitor(config);
+      if (res.success) {
+        setMonitorState(true);
+        addMonitorFeed('step', '◉', t('mon.nav'));
+        addLog('info', t('msg.monitor.started') + targetUrl);
+      } else {
+        addMonitorFeed('error', '⚠', res.message || t('msg.monitor.already'));
+        addLog('warn', res.message);
+      }
+    } catch (e) {
+      addMonitorFeed('error', '✕', t('msg.monitor.error') + e.message);
+      addLog('error', e.message);
+    }
+  } else {
+    addMonitorFeed('wait', 'ℹ', t('msg.browser.mode'));
+    addLog('warn', t('msg.browser.no.auto'));
+  }
+}
+
+async function stopMonitor() {
+  if (IS_ELECTRON) {
+    try { await window.electronAPI.stopMonitor(); }
+    catch (e) { addLog('error', t('msg.stop.error') + e.message); }
+  }
+  setMonitorState(false);
+  addMonitorFeed('error', '◼', t('msg.monitor.stopped'));
+  addLog('warn', t('msg.monitor.stopped'));
+}
+
+function setMonitorState(running) {
+  monitorRunning = running;
+
+  const startBtn = document.getElementById('monitor-start-btn');
+  const stopBtn  = document.getElementById('monitor-stop-btn');
+  const label    = document.getElementById('monitor-state-label');
+  const desc     = document.getElementById('monitor-state-desc');
+  const visual   = document.getElementById('monitor-animation');
+
+  if (!startBtn) return; // tab not rendered yet
+
+  if (running) {
+    startBtn.disabled = true;
+    stopBtn.disabled  = false;
+    if (label) label.textContent = t('monitor.running.label');
+    if (desc)  desc.textContent  = t('monitor.running.desc');
+    if (visual) visual.classList.add('running');
+  } else {
+    startBtn.disabled = false;
+    stopBtn.disabled  = true;
+    if (label) label.textContent = t('monitor.stopped.label');
+    if (desc)  desc.textContent  = t('monitor.stopped.desc');
+    if (visual) visual.classList.remove('running');
+  }
+}
+
+function addMonitorFeed(type, icon, text) {
+  const feed = document.getElementById('monitor-feed');
+  if (!feed) return;
+  const idle = feed.querySelector('.activity-idle');
+  if (idle) idle.remove();
+
+  const time = new Date().toLocaleTimeString('ar-EG', { hour12: false });
+  const el = document.createElement('div');
+  el.className = 'activity-msg ' + (type || 'step');
+  el.innerHTML =
+    `<span class="a-icon">${icon}</span>` +
+    `<span class="a-body">` +
+    `<span class="a-text">${escapeHtml(text)}</span>` +
+    `<span class="a-time">${time}</span>` +
+    `</span>`;
+  feed.appendChild(el);
+  feed.scrollTop = feed.scrollHeight;
+  return el;
+}
+
+function clearMonitorFeed() {
+  const feed = document.getElementById('monitor-feed');
+  if (!feed) return;
+  feed.innerHTML =
+    '<div class="activity-idle"><span class="idle-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span><span>' + escapeHtml(t('monitor.idle')) + '</span></div>';
+}
+
+// Monitor countdown card reference
+let _monitorCountdownCard = null;
+
+function routeMonitorMessage(msg) {
+  const m = msg.toLowerCase();
+
+  if (m.startsWith('page:')) {
+    const page = msg.split(':')[1]?.trim();
+    if (page !== 'scheduler') {
+      addMonitorFeed('step', '◈', t('mon.nav') + ' (' + page + ')');
+    }
+    return;
+  }
+
+  if (m.startsWith('monitor_no_appts:')) {
+    const secs = parseInt(msg.split(':')[1]) || 30;
+    addMonitorFeed('wait', '✕', t('mon.no.appts'));
+    _monitorCountdownCard = addMonitorFeed('wait', '◌', t('mon.retry') + secs + t('mon.retry.unit'));
+    return;
+  }
+
+  if (m.startsWith('monitor_countdown:')) {
+    const secs = parseInt(msg.split(':')[1]) || 0;
+    if (_monitorCountdownCard) {
+      _monitorCountdownCard.querySelector('.a-text').textContent =
+        t('mon.retry') + secs + t('mon.retry.unit');
+    }
+    return;
+  }
+
+  if (m.startsWith('monitor_found:')) {
+    const count = parseInt(msg.split(':')[1]) || 0;
+    _monitorCountdownCard = null;
+    addMonitorFeed('found', '◆', t('mon.found') + count);
+    return;
+  }
+
+  if (m.includes('error') || m.includes('not found'))
+    addMonitorFeed('error', '✕', msg);
 }
 
 // ─── Activity feed ────────────────────────────────────────────────────────────
@@ -727,6 +1005,10 @@ function startStatusPolling() {
     try {
       const { running } = await window.electronAPI.getBotStatus();
       if (running !== botRunning) setBotState(running);
+    } catch (_) {}
+    try {
+      const { running } = await window.electronAPI.getMonitorStatus();
+      if (running !== monitorRunning) setMonitorState(running);
     } catch (_) {}
   }, 2000);
 }
