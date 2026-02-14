@@ -151,12 +151,9 @@ ipcMain.handle('start-bot', async (_, config) => {
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('booking-complete');
       }
-      // Auto-close bot window after 2 minutes
+      // Quit the entire app after 2 minutes
       setTimeout(() => {
-        if (botWindow && !botWindow.isDestroyed()) {
-          botWindow.close();
-          botWindow = null;
-        }
+        app.quit();
       }, 120000);
     }
   });
