@@ -13,7 +13,7 @@ let monitorWindow = null;
 // ─── Auth window ────────────────────────────────────────────────────────────
 function createAuthWindow() {
   authWindow = new BrowserWindow({
-    width: 420, height: 480,
+    width: 420, height: 560,
     resizable: false,
     frame: false,
     transparent: false,

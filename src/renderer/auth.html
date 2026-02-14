@@ -172,8 +172,44 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    .btn-request {
+      width: 100%;
+      padding: 11px;
+      background: transparent;
+      border: 1px solid #2d2d44;
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .2s, border-color .2s, color .2s;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-request:hover {
+      background: rgba(255,255,255,.05);
+      border-color: #4c3a82;
+      color: #c4b5fd;
+    }
+
+    .consent {
+      margin-top: 18px;
+      font-size: 10.5px;
+      color: #475569;
+      line-height: 1.7;
+    }
+    .consent a {
+      color: #7c5cbf;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .consent a:hover { color: #a78bfa; }
+
     .footer {
-      margin-top: 24px;
+      margin-top: 10px;
       font-size: 11px;
       color: #334155;
     }
@@ -213,8 +249,22 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
       </svg>
-      تجربة مراقبة المواعيد فقط
+      تجربة مراقبة التوافر فقط
     </button>
+
+    <button class="btn-request" type="button" onclick="openSite()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      طلب كود تفعيل
+    </button>
+
+    <p class="consent">
+      باستخدامك هذه الأداة فأنت توافق على
+      <a onclick="openPolicy()">سياسة الاستخدام</a>
+      و
+      <a onclick="openPrivacy()">سياسة الخصوصية</a>
+    </p>
 
     <p class="footer">Orbtasoft © 2025</p>
   </div>
@@ -275,6 +325,10 @@
         btn.disabled = false;
       }
     }
+
+    function openSite()    { window.authAPI.openExternal('https://orbtasoft.com'); }
+    function openPolicy()  { window.authAPI.openExternal('https://orbtasoft.com/terms'); }
+    function openPrivacy() { window.authAPI.openExternal('https://orbtasoft.com/privacy'); }
   </script>
 </body>
 </html>
