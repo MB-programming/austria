@@ -14,6 +14,7 @@ const I18N = {
     'bot.running.label': 'البوت يعمل الآن',
     'bot.running.desc':  'جاري البحث عن موعد وإتمام الحجز…',
     'btn.start':    '▶ تشغيل البوت',     'btn.stop':     '■ إيقاف',
+    'btn.restart':  '↺ إعادة',
     'status.running':'يعمل',             'status.stopped':'متوقف',
     // info cards
     'info.office':  'المنظمة / الجهة',   'info.type':    'نوع الحجز',
@@ -129,18 +130,13 @@ const I18N = {
     'msg.saved.person':   'تم حفظ بيانات الشخص: ',
     'msg.save.error':     'خطأ في الحفظ: ',
     'msg.saved.settings': 'تم حفظ الإعدادات',
-    // notifications
-    'nav.notifications': 'الإشعارات',
-    'notif.title':   'الإشعارات',       'notif.subtitle': 'إشعارات من فريق Orbtasoft',
-    'notif.empty':   'لا توجد إشعارات حالياً',
-    'notif.error':   'تعذّر تحميل الإشعارات',
-    'notif.loading': 'جاري التحميل…',
-    'notif.refresh': 'تحديث',
     // settings nav retry
     's.navretry':      'إعادة المحاولة عند عدم إيجاد الكلمة (ثانية)',
     's.navretry.hint': 'وقت الانتظار لو المنظمة أو نوع الحجز مش موجود — الافتراضي 5 ثوان',
-    // activity - nav retry
+    // activity - nav retry + restart
     'act.nav.retry':   'الكلمة المفتاحية غير موجودة — إعادة المحاولة خلال ',
+    'act.restart':     'إعادة تشغيل البوت من البداية…',
+    'act.retry.unit':  ' ثانية…',
     // booking success celebration
     'booking.success.title': 'تم حجز موعد بنجاح!',
     'booking.success.msg':   'راجع بريدك الإلكتروني للتفاصيل',
@@ -190,6 +186,7 @@ const I18N = {
     'bot.running.label': 'Bot is Running',
     'bot.running.desc':  'Searching for an appointment and completing booking…',
     'btn.start':    '▶ Start Bot',        'btn.stop':     '■ Stop',
+    'btn.restart':  '↺ Restart',
     'status.running':'Running',           'status.stopped':'Stopped',
     // info cards
     'info.office':  'Office / Organization','info.type':  'Booking Type',
@@ -305,18 +302,13 @@ const I18N = {
     'msg.saved.person':   'Person data saved: ',
     'msg.save.error':     'Save error: ',
     'msg.saved.settings': 'Settings saved',
-    // notifications
-    'nav.notifications': 'Notifications',
-    'notif.title':   'Notifications',      'notif.subtitle': 'Updates from the Orbtasoft team',
-    'notif.empty':   'No notifications at this time',
-    'notif.error':   'Failed to load notifications',
-    'notif.loading': 'Loading…',
-    'notif.refresh': 'Refresh',
     // settings nav retry
     's.navretry':      'Retry interval when keyword not found (seconds)',
     's.navretry.hint': 'Wait time if office or reservation type is not found — default 5s',
-    // activity - nav retry
+    // activity - nav retry + restart
     'act.nav.retry':   'Keyword not found — retrying in ',
+    'act.restart':     'Restarting bot from the beginning…',
+    'act.retry.unit':  's…',
     // booking success celebration
     'booking.success.title': 'Appointment Booked!',
     'booking.success.msg':   'Check your email for details',
@@ -491,30 +483,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Inject notifications tab
-  const notifTab = document.createElement('section');
-  notifTab.className = 'tab';
-  notifTab.id = 'tab-notifications';
-  notifTab.innerHTML =
-    '<div class="tab-header">' +
-      '<h1 data-i18n="notif.title">الإشعارات</h1>' +
-      '<p class="subtitle" data-i18n="notif.subtitle">إشعارات من فريق Orbtasoft</p>' +
-    '</div>' +
-    '<div class="notif-toolbar">' +
-      '<button class="btn btn-sm" onclick="loadNotifications()">' +
-        '<svg width="14" height="14" style="vertical-align:middle;margin-left:4px"><use href="#ic-refresh"/></svg>' +
-        '<span data-i18n="notif.refresh">تحديث</span>' +
-      '</button>' +
-    '</div>' +
-    '<div class="notif-feed" id="notif-feed">' +
-      '<div class="notif-loading" id="notif-loading">' +
-        '<span data-i18n="notif.loading">جاري التحميل…</span>' +
-      '</div>' +
-    '</div>';
-  document.querySelector('.content').appendChild(notifTab);
-
-  // Load notifications on startup
-  if (IS_ELECTRON) loadNotifications();
 });
 
 // ─── Load saved data ──────────────────────────────────────────────────────────
@@ -1287,82 +1255,12 @@ function playCelebrationSound() {
   } catch (_) {}
 }
 
-// ─── Notifications ────────────────────────────────────────────────────────────
-let _knownNotifTexts = [];
-let _notifBadgeCount = 0;
-
-async function loadNotifications() {
-  if (!IS_ELECTRON) return;
-  const feed = document.getElementById('notif-feed');
-  if (!feed) return;
-
-  feed.innerHTML =
-    '<div class="notif-loading"><span data-i18n="notif.loading">' + t('notif.loading') + '</span></div>';
-
-  try {
-    const result = await window.electronAPI.getNotifications();
-    if (!result.success) throw new Error(result.error || 'fetch failed');
-
-    // Parse HTML with DOMParser
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(result.html, 'text/html');
-
-    // Try to extract notification items — flexible: li, p, .item, .notif, .message, article
-    let items = Array.from(doc.querySelectorAll('li, .item, .notif, .notification, .message, article, p'))
-      .map(el => el.textContent.trim())
-      .filter(txt => txt.length > 5);
-
-    // Deduplicate
-    items = [...new Set(items)];
-
-    if (!items.length) {
-      feed.innerHTML = '<div class="notif-empty">' + escapeHtml(t('notif.empty')) + '</div>';
-      return;
-    }
-
-    // Count truly new items (not seen before)
-    const newItems = items.filter(txt => !_knownNotifTexts.includes(txt));
-    if (newItems.length > 0) {
-      _notifBadgeCount += newItems.length;
-      newItems.forEach(txt => _knownNotifTexts.push(txt));
-      updateNotifBadge(_notifBadgeCount);
-    }
-
-    // Render
-    feed.innerHTML = '';
-    items.forEach((txt, i) => {
-      const isNew = newItems.includes(txt);
-      const el = document.createElement('div');
-      el.className = 'notif-item' + (isNew ? ' notif-item-new' : '');
-      el.innerHTML =
-        '<span class="notif-icon">🔔</span>' +
-        '<span class="notif-text">' + escapeHtml(txt) + '</span>';
-      feed.appendChild(el);
-    });
-
-  } catch (e) {
-    feed.innerHTML = '<div class="notif-empty notif-error">' + escapeHtml(t('notif.error')) + '</div>';
+// ─── Restart Bot ──────────────────────────────────────────────────────────────
+async function restartBot() {
+  if (IS_ELECTRON) {
+    await window.electronAPI.stopBot();
   }
+  setBotState(false);
+  addActivity('warn', '↺', t('act.restart'));
+  setTimeout(() => startBot(), 800);
 }
-
-function updateNotifBadge(count) {
-  const badge = document.getElementById('notif-badge');
-  if (!badge) return;
-  if (count > 0) {
-    badge.textContent = count > 99 ? '99+' : count;
-    badge.style.display = 'flex';
-  } else {
-    badge.style.display = 'none';
-  }
-}
-
-// Clear badge when user opens notifications tab
-document.querySelectorAll('.nav-btn').forEach(btn => {
-  if (btn.dataset.tab === 'notifications') {
-    btn.addEventListener('click', () => {
-      _notifBadgeCount = 0;
-      updateNotifBadge(0);
-      if (IS_ELECTRON) loadNotifications();
-    });
-  }
-});

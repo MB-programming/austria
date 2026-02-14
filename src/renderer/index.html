@@ -128,13 +128,6 @@
           <span class="nav-icon"><svg width="18" height="18"><use href="#ic-eye"/></svg></span>
           <span data-i18n="nav.monitor">مراقبة المواعيد</span>
         </button>
-        <button class="nav-btn" data-tab="notifications" id="nav-notifications-btn">
-          <span class="nav-icon" style="position:relative">
-            <svg width="18" height="18"><use href="#ic-bell"/></svg>
-            <span class="notif-badge" id="notif-badge" style="display:none">0</span>
-          </span>
-          <span data-i18n="nav.notifications">الإشعارات</span>
-        </button>
         <button class="nav-btn" data-tab="terms">
           <span class="nav-icon"><svg width="18" height="18"><use href="#ic-shield"/></svg></span>
           <span data-i18n="nav.terms">سياسة الاستخدام</span>
@@ -184,6 +177,10 @@
               </button>
               <button class="btn btn-stop" id="stop-btn" onclick="stopBot()" disabled>
                 <span data-i18n="btn.stop">■ إيقاف</span>
+              </button>
+              <button class="btn btn-restart" id="restart-btn" onclick="restartBot()" title="إعادة تشغيل البوت من البداية">
+                <svg width="14" height="14" style="vertical-align:middle;margin-left:4px"><use href="#ic-refresh"/></svg>
+                <span data-i18n="btn.restart">إعادة</span>
               </button>
             </div>
           </div>
@@ -441,7 +438,7 @@
               </div>
               <div class="form-group">
                 <label data-i18n="s.url">الرابط المستهدف</label>
-                <input type="url" id="s-target-url" placeholder="https://appointment.bmeia.gv.at/" />
+                <input type="url" id="s-target-url" placeholder="https://..." />
                 <small class="hint" data-i18n="s.url.hint">اتركه فارغًا للرابط الافتراضي</small>
               </div>
             </div>
@@ -678,7 +675,7 @@
                 </div>
                 <div class="form-group">
                   <label data-i18n="m.url">الرابط</label>
-                  <input type="url" id="m-target-url" placeholder="https://appointment.bmeia.gv.at/" />
+                  <input type="url" id="m-target-url" placeholder="https://..." />
                   <small class="hint" data-i18n="m.url.hint">اتركه فارغًا للرابط الافتراضي</small>
                 </div>
               </div>
@@ -727,7 +724,7 @@
       <section class="tab" id="tab-terms">
         <div class="tab-header">
           <h1 data-i18n="terms.title">شروط الاستخدام</h1>
-          <p class="subtitle" data-i18n="terms.subtitle">سياسة الاستخدام</p>
+          <p class="subtitle" data-i18n="terms.subtitle">سياسة الاستخدام وحقوق الملكية الفكرية</p>
         </div>
         <div class="terms-content">
           <div class="terms-card">
@@ -739,47 +736,43 @@
 
             <div class="terms-section">
               <h3>1. Purpose</h3>
-              <p>Orbtasoft is a desktop automation tool designed exclusively to assist users in submitting appointment booking requests through publicly accessible web forms. It operates by automating repetitive user actions such as form navigation, field population, and submission — tasks that any user could perform manually in a standard web browser.</p>
+              <p>Orbtasoft is a private desktop automation tool designed to assist individual users in filling and submitting appointment request forms on publicly accessible web portals. It replicates only what any user could do manually in a standard web browser — form navigation, field population, and form submission.</p>
             </div>
 
             <div class="terms-section">
               <h3>2. Authorized Use Only</h3>
-              <p>This software is intended solely for lawful personal use. You may only use Orbtasoft to submit genuine appointment requests on your own behalf or on behalf of individuals who have explicitly authorized you to do so.</p>
+              <p>This software is intended solely for lawful personal use by the licensed individual. You may only use Orbtasoft to submit genuine appointment requests on your own behalf or on behalf of persons who have explicitly authorized you to act for them.</p>
             </div>
 
             <div class="terms-section">
-              <h3>3. No Unauthorized Access</h3>
-              <p>Orbtasoft is <strong>not designed, intended, or authorized</strong> for:</p>
-              <ul>
-                <li>Violating the privacy, security, or integrity of any website, system, or application</li>
-                <li>Bypassing authentication mechanisms, security controls, or rate limits in an unauthorized manner</li>
-                <li>Scraping, harvesting, or collecting data from third-party systems without explicit permission</li>
-                <li>Denial-of-service attacks or any form of system abuse</li>
-                <li>Any activity that violates the Terms of Service of the target website</li>
-              </ul>
+              <h3>3. Independent Software — No Affiliation</h3>
+              <p>Orbtasoft is an <strong>independent, privately developed software product</strong>. It is <strong>not affiliated with, endorsed by, or connected to</strong> any government body, public institution, consulate, or any online booking platform. All trademarks, service names, and platform identifiers mentioned or accessed belong to their respective owners.</p>
             </div>
 
             <div class="terms-section">
-              <h3>4. No Warranty</h3>
-              <p>Orbtasoft is provided "as is" without warranty of any kind. The developers are not responsible for any direct or indirect damages arising from the use or misuse of this software, including loss of appointments, account suspension, or legal consequences resulting from policy violations.</p>
+              <h3>4. DMCA &amp; Intellectual Property Notice</h3>
+              <p>All source code, interface designs, graphics, text, and associated materials of Orbtasoft are the exclusive intellectual property of Orbtasoft / MB Programming and are protected under applicable copyright law.</p>
+              <p style="margin-top:8px">Unauthorized copying, redistribution, reverse engineering, decompiling, or commercial resale of this software or any portion thereof is strictly prohibited and may result in civil and/or criminal liability.</p>
+              <p style="margin-top:8px"><strong>DMCA Safe Harbor:</strong> This software operates solely as a client-side automation tool that interacts with publicly accessible web interfaces in the same manner as a human user. It does not circumvent any technical protection measures (TPMs), copy any protected content, or gain unauthorized access to any system. Accordingly, its use falls within the safe harbor provisions of 17 U.S.C. § 512 and equivalent international copyright frameworks.</p>
+              <p style="margin-top:8px">Any party claiming copyright infringement may submit a formal DMCA takedown notice to: <strong>legal@orbtasoft.com</strong></p>
             </div>
 
             <div class="terms-section">
-              <h3>5. User Responsibility</h3>
-              <p>By using this software, you acknowledge that:</p>
-              <ul>
-                <li>You are solely responsible for how you use this tool</li>
-                <li>You will comply with all applicable laws and website terms of service</li>
-                <li>Misuse of this software may violate local laws and could result in legal action</li>
-              </ul>
+              <h3>5. Limitation of Liability</h3>
+              <p>Orbtasoft is provided "as is" without warranty of any kind. The developers expressly disclaim all liability — direct, indirect, incidental, or consequential — arising from the use or misuse of this software. The end user bears sole responsibility for compliance with any applicable laws or platform terms of service.</p>
             </div>
 
             <div class="terms-section">
-              <h3>6. Automation Disclosure</h3>
-              <p>This software is a pure automation assistant. It does not store or transmit your personal data to any external server. All data entered remains on your local machine.</p>
+              <h3>6. No Legal Action Against Developer</h3>
+              <p>By using this software, you acknowledge that <strong>Orbtasoft and its developers cannot be held legally responsible</strong> for any claims, demands, or legal proceedings initiated by any third party — including but not limited to online platform operators or any public or private institution — arising from your use of this tool. All legal risk is assumed entirely by the end user.</p>
             </div>
 
-            <p class="terms-footer">© 2025 Orbtasoft. All rights reserved.</p>
+            <div class="terms-section">
+              <h3>7. Data Privacy</h3>
+              <p>Orbtasoft does not transmit your personal data to any external server. All information entered (name, passport, contact details) is stored exclusively on your local device and is used only to populate web forms during a session.</p>
+            </div>
+
+            <p class="terms-footer">© 2025 Orbtasoft / MB Programming. All rights reserved.</p>
           </div>
         </div>
       </section>
@@ -793,10 +786,11 @@
   <!-- ===== BOOKING SUCCESS OVERLAY ===== -->
   <div class="booking-success-overlay" id="booking-success-overlay" style="display:none">
     <div class="booking-success-card">
+      <button class="booking-success-close" onclick="document.getElementById('booking-success-overlay').style.display='none'" title="إغلاق">✕</button>
       <div class="booking-success-icon">🎉</div>
       <h2 data-i18n="booking.success.title">تم حجز موعد بنجاح!</h2>
       <p data-i18n="booking.success.msg">راجع بريدك الإلكتروني للتفاصيل</p>
-      <p class="booking-success-sub" data-i18n="booking.success.sub">سيتم إغلاق البوت تلقائياً…</p>
+      <p class="booking-success-sub" data-i18n="booking.success.sub">سيتم إغلاق البوت تلقائياً خلال دقيقتين…</p>
     </div>
   </div>
 

@@ -841,8 +841,47 @@ body.trial-mode .nav-btn[data-trial-locked]:hover {
   border-color: var(--accent);
 }
 
+/* Restart button — small, neutral */
+.btn-restart {
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.btn-restart:hover { background: var(--bg-input); color: var(--text); border-color: var(--accent); }
+
+/* Booking-success overlay close button */
+.booking-success-card { position: relative; }
+.booking-success-close {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s;
+  line-height: 1;
+}
+.booking-success-close:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+
 /* ===========================
-   NOTIFICATION BADGE (bell)
+   NOTIFICATION BADGE (bell) — kept for potential future use
    =========================== */
 .notif-badge {
   position: absolute;

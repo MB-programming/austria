@@ -147,19 +147,17 @@ ipcMain.handle('start-bot', async (_, config) => {
         store.delete('currentKey');
       }
       store.set('mode', null); // require new key next launch
-      // Give the renderer a moment to display the confirmation activity
+      // Notify renderer immediately so celebration shows
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('booking-complete');
+      }
+      // Auto-close bot window after 2 minutes
       setTimeout(() => {
-        if (mainWindow && !mainWindow.isDestroyed()) {
-          mainWindow.webContents.send('booking-complete');
+        if (botWindow && !botWindow.isDestroyed()) {
+          botWindow.close();
+          botWindow = null;
         }
-        // Auto-close bot window after celebration
-        setTimeout(() => {
-          if (botWindow && !botWindow.isDestroyed()) {
-            botWindow.close();
-            botWindow = null;
-          }
-        }, 4000);
-      }, 1500);
+      }, 120000);
     }
   });
 
@@ -230,16 +228,6 @@ ipcMain.handle('start-monitor', async (_, config) => {
   });
 
   return { success: true };
-});
-
-// ─── Notifications IPC ──────────────────────────────────────────────────────
-ipcMain.handle('get-notifications', async () => {
-  try {
-    const html = await fetchKeys('https://minaboules.com/noti/sms.html');
-    return { success: true, html };
-  } catch (e) {
-    return { success: false, error: e.message };
-  }
 });
 
 // ─── Monitor script builder ────────────────────────────────────────────────
