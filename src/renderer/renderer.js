@@ -129,6 +129,22 @@ const I18N = {
     'msg.saved.person':   'تم حفظ بيانات الشخص: ',
     'msg.save.error':     'خطأ في الحفظ: ',
     'msg.saved.settings': 'تم حفظ الإعدادات',
+    // notifications
+    'nav.notifications': 'الإشعارات',
+    'notif.title':   'الإشعارات',       'notif.subtitle': 'إشعارات من فريق Orbtasoft',
+    'notif.empty':   'لا توجد إشعارات حالياً',
+    'notif.error':   'تعذّر تحميل الإشعارات',
+    'notif.loading': 'جاري التحميل…',
+    'notif.refresh': 'تحديث',
+    // settings nav retry
+    's.navretry':      'إعادة المحاولة عند عدم إيجاد الكلمة (ثانية)',
+    's.navretry.hint': 'وقت الانتظار لو المنظمة أو نوع الحجز مش موجود — الافتراضي 5 ثوان',
+    // activity - nav retry
+    'act.nav.retry':   'الكلمة المفتاحية غير موجودة — إعادة المحاولة خلال ',
+    // booking success celebration
+    'booking.success.title': 'تم حجز موعد بنجاح!',
+    'booking.success.msg':   'راجع بريدك الإلكتروني للتفاصيل',
+    'booking.success.sub':   'سيتم إغلاق البوت تلقائياً…',
     'msg.load.error':     'خطأ في تحميل الإعدادات: ',
     'msg.missing':        '✕ بيانات مطلوبة ناقصة: ',
     'msg.fill.all':       'اذهب لتبويب "البيانات الشخصية" واملأ جميع الحقول ثم اضغط حفظ',
@@ -289,6 +305,22 @@ const I18N = {
     'msg.saved.person':   'Person data saved: ',
     'msg.save.error':     'Save error: ',
     'msg.saved.settings': 'Settings saved',
+    // notifications
+    'nav.notifications': 'Notifications',
+    'notif.title':   'Notifications',      'notif.subtitle': 'Updates from the Orbtasoft team',
+    'notif.empty':   'No notifications at this time',
+    'notif.error':   'Failed to load notifications',
+    'notif.loading': 'Loading…',
+    'notif.refresh': 'Refresh',
+    // settings nav retry
+    's.navretry':      'Retry interval when keyword not found (seconds)',
+    's.navretry.hint': 'Wait time if office or reservation type is not found — default 5s',
+    // activity - nav retry
+    'act.nav.retry':   'Keyword not found — retrying in ',
+    // booking success celebration
+    'booking.success.title': 'Appointment Booked!',
+    'booking.success.msg':   'Check your email for details',
+    'booking.success.sub':   'The bot will close automatically…',
     'msg.load.error':     'Error loading settings: ',
     'msg.missing':        '✕ Required fields missing: ',
     'msg.fill.all':       'Go to "Personal Data" tab, fill all fields and press save',
@@ -452,7 +484,37 @@ window.addEventListener('DOMContentLoaded', async () => {
       addMonitorFeed('error', '⛔', t('msg.monitor.closed'));
       addLog('warn', t('msg.monitor.closed'));
     });
+
+    window.electronAPI.onBookingComplete(() => {
+      setBotState(false);
+      showBookingSuccess();
+    });
   }
+
+  // Inject notifications tab
+  const notifTab = document.createElement('section');
+  notifTab.className = 'tab';
+  notifTab.id = 'tab-notifications';
+  notifTab.innerHTML =
+    '<div class="tab-header">' +
+      '<h1 data-i18n="notif.title">الإشعارات</h1>' +
+      '<p class="subtitle" data-i18n="notif.subtitle">إشعارات من فريق Orbtasoft</p>' +
+    '</div>' +
+    '<div class="notif-toolbar">' +
+      '<button class="btn btn-sm" onclick="loadNotifications()">' +
+        '<svg width="14" height="14" style="vertical-align:middle;margin-left:4px"><use href="#ic-refresh"/></svg>' +
+        '<span data-i18n="notif.refresh">تحديث</span>' +
+      '</button>' +
+    '</div>' +
+    '<div class="notif-feed" id="notif-feed">' +
+      '<div class="notif-loading" id="notif-loading">' +
+        '<span data-i18n="notif.loading">جاري التحميل…</span>' +
+      '</div>' +
+    '</div>';
+  document.querySelector('.content').appendChild(notifTab);
+
+  // Load notifications on startup
+  if (IS_ELECTRON) loadNotifications();
 });
 
 // ─── Load saved data ──────────────────────────────────────────────────────────
@@ -486,6 +548,7 @@ async function loadAll() {
     setField('s-reservation-type', s.reservationType);
     setField('s-refresh-interval', s.refreshIntervalSec);
     setField('s-nav-delay',        s.navigationDelayMs);
+    setField('s-nav-retry',        s.navRetryIntervalSec);
     setField('s-target-url',       s.targetUrl);
 
     // Restore slot preferences
@@ -715,8 +778,9 @@ async function saveSettings() {
     office:             getField('s-office')            || 'KAIRO',
     reservationType:    getField('s-reservation-type')  || 'Bachelor',
     refreshIntervalSec: parseFloat(getField('s-refresh-interval')) || 30,
-    navigationDelayMs:  parseInt(getField('s-nav-delay'))        || 800,
-    targetUrl:          getField('s-target-url')        || 'https://appointment.bmeia.gv.at/',
+    navigationDelayMs:   parseInt(getField('s-nav-delay'))       || 800,
+    navRetryIntervalSec: parseInt(getField('s-nav-retry'))       || 5,
+    targetUrl:           getField('s-target-url')       || 'https://appointment.bmeia.gv.at/',
     notificationSound:  (document.querySelector('input[name="s-sound"]:checked') || {}).value || 'beep',
     customSoundB64:     _customSoundB64  || '',
     customSoundFileName: _customSoundFileName || '',
@@ -1044,6 +1108,13 @@ function routeBotMessage(msg) {
   if (m.includes('no openai key') || m.includes('manual captcha'))
     return addActivity('wait', '⌨', t('act.captcha.manual'));
 
+  // ── Nav retry ──
+  if (m.startsWith('nav_retry:')) {
+    const parts = msg.split(':');
+    const secs = parseInt(parts[2]) || 5;
+    return addActivity('wait', '↺', t('act.nav.retry') + secs + t('act.retry.unit'));
+  }
+
   // ── Confirmation ──
   if (m.includes('booking confirmed'))
     return addActivity('confirm', '★', t('act.booked'));
@@ -1181,3 +1252,117 @@ function updateInfoCards(stored) {
   if (el('display-type'))    el('display-type').textContent    = s.reservationType || 'Bachelor';
   if (el('display-refresh')) el('display-refresh').textContent = (s.refreshIntervalSec || 30) + 's';
 }
+
+// ─── Booking success celebration ──────────────────────────────────────────────
+function showBookingSuccess() {
+  const overlay = document.getElementById('booking-success-overlay');
+  if (overlay) overlay.style.display = 'flex';
+  playCelebrationSound();
+  addActivity('confirm', '🎉', t('booking.success.title'));
+  // Auto-hide overlay after bot closes (6s)
+  setTimeout(() => {
+    if (overlay) overlay.style.display = 'none';
+  }, 6000);
+}
+
+function playCelebrationSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    function tone(freq, start, dur, vol, type) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = type || 'sine';
+      gain.gain.setValueAtTime(vol, now + start);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + start + dur);
+      osc.start(now + start);
+      osc.stop(now + start + dur + 0.05);
+    }
+    // Triumphant fanfare
+    tone(523, 0,    0.15, 0.5); tone(659, 0.10, 0.15, 0.5); tone(784, 0.20, 0.15, 0.5);
+    tone(1047,0.32, 0.4,  0.6); tone(784, 0.55, 0.2,  0.4); tone(1047,0.65, 0.55, 0.5);
+    tone(1319,0.70, 0.15, 0.4); tone(1047,0.80, 0.6,  0.5);
+  } catch (_) {}
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+let _knownNotifTexts = [];
+let _notifBadgeCount = 0;
+
+async function loadNotifications() {
+  if (!IS_ELECTRON) return;
+  const feed = document.getElementById('notif-feed');
+  if (!feed) return;
+
+  feed.innerHTML =
+    '<div class="notif-loading"><span data-i18n="notif.loading">' + t('notif.loading') + '</span></div>';
+
+  try {
+    const result = await window.electronAPI.getNotifications();
+    if (!result.success) throw new Error(result.error || 'fetch failed');
+
+    // Parse HTML with DOMParser
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(result.html, 'text/html');
+
+    // Try to extract notification items — flexible: li, p, .item, .notif, .message, article
+    let items = Array.from(doc.querySelectorAll('li, .item, .notif, .notification, .message, article, p'))
+      .map(el => el.textContent.trim())
+      .filter(txt => txt.length > 5);
+
+    // Deduplicate
+    items = [...new Set(items)];
+
+    if (!items.length) {
+      feed.innerHTML = '<div class="notif-empty">' + escapeHtml(t('notif.empty')) + '</div>';
+      return;
+    }
+
+    // Count truly new items (not seen before)
+    const newItems = items.filter(txt => !_knownNotifTexts.includes(txt));
+    if (newItems.length > 0) {
+      _notifBadgeCount += newItems.length;
+      newItems.forEach(txt => _knownNotifTexts.push(txt));
+      updateNotifBadge(_notifBadgeCount);
+    }
+
+    // Render
+    feed.innerHTML = '';
+    items.forEach((txt, i) => {
+      const isNew = newItems.includes(txt);
+      const el = document.createElement('div');
+      el.className = 'notif-item' + (isNew ? ' notif-item-new' : '');
+      el.innerHTML =
+        '<span class="notif-icon">🔔</span>' +
+        '<span class="notif-text">' + escapeHtml(txt) + '</span>';
+      feed.appendChild(el);
+    });
+
+  } catch (e) {
+    feed.innerHTML = '<div class="notif-empty notif-error">' + escapeHtml(t('notif.error')) + '</div>';
+  }
+}
+
+function updateNotifBadge(count) {
+  const badge = document.getElementById('notif-badge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// Clear badge when user opens notifications tab
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  if (btn.dataset.tab === 'notifications') {
+    btn.addEventListener('click', () => {
+      _notifBadgeCount = 0;
+      updateNotifBadge(0);
+      if (IS_ELECTRON) loadNotifications();
+    });
+  }
+});

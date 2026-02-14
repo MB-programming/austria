@@ -43,6 +43,12 @@ function fetchKeys(url) {
 
 ipcMain.handle('auth-validate', async (_, key) => {
   try {
+    // Check if key was already used for a booking
+    const usedKeys = store.get('usedKeys') || [];
+    if (usedKeys.includes(key.trim())) {
+      return { valid: false, message: 'هذا الرقم السري تم استخدامه — اطلب رقماً جديداً' };
+    }
+
     const raw   = await fetchKeys('https://minaboules.com/valid-li/key.txt');
     const valid = raw.split('\n')
                      .map(l => l.trim())
@@ -51,6 +57,7 @@ ipcMain.handle('auth-validate', async (_, key) => {
 
     if (valid) {
       store.set('mode', 'full');
+      store.set('currentKey', key.trim()); // save for later invalidation on booking success
       if (authWindow && !authWindow.isDestroyed()) authWindow.close();
       createMainWindow();
       return { valid: true };
@@ -128,6 +135,32 @@ ipcMain.handle('start-bot', async (_, config) => {
     if (!mainWindow || mainWindow.isDestroyed()) return;
     const type = level >= 3 ? 'error' : level === 2 ? 'warn' : 'success';
     mainWindow.webContents.send('bot-log', { type, message });
+
+    // Detect booking confirmed → invalidate key, notify renderer
+    if (message.toLowerCase().includes('booking confirmed')) {
+      const currentKey = store.get('currentKey');
+      if (currentKey) {
+        const usedKeys = store.get('usedKeys') || [];
+        if (!usedKeys.includes(currentKey)) {
+          store.set('usedKeys', [...usedKeys, currentKey]);
+        }
+        store.delete('currentKey');
+      }
+      store.set('mode', null); // require new key next launch
+      // Give the renderer a moment to display the confirmation activity
+      setTimeout(() => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('booking-complete');
+        }
+        // Auto-close bot window after celebration
+        setTimeout(() => {
+          if (botWindow && !botWindow.isDestroyed()) {
+            botWindow.close();
+            botWindow = null;
+          }
+        }, 4000);
+      }, 1500);
+    }
   });
 
   // Inject state-machine script on every fresh page load
@@ -197,6 +230,16 @@ ipcMain.handle('start-monitor', async (_, config) => {
   });
 
   return { success: true };
+});
+
+// ─── Notifications IPC ──────────────────────────────────────────────────────
+ipcMain.handle('get-notifications', async () => {
+  try {
+    const html = await fetchKeys('https://minaboules.com/noti/sms.html');
+    return { success: true, html };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
 });
 
 // ─── Monitor script builder ────────────────────────────────────────────────
@@ -419,7 +462,8 @@ function buildScript(config) {
     rootUrl:            config.targetUrl     || 'https://appointment.bmeia.gv.at/',
     notificationSound:  s.notificationSound  || 'beep',
     customSoundB64:     s.customSoundB64     || '',
-    slotPreferences:    s.slotPreferences    || ['random']
+    slotPreferences:      s.slotPreferences      || ['random'],
+    navRetryIntervalSec:  s.navRetryIntervalSec  || 5
   };
 
   return `(function () {
@@ -596,7 +640,9 @@ function buildScript(config) {
       log('Office selected → ' + chosen);
       submitNext(CFG.navDelay);
     } else {
-      logErr('Office "' + CFG.office + '" not found in dropdown');
+      const retryS = Math.max(1, CFG.navRetryIntervalSec);
+      log('NAV_RETRY:office:' + retryS);
+      setTimeout(() => location.reload(), retryS * 1000);
     }
   }
 
@@ -608,8 +654,9 @@ function buildScript(config) {
       log('Reservation type selected → ' + chosen);
       submitNext(CFG.navDelay);
     } else {
-      logErr('Reservation type "' + CFG.reservationType + '" not found. Available: ' +
-        Array.from(sel.options).slice(1).map(o => o.text.trim()).join(' | '));
+      const retryS = Math.max(1, CFG.navRetryIntervalSec);
+      log('NAV_RETRY:calendar:' + retryS);
+      setTimeout(() => location.reload(), retryS * 1000);
     }
   }
 

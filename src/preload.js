@@ -13,5 +13,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   stopMonitor:      ()       => ipcRenderer.invoke('stop-monitor'),
   getMonitorStatus: ()       => ipcRenderer.invoke('monitor-status'),
   onMonitorStopped: (cb)     => ipcRenderer.on('monitor-stopped', cb),
-  onMonitorLog:     (cb)     => ipcRenderer.on('monitor-log', (_, data) => cb(data))
+  onMonitorLog:     (cb)     => ipcRenderer.on('monitor-log', (_, data) => cb(data)),
+  getNotifications: ()       => ipcRenderer.invoke('get-notifications'),
+  onBookingComplete:(cb)     => ipcRenderer.on('booking-complete', cb)
 });
