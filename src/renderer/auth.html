@@ -107,6 +107,45 @@
     .btn-activate:active  { transform: scale(.98); }
     .btn-activate:disabled { opacity: .5; cursor: default; }
 
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0 4px;
+      color: #334155;
+      font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #2d2d44;
+    }
+
+    .btn-trial {
+      width: 100%;
+      padding: 12px;
+      background: rgba(167,139,250,.08);
+      border: 1px solid #4c3a82;
+      border-radius: 8px;
+      color: #c4b5fd;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .btn-trial:hover {
+      background: rgba(167,139,250,.18);
+      border-color: #7c3aed;
+      color: #e9d5ff;
+    }
+    .btn-trial:disabled { opacity: .5; cursor: default; }
+
     .error {
       margin-top: 14px;
       padding: 10px 14px;
@@ -168,6 +207,15 @@
 
     <div class="error" id="err-box"></div>
 
+    <div class="divider"><span>أو</span></div>
+
+    <button class="btn-trial" id="btn-trial" onclick="enterTrial()" type="button">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+      </svg>
+      تجربة مراقبة المواعيد فقط
+    </button>
+
     <p class="footer">Orbtasoft © 2025</p>
   </div>
 
@@ -197,6 +245,7 @@
       if (!key) { showErr('أدخل الرقم السري أولاً'); return; }
 
       btn.disabled = true;
+      document.getElementById('btn-trial').disabled = true;
       btn.innerHTML = 'جاري التحقق… <span class="spinner"></span>';
       errBox.classList.remove('show');
 
@@ -205,10 +254,25 @@
         if (result.valid) {
           btn.innerHTML = '✅ تم التفعيل';
         } else {
+          btn.disabled = false;
+          document.getElementById('btn-trial').disabled = false;
           showErr(result.message || 'الرقم السري غير صحيح');
         }
       } catch (e) {
+        btn.disabled = false;
+        document.getElementById('btn-trial').disabled = false;
         showErr('تعذّر الاتصال بالخادم — تحقق من الإنترنت');
+      }
+    }
+
+    async function enterTrial() {
+      document.getElementById('btn-trial').disabled = true;
+      btn.disabled = true;
+      try {
+        await window.authAPI.trial();
+      } catch (e) {
+        document.getElementById('btn-trial').disabled = false;
+        btn.disabled = false;
       }
     }
   </script>

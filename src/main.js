@@ -13,7 +13,7 @@ let monitorWindow = null;
 // ─── Auth window ────────────────────────────────────────────────────────────
 function createAuthWindow() {
   authWindow = new BrowserWindow({
-    width: 420, height: 380,
+    width: 420, height: 480,
     resizable: false,
     frame: false,
     transparent: false,
@@ -50,7 +50,7 @@ ipcMain.handle('auth-validate', async (_, key) => {
                      .includes(key.trim());
 
     if (valid) {
-      // Close auth, open main app
+      store.set('mode', 'full');
       if (authWindow && !authWindow.isDestroyed()) authWindow.close();
       createMainWindow();
       return { valid: true };
@@ -60,6 +60,13 @@ ipcMain.handle('auth-validate', async (_, key) => {
   } catch (e) {
     return { valid: false, message: 'تعذّر التحقق — تحقق من الإنترنت' };
   }
+});
+
+ipcMain.handle('auth-trial', () => {
+  store.set('mode', 'trial');
+  if (authWindow && !authWindow.isDestroyed()) authWindow.close();
+  createMainWindow();
+  return { success: true };
 });
 
 // ─── Main window ───────────────────────────────────────────────────────────

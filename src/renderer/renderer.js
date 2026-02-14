@@ -549,58 +549,22 @@ async function loadAll() {
 
 // ─── License / Trial ──────────────────────────────────────────────────────────
 async function checkLicense(stored) {
-  const s = (stored || {}).settings || {};
-  const savedMode = localStorage.getItem('orbtasoft_mode');
+  // Mode is set by the auth window (auth.html) before the main window opens.
+  // 'full'  → valid key was entered in auth.html
+  // 'trial' → user clicked trial button in auth.html
+  // unset   → fallback (should not happen in packaged app; default to full)
+  const mode = (stored || {}).mode;
 
-  if (s.openaiApiKey || savedMode === 'full') {
-    setFullMode(false); // no animation, silent
-    return;
-  }
-  if (savedMode === 'trial') {
+  if (mode === 'trial') {
     setTrialMode();
     return;
   }
-  // First launch — show modal
-  const overlay = document.getElementById('license-overlay');
-  if (overlay) overlay.style.display = 'flex';
-}
-
-async function activateFullMode() {
-  const keyInput = document.getElementById('license-key-input');
-  const key = keyInput ? keyInput.value.trim() : '';
-
-  if (!key) {
-    const errEl = document.getElementById('license-error');
-    if (errEl) { errEl.style.display = ''; setTimeout(() => { errEl.style.display = 'none'; }, 3000); }
-    if (keyInput) keyInput.classList.add('input-shake');
-    setTimeout(() => { if (keyInput) keyInput.classList.remove('input-shake'); }, 500);
-    return;
-  }
-
-  // Save key to settings
-  try {
-    const stored = await Storage.get();
-    const s = stored.settings || {};
-    s.openaiApiKey = key;
-    await Storage.save({ settings: s });
-    setField('s-openai-key', key);
-    const fresh = await Storage.get();
-    updateInfoCards(fresh);
-  } catch (_) {}
-
-  localStorage.setItem('orbtasoft_mode', 'full');
-  setFullMode(true);
-}
-
-function enterTrialMode() {
-  localStorage.setItem('orbtasoft_mode', 'trial');
-  setTrialMode();
+  // 'full' or anything else → full access
+  setFullMode(false);
 }
 
 function setFullMode(switchToBot) {
   trialMode = false;
-  const overlay = document.getElementById('license-overlay');
-  if (overlay) overlay.style.display = 'none';
   document.body.classList.remove('trial-mode');
 
   if (switchToBot) {
@@ -616,8 +580,6 @@ function setFullMode(switchToBot) {
 
 function setTrialMode() {
   trialMode = true;
-  const overlay = document.getElementById('license-overlay');
-  if (overlay) overlay.style.display = 'none';
   document.body.classList.add('trial-mode');
 
   // Switch to monitor tab

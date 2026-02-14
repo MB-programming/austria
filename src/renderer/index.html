@@ -770,35 +770,6 @@
     </main>
   </div>
 
-  <!-- ===== LICENSE / TRIAL MODAL ===== -->
-  <div class="license-overlay" id="license-overlay">
-    <div class="license-card">
-      <div class="license-logo">
-        <svg width="38" height="38"><use href="#ic-key"/></svg>
-      </div>
-      <h2 data-i18n="trial.modal.title">تفعيل البرنامج</h2>
-      <p class="license-subtitle" data-i18n="trial.modal.subtitle">أدخل مفتاح التفعيل للوصول الكامل</p>
-
-      <div class="license-input-row">
-        <input type="password" id="license-key-input"
-               data-i18n-ph="ph.apikey"
-               placeholder="أدخل مفتاح التفعيل…"
-               onkeydown="if(event.key==='Enter')activateFullMode()" />
-        <button class="btn btn-start license-activate-btn" onclick="activateFullMode()">
-          <span data-i18n="trial.modal.unlock">تفعيل</span>
-        </button>
-      </div>
-      <p class="license-error" id="license-error" style="display:none" data-i18n="trial.modal.error">المفتاح فارغ — أدخل مفتاحك أو اختر التجربة</p>
-
-      <div class="license-divider"><span data-i18n="trial.modal.or">أو</span></div>
-
-      <button class="btn-trial" onclick="enterTrialMode()">
-        <svg width="16" height="16" style="vertical-align:middle;margin-left:6px"><use href="#ic-eye"/></svg>
-        <span data-i18n="trial.modal.try">تجربة مراقبة المواعيد فقط</span>
-      </button>
-    </div>
-  </div>
-
   <script src="renderer.js"></script>
 </body>
 </html>
