@@ -1019,3 +1019,55 @@ body.trial-mode .nav-btn[data-trial-locked]:hover {
   color: var(--text-muted);
   opacity: .7;
 }
+
+/* ===========================
+   TERMS ABUSE BOX
+   =========================== */
+.terms-abuse-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: rgba(92,107,192,.1);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-top: 20px;
+}
+
+.terms-abuse-icon {
+  color: var(--accent-glow);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.terms-abuse-body { flex: 1; }
+
+.terms-abuse-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.terms-abuse-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.btn-abuse {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .15s;
+  font-family: inherit;
+}
+.btn-abuse:hover { background: var(--accent-glow); }
