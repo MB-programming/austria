@@ -1314,7 +1314,8 @@ function makeDefaultSession(id) {
     reservationType: '',
     refreshIntervalSec: isStealth ? 15 : 30,
     navigationDelayMs:  isStealth ? 400 : 800,
-    targetUrl: ''
+    targetUrl: '',
+    slotPreference: String(id <= 10 ? id : 1)  // each session defaults to booking its slot number (1-10)
   };
 }
 
@@ -1327,6 +1328,11 @@ async function loadSessions() {
       stored = JSON.parse(localStorage.getItem('orbtasoft_sessions') || '[]');
     }
     _sessions = Array.isArray(stored) && stored.length ? stored : [];
+
+    // Ensure all sessions have slotPreference (migration for old sessions)
+    _sessions.forEach(sess => {
+      if (!sess.slotPreference) sess.slotPreference = String(sess.id <= 10 ? sess.id : 1);
+    });
 
     while (_sessions.length < MIN_SESSIONS) {
       _sessions.push(makeDefaultSession(_sessions.length + 1));
@@ -1394,6 +1400,23 @@ function renderSessionCards() {
           <label>نوع الحجز</label>
           <input type="text" class="session-input" id="sess-${sess.id}-restype"
                  value="${escAttr(sess.reservationType)}" placeholder="Bachelor" />
+        </div>
+        <div class="session-field-row">
+          <label>الموعد المفضل</label>
+          <select class="session-input" id="sess-${sess.id}-slot">
+            <option value="1" ${sess.slotPreference === '1' ? 'selected' : ''}>الموعد الأول</option>
+            <option value="2" ${sess.slotPreference === '2' ? 'selected' : ''}>الموعد الثاني</option>
+            <option value="3" ${sess.slotPreference === '3' ? 'selected' : ''}>الموعد الثالث</option>
+            <option value="4" ${sess.slotPreference === '4' ? 'selected' : ''}>الموعد الرابع</option>
+            <option value="5" ${sess.slotPreference === '5' ? 'selected' : ''}>الموعد الخامس</option>
+            <option value="6" ${sess.slotPreference === '6' ? 'selected' : ''}>الموعد السادس</option>
+            <option value="7" ${sess.slotPreference === '7' ? 'selected' : ''}>الموعد السابع</option>
+            <option value="8" ${sess.slotPreference === '8' ? 'selected' : ''}>الموعد الثامن</option>
+            <option value="9" ${sess.slotPreference === '9' ? 'selected' : ''}>الموعد التاسع</option>
+            <option value="10" ${sess.slotPreference === '10' ? 'selected' : ''}>الموعد العاشر</option>
+            <option value="random" ${sess.slotPreference === 'random' ? 'selected' : ''}>عشوائي</option>
+            <option value="any" ${sess.slotPreference === 'any' ? 'selected' : ''}>أي موعد متاح</option>
+          </select>
         </div>
         <div class="session-field-row two-col">
           <div>
@@ -1486,7 +1509,8 @@ function _collectSession(id) {
   const refresh = parseInt(document.getElementById(`sess-${id}-refresh`)?.value) || sess.refreshIntervalSec;
   const delay   = parseInt(document.getElementById(`sess-${id}-delay`)?.value)   || sess.navigationDelayMs;
   const name    = document.getElementById(`sess-${id}-name`)?.value.trim()       || sess.name;
-  return { ...sess, office, reservationType: restype, refreshIntervalSec: refresh, navigationDelayMs: delay, name };
+  const slot    = document.getElementById(`sess-${id}-slot`)?.value             || sess.slotPreference;
+  return { ...sess, office, reservationType: restype, refreshIntervalSec: refresh, navigationDelayMs: delay, name, slotPreference: slot };
 }
 
 async function saveSessionCard(id) {
@@ -1520,7 +1544,7 @@ async function startSession(id) {
       openaiApiKey:       s.openaiApiKey       || '',
       notificationSound:  s.notificationSound  || 'beep',
       customSoundB64:     s.customSoundB64     || '',
-      slotPreferences:    s.slotPreferences    || ['random'],  // shared from main settings
+      slotPreferences:    [sessConfig.slotPreference || '1'],  // each session has its own slot preference
       navRetryIntervalSec: s.navRetryIntervalSec || 5
     }
   };
