@@ -14,5 +14,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getMonitorStatus: ()       => ipcRenderer.invoke('monitor-status'),
   onMonitorStopped: (cb)     => ipcRenderer.on('monitor-stopped', cb),
   onMonitorLog:     (cb)     => ipcRenderer.on('monitor-log', (_, data) => cb(data)),
-  onBookingComplete:(cb)     => ipcRenderer.on('booking-complete', cb)
+  onBookingComplete:(cb)     => ipcRenderer.on('booking-complete', cb),
+  // Multi-session
+  getSessions:      ()           => ipcRenderer.invoke('get-sessions'),
+  saveSessions:     (sessions)   => ipcRenderer.invoke('save-sessions', sessions),
+  startSession:     (id, config) => ipcRenderer.invoke('start-session', id, config),
+  stopSession:      (id)         => ipcRenderer.invoke('stop-session', id),
+  getSessionStatus: (id)         => ipcRenderer.invoke('session-status', id),
+  onSessionLog:     (cb)         => ipcRenderer.on('session-log',     (_, data) => cb(data)),
+  onSessionStopped: (cb)         => ipcRenderer.on('session-stopped', (_, data) => cb(data))
 });

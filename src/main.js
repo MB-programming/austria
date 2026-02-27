@@ -9,6 +9,7 @@ let mainWindow    = null;
 let botWindow     = null;
 let authWindow    = null;
 let monitorWindow = null;
+const sessionWindows = new Map(); // sessionId -> BrowserWindow
 
 // ─── Auth window ────────────────────────────────────────────────────────────
 function createAuthWindow() {
@@ -221,6 +222,86 @@ ipcMain.handle('start-monitor', async (_, config) => {
     monitorWindow = null;
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('monitor-stopped');
+    }
+  });
+
+  return { success: true };
+});
+
+// ─── Multi-session IPC handlers ────────────────────────────────────────────
+ipcMain.handle('get-sessions', () => store.get('sessions') || []);
+
+ipcMain.handle('save-sessions', (_, sessions) => {
+  store.set('sessions', sessions);
+  return { success: true };
+});
+
+ipcMain.handle('session-status', (_, id) => {
+  const win = sessionWindows.get(id);
+  return { running: !!(win && !win.isDestroyed()) };
+});
+
+ipcMain.handle('stop-session', (_, id) => {
+  const win = sessionWindows.get(id);
+  if (win && !win.isDestroyed()) win.close();
+  sessionWindows.delete(id);
+  return { success: true };
+});
+
+ipcMain.handle('start-session', async (_, id, config) => {
+  const existing = sessionWindows.get(id);
+  if (existing && !existing.isDestroyed()) {
+    return { success: false, message: 'Session already running' };
+  }
+
+  const isStealth = config.type === 'stealth';
+
+  const win = new BrowserWindow({
+    width: 1200, height: 850,
+    show: !isStealth,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: false,
+      webSecurity: true
+    },
+    title: `Orbtasoft — Session ${id}${isStealth ? ' (Stealth)' : ''}`
+  });
+
+  sessionWindows.set(id, win);
+
+  win.webContents.on('console-message', (_, level, message) => {
+    if (!message.startsWith('[AustriaBot]')) return;
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    const type = level >= 3 ? 'error' : level === 2 ? 'warn' : 'success';
+    mainWindow.webContents.send('session-log', { id, type, message });
+
+    if (message.toLowerCase().includes('booking confirmed')) {
+      const currentKey = store.get('currentKey');
+      if (currentKey) {
+        const usedKeys = store.get('usedKeys') || [];
+        if (!usedKeys.includes(currentKey)) store.set('usedKeys', [...usedKeys, currentKey]);
+        store.delete('currentKey');
+      }
+      store.set('mode', null);
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('booking-complete');
+      setTimeout(() => { app.quit(); }, 120000);
+    }
+  });
+
+  win.webContents.on('dom-ready', () => {
+    const url = win.webContents.getURL();
+    if (!url.includes('appointment.bmeia.gv.at')) return;
+    win.webContents.executeJavaScript(buildScript(config)).catch(e => {
+      console.error(`[main] session ${id} inject error:`, e.message);
+    });
+  });
+
+  win.loadURL(config.targetUrl || 'https://appointment.bmeia.gv.at/');
+
+  win.on('closed', () => {
+    sessionWindows.delete(id);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('session-stopped', { id });
     }
   });
 

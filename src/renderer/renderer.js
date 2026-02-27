@@ -112,6 +112,10 @@ const I18N = {
     'mon.retry.unit': ' ثانية…',
     'mon.found':      'تم إيجاد خانات متاحة! عدد: ',
     'mon.nav':        'جاري الانتقال للنموذج…',
+    // multi-sessions
+    'nav.sessions':       'الجلسات المتعددة',
+    'sessions.title':     'الجلسات المتعددة',
+    'sessions.subtitle':  'تشغيل أكثر من جلسة بإعدادات مختلفة — مع إمكانية تشغيل جلستين خفيتين',
     // license / trial
     'trial.modal.title':    'تفعيل البرنامج',
     'trial.modal.subtitle': 'أدخل مفتاح التفعيل للوصول الكامل',
@@ -284,6 +288,10 @@ const I18N = {
     'mon.retry.unit': ' seconds…',
     'mon.found':      'Slots found! Count: ',
     'mon.nav':        'Navigating to the form…',
+    // multi-sessions
+    'nav.sessions':       'Multi-Sessions',
+    'sessions.title':     'Multi-Sessions',
+    'sessions.subtitle':  'Run multiple sessions with different settings — up to 2 stealth sessions',
     // license / trial
     'trial.modal.title':    'Activate Software',
     'trial.modal.subtitle': 'Enter your activation key for full access',
@@ -481,6 +489,16 @@ window.addEventListener('DOMContentLoaded', async () => {
       setBotState(false);
       showBookingSuccess();
     });
+
+    window.electronAPI.onSessionLog(({ id, type, message }) => {
+      const clean = message.replace(/\[AustriaBot\]\s*(ERROR:\s*)?/, '');
+      addSessionLog(id, message.includes('ERROR') ? 'error' : type, clean);
+    });
+    window.electronAPI.onSessionStopped(({ id }) => {
+      _sessionRunning[id] = false;
+      updateSessionButtons(id, false);
+      addSessionLog(id, 'warn', `نافذة الجلسة ${id} أُغلقت`);
+    });
   }
 
 });
@@ -573,6 +591,9 @@ async function loadAll() {
 
     // Check license / trial gate
     await checkLicense(stored);
+
+    // Load multi-sessions
+    await loadSessions();
   } catch (e) {
     addLog('error', t('msg.load.error') + e.message);
   }
@@ -1263,4 +1284,312 @@ async function restartBot() {
   setBotState(false);
   addActivity('warn', '↺', t('act.restart'));
   setTimeout(() => startBot(), 800);
+}
+
+// ─── Multi-Session management ─────────────────────────────────────────────────
+const MAX_SESSIONS = 10;
+const MIN_SESSIONS = 5;
+const MAX_STEALTH  = 2;
+
+let _sessions       = [];
+let _sessionRunning = {}; // id -> bool
+
+const SESSION_COLORS = [
+  '#7986cb','#4db6ac','#ff8a65','#81c784',
+  '#ce93d8','#ffb74d','#64b5f6','#f06292',
+  '#a5d6a7','#ffcc02'
+];
+
+function sessionColor(id) {
+  return SESSION_COLORS[(id - 1) % SESSION_COLORS.length];
+}
+
+function makeDefaultSession(id) {
+  const isStealth = id <= 2;
+  return {
+    id,
+    name: `جلسة ${id}`,
+    type: isStealth ? 'stealth' : 'normal',
+    office: '',
+    reservationType: '',
+    refreshIntervalSec: isStealth ? 15 : 30,
+    navigationDelayMs:  isStealth ? 400 : 800,
+    targetUrl: ''
+  };
+}
+
+async function loadSessions() {
+  try {
+    let stored = [];
+    if (IS_ELECTRON) {
+      stored = await window.electronAPI.getSessions();
+    } else {
+      stored = JSON.parse(localStorage.getItem('orbtasoft_sessions') || '[]');
+    }
+    _sessions = Array.isArray(stored) && stored.length ? stored : [];
+
+    while (_sessions.length < MIN_SESSIONS) {
+      _sessions.push(makeDefaultSession(_sessions.length + 1));
+    }
+    renderSessionCards();
+  } catch (e) {
+    console.error('Error loading sessions:', e);
+  }
+}
+
+async function _persistSessions() {
+  try {
+    if (IS_ELECTRON) {
+      await window.electronAPI.saveSessions(_sessions);
+    } else {
+      localStorage.setItem('orbtasoft_sessions', JSON.stringify(_sessions));
+    }
+  } catch (e) {
+    console.error('Error saving sessions:', e);
+  }
+}
+
+function stealthCount() {
+  return _sessions.filter(s => s.type === 'stealth').length;
+}
+
+function escAttr(str) {
+  return String(str || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderSessionCards() {
+  const grid = document.getElementById('sessions-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  _sessions.forEach(sess => {
+    const running = !!_sessionRunning[sess.id];
+    const isStealth = sess.type === 'stealth';
+
+    const card = document.createElement('div');
+    card.className = `session-card${isStealth ? ' session-stealth' : ''}`;
+    card.id = `session-card-${sess.id}`;
+    card.innerHTML = `
+      <div class="session-card-header">
+        <div class="session-name-wrap">
+          <span class="session-status-indicator ${running ? 'running' : 'stopped'}" id="sess-${sess.id}-dot"></span>
+          <input type="text" class="session-name-input" id="sess-${sess.id}-name"
+                 value="${escAttr(sess.name)}"
+                 onchange="onSessNameChange(${sess.id}, this.value)" />
+        </div>
+        <button class="session-type-btn ${isStealth ? 'stealth' : 'normal'}"
+                onclick="toggleSessionType(${sess.id})"
+                title="${isStealth ? 'خفية — بدون نافذة مرئية' : 'عادية — نافذة مرئية'}">
+          ${isStealth ? '🔒 خفي' : '🌐 عادي'}
+        </button>
+      </div>
+
+      <div class="session-fields">
+        <div class="session-field-row">
+          <label>المنظمة (Office)</label>
+          <input type="text" class="session-input" id="sess-${sess.id}-office"
+                 value="${escAttr(sess.office)}" placeholder="KAIRO" />
+        </div>
+        <div class="session-field-row">
+          <label>نوع الحجز</label>
+          <input type="text" class="session-input" id="sess-${sess.id}-restype"
+                 value="${escAttr(sess.reservationType)}" placeholder="Bachelor" />
+        </div>
+        <div class="session-field-row two-col">
+          <div>
+            <label>إعادة البحث (ث)</label>
+            <input type="number" class="session-input" id="sess-${sess.id}-refresh"
+                   value="${sess.refreshIntervalSec}" min="5" step="5" />
+          </div>
+          <div>
+            <label>تأخير التنقل (ms)</label>
+            <input type="number" class="session-input" id="sess-${sess.id}-delay"
+                   value="${sess.navigationDelayMs}" min="200" step="100" />
+          </div>
+        </div>
+      </div>
+
+      <div class="session-card-actions">
+        <button class="btn-sess-start" id="sess-${sess.id}-start-btn"
+                onclick="startSession(${sess.id})" ${running ? 'disabled' : ''}>▶ تشغيل</button>
+        <button class="btn-sess-stop" id="sess-${sess.id}-stop-btn"
+                onclick="stopSession(${sess.id})" ${running ? '' : 'disabled'}>■ إيقاف</button>
+        <button class="btn-sess-icon" onclick="saveSessionCard(${sess.id})" title="حفظ الإعدادات">💾</button>
+        <button class="btn-sess-icon" id="sess-${sess.id}-delete-btn"
+                onclick="deleteSession(${sess.id})" ${running ? 'disabled' : ''} title="حذف الجلسة">🗑</button>
+      </div>`;
+
+    grid.appendChild(card);
+  });
+
+  // Update toolbar count
+  const countEl = document.getElementById('sessions-count');
+  if (countEl) {
+    const sc = stealthCount();
+    countEl.textContent = `${_sessions.length} جلسات (${sc} خفية)`;
+  }
+  const addBtn = document.getElementById('sessions-add-btn');
+  if (addBtn) addBtn.disabled = _sessions.length >= MAX_SESSIONS;
+}
+
+function onSessNameChange(id, val) {
+  const sess = _sessions.find(s => s.id === id);
+  if (sess) sess.name = val.trim() || sess.name;
+}
+
+function toggleSessionType(id) {
+  const sess = _sessions.find(s => s.id === id);
+  if (!sess) return;
+  if (sess.type === 'stealth') {
+    sess.type = 'normal';
+    sess.refreshIntervalSec = 30;
+    sess.navigationDelayMs  = 800;
+  } else {
+    if (stealthCount() >= MAX_STEALTH) {
+      addSessionLog(id, 'error', `الحد الأقصى للجلسات الخفية هو ${MAX_STEALTH}`);
+      return;
+    }
+    sess.type = 'stealth';
+    sess.refreshIntervalSec = 15;
+    sess.navigationDelayMs  = 400;
+  }
+  renderSessionCards();
+}
+
+async function addSession() {
+  if (_sessions.length >= MAX_SESSIONS) return;
+  const nextId = (_sessions.length ? Math.max(..._sessions.map(s => s.id)) : 0) + 1;
+  _sessions.push(makeDefaultSession(nextId));
+  renderSessionCards();
+  await _persistSessions();
+}
+
+async function deleteSession(id) {
+  if (_sessions.length <= MIN_SESSIONS) {
+    addSessionLog(id, 'error', `الحد الأدنى ${MIN_SESSIONS} جلسات`);
+    return;
+  }
+  if (_sessionRunning[id]) {
+    addSessionLog(id, 'error', 'أوقف الجلسة قبل الحذف');
+    return;
+  }
+  _sessions = _sessions.filter(s => s.id !== id);
+  renderSessionCards();
+  await _persistSessions();
+}
+
+function _collectSession(id) {
+  const sess = _sessions.find(s => s.id === id);
+  if (!sess) return null;
+  const office  = document.getElementById(`sess-${id}-office`)?.value.trim()  || sess.office;
+  const restype = document.getElementById(`sess-${id}-restype`)?.value.trim() || sess.reservationType;
+  const refresh = parseInt(document.getElementById(`sess-${id}-refresh`)?.value) || sess.refreshIntervalSec;
+  const delay   = parseInt(document.getElementById(`sess-${id}-delay`)?.value)   || sess.navigationDelayMs;
+  const name    = document.getElementById(`sess-${id}-name`)?.value.trim()       || sess.name;
+  return { ...sess, office, reservationType: restype, refreshIntervalSec: refresh, navigationDelayMs: delay, name };
+}
+
+async function saveSessionCard(id) {
+  const latest = _collectSession(id);
+  if (!latest) return;
+  const sess = _sessions.find(s => s.id === id);
+  if (sess) Object.assign(sess, latest);
+  await _persistSessions();
+  // Brief visual feedback
+  const btn = document.querySelector(`#session-card-${id} .btn-sess-icon`);
+  if (btn) { const orig = btn.textContent; btn.textContent = '✓'; setTimeout(() => { btn.textContent = orig; }, 900); }
+}
+
+async function startSession(id) {
+  const sessConfig = _collectSession(id);
+  if (!sessConfig) return;
+
+  const stored = await Storage.get();
+  const p = stored.person   || {};
+  const s = stored.settings || {};
+
+  const config = {
+    type:      sessConfig.type,
+    targetUrl: sessConfig.targetUrl || s.targetUrl || 'https://appointment.bmeia.gv.at/',
+    person:    p,
+    settings: {
+      office:             sessConfig.office             || s.office             || 'KAIRO',
+      reservationType:    sessConfig.reservationType    || s.reservationType    || 'Bachelor',
+      refreshIntervalSec: sessConfig.refreshIntervalSec,
+      navigationDelayMs:  sessConfig.navigationDelayMs,
+      openaiApiKey:       s.openaiApiKey       || '',
+      notificationSound:  s.notificationSound  || 'beep',
+      customSoundB64:     s.customSoundB64     || '',
+      slotPreferences:    s.slotPreferences    || ['random'],  // shared from main settings
+      navRetryIntervalSec: s.navRetryIntervalSec || 5
+    }
+  };
+
+  if (!IS_ELECTRON) {
+    addSessionLog(id, 'error', 'الجلسات المتعددة تحتاج تطبيق Desktop');
+    return;
+  }
+
+  const result = await window.electronAPI.startSession(id, config);
+  if (result.success) {
+    _sessionRunning[id] = true;
+    updateSessionButtons(id, true);
+    addSessionLog(id, 'success', `▶ الجلسة ${id} انطلقت — ${sessConfig.type === 'stealth' ? 'خفية بلا نافذة' : 'عادية مع نافذة'}`);
+    // Update stored session name/office in case changed
+    const sess = _sessions.find(s => s.id === id);
+    if (sess) Object.assign(sess, sessConfig);
+    await _persistSessions();
+  } else {
+    addSessionLog(id, 'error', 'خطأ في التشغيل: ' + (result.message || ''));
+  }
+}
+
+async function stopSession(id) {
+  if (IS_ELECTRON) await window.electronAPI.stopSession(id);
+  _sessionRunning[id] = false;
+  updateSessionButtons(id, false);
+  addSessionLog(id, 'warn', `■ الجلسة ${id} توقفت`);
+}
+
+function updateSessionButtons(id, running) {
+  const dot       = document.getElementById(`sess-${id}-dot`);
+  const startBtn  = document.getElementById(`sess-${id}-start-btn`);
+  const stopBtn   = document.getElementById(`sess-${id}-stop-btn`);
+  const deleteBtn = document.getElementById(`sess-${id}-delete-btn`);
+  if (dot)       dot.className = `session-status-indicator ${running ? 'running' : 'stopped'}`;
+  if (startBtn)  startBtn.disabled  = running;
+  if (stopBtn)   stopBtn.disabled   = !running;
+  if (deleteBtn) deleteBtn.disabled = running;
+}
+
+function addSessionLog(id, type, msg) {
+  const sess      = _sessions.find(s => s.id === id);
+  const isStealth = sess?.type === 'stealth';
+  const cid       = isStealth ? 'sessions-stealth-log' : 'sessions-normal-log';
+  const container = document.getElementById(cid);
+  if (!container) return;
+
+  const empty = container.querySelector('.log-empty');
+  if (empty) empty.remove();
+
+  const time  = new Date().toLocaleTimeString('ar-EG', { hour12: false });
+  const entry = document.createElement('div');
+  entry.className = `session-log-entry ${type}`;
+  entry.innerHTML =
+    `<span class="log-time">${time}</span>` +
+    `<span class="log-session-badge" style="color:${sessionColor(id)}">ج${id}</span>` +
+    `<span class="log-msg">${escapeHtml(msg)}</span>`;
+
+  container.appendChild(entry);
+  container.scrollTop = container.scrollHeight;
+}
+
+function clearNormalLog() {
+  const c = document.getElementById('sessions-normal-log');
+  if (c) c.innerHTML = '<p class="log-empty">لا يوجد نشاط بعد — شغّل إحدى الجلسات العادية</p>';
+}
+
+function clearStealthLog() {
+  const c = document.getElementById('sessions-stealth-log');
+  if (c) c.innerHTML = '<p class="log-empty">لا يوجد نشاط بعد — شغّل إحدى الجلستين الخفيتين</p>';
 }

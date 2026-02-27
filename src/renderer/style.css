@@ -1071,3 +1071,275 @@ body.trial-mode .nav-btn[data-trial-locked]:hover {
   font-family: inherit;
 }
 .btn-abuse:hover { background: var(--accent-glow); }
+
+/* ===========================
+   MULTI-SESSION TAB
+   =========================== */
+.sessions-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.sessions-count-badge {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+}
+.btn-sessions-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(92,107,192,.15);
+  border: 1px solid var(--accent);
+  color: var(--accent-glow);
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .15s;
+  font-family: inherit;
+}
+.btn-sessions-action:hover { background: rgba(92,107,192,.3); }
+.btn-sessions-action:disabled { opacity: .4; cursor: default; }
+
+/* Grid of session cards */
+.sessions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.session-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color .2s;
+}
+.session-card:hover { border-color: var(--accent); }
+.session-card.session-stealth {
+  border-color: rgba(167,139,250,.4);
+  background: rgba(167,139,250,.05);
+}
+
+.session-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.session-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.session-name-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 4px;
+  width: 100%;
+  min-width: 0;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s;
+}
+.session-name-input:focus { border-bottom-color: var(--accent); }
+
+.session-status-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.session-status-indicator.running {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+  animation: pulse 1.2s infinite;
+}
+.session-status-indicator.stopped { background: var(--text-muted); }
+
+.session-type-btn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: background .15s;
+}
+.session-type-btn.normal {
+  background: rgba(92,107,192,.2);
+  color: var(--accent-glow);
+}
+.session-type-btn.normal:hover { background: rgba(92,107,192,.35); }
+.session-type-btn.stealth {
+  background: rgba(167,139,250,.2);
+  color: #a78bfa;
+}
+.session-type-btn.stealth:hover { background: rgba(167,139,250,.35); }
+
+.session-fields { display: flex; flex-direction: column; gap: 8px; }
+.session-field-row { display: flex; flex-direction: column; gap: 3px; }
+.session-field-row label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.session-field-row.two-col {
+  flex-direction: row;
+  gap: 8px;
+}
+.session-field-row.two-col > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.session-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  padding: 6px 10px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color .15s;
+}
+.session-input:focus { border-color: var(--accent); }
+
+.session-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+.btn-sess-start {
+  flex: 1;
+  padding: 7px 10px;
+  background: linear-gradient(135deg, var(--accent), #7c3aed);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+  font-family: inherit;
+}
+.btn-sess-start:hover   { opacity: .85; }
+.btn-sess-start:disabled { opacity: .4; cursor: default; }
+
+.btn-sess-stop {
+  flex: 1;
+  padding: 7px 10px;
+  background: rgba(229,57,53,.15);
+  border: 1px solid rgba(229,57,53,.4);
+  border-radius: var(--radius-sm);
+  color: #ef9a9a;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+  font-family: inherit;
+}
+.btn-sess-stop:hover   { background: rgba(229,57,53,.3); }
+.btn-sess-stop:disabled { opacity: .4; cursor: default; }
+
+.btn-sess-icon {
+  padding: 7px 9px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  font-family: inherit;
+  line-height: 1;
+}
+.btn-sess-icon:hover { background: var(--bg-card); color: var(--text); }
+.btn-sess-icon:disabled { opacity: .4; cursor: default; }
+
+/* Session logs */
+.sessions-log-section {
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.stealth-log-section { border-color: rgba(167,139,250,.3); }
+
+.sessions-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+.stealth-log-section .sessions-log-header {
+  background: rgba(167,139,250,.08);
+  border-bottom-color: rgba(167,139,250,.2);
+}
+.sessions-log-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.btn-clear-sesslog {
+  font-size: 11px;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s;
+}
+.btn-clear-sesslog:hover { background: var(--bg-card); color: var(--text); }
+
+.sessions-log-container {
+  height: 160px;
+  overflow-y: auto;
+  padding: 8px 12px;
+  background: var(--bg-dark);
+  font-size: 12px;
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+.session-log-entry {
+  padding: 2px 0;
+  line-height: 1.5;
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+.session-log-entry.error  .log-msg { color: #ef9a9a; }
+.session-log-entry.warn   .log-msg { color: #ffcc80; }
+.session-log-entry.success .log-msg { color: #a5d6a7; }
+.session-log-entry .log-msg { color: var(--text); word-break: break-all; }
+.log-session-badge {
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.log-time { color: var(--text-muted); font-size: 10px; flex-shrink: 0; }
