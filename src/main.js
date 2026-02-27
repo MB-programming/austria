@@ -546,6 +546,7 @@ function buildScript(config) {
 
   // ── Audio alarm (Web Audio API — no external deps) ────────────────────────
   let alarmTimer = null;
+  let _slotTaken = false;  // flag: if true, ignore slot preferences and pick first available
 
   function playBeep() {
     try {
@@ -772,17 +773,25 @@ function buildScript(config) {
     // Slot found — play alarm to alert the user
     startAlarm();
 
-    // Pick slot based on user preferences (with fallback chain)
-    const prefs = CFG.slotPreferences || ['random'];
+    // Pick slot: if previous slot was taken, always pick first available (ignore preferences)
     let slot = null;
-    for (const pref of prefs) {
-      if (!pref || pref === 'none') continue;
-      if (pref === 'random') { slot = slots[Math.floor(Math.random() * slots.length)]; break; }
-      if (pref === 'any')    { slot = slots[0]; break; }
-      const idx = parseInt(pref) - 1;
-      if (!isNaN(idx) && idx >= 0 && idx < slots.length) { slot = slots[idx]; break; }
+    if (_slotTaken) {
+      slot = slots[0];
+      _slotTaken = false;  // reset flag
+      log('RETRY_AFTER_SLOT_TAKEN — selecting first available slot');
+    } else {
+      // Normal preference-based selection
+      const prefs = CFG.slotPreferences || ['random'];
+      for (const pref of prefs) {
+        if (!pref || pref === 'none') continue;
+        if (pref === 'random') { slot = slots[Math.floor(Math.random() * slots.length)]; break; }
+        if (pref === 'any')    { slot = slots[0]; break; }
+        const idx = parseInt(pref) - 1;
+        if (!isNaN(idx) && idx >= 0 && idx < slots.length) { slot = slots[idx]; break; }
+      }
+      if (!slot) slot = slots[0]; // ultimate fallback
     }
-    if (!slot) slot = slots[0]; // ultimate fallback
+
     slot.checked = true;
     slot.dispatchEvent(new Event('change', { bubbles: true }));
     log('Appointment slot selected → ' + slot.value);
@@ -1043,10 +1052,23 @@ function buildScript(config) {
   // ── State: Unknown / confirmation ─────────────────────────────────────────
   function handleUnknown() {
     const text = (document.getElementById('main') || document.body).innerText || '';
+
+    // Check for successful booking confirmation
     if (/confirmation|bestätigung|erfolgreich|successfully|booked|reserved/i.test(text)) {
       log('BOOKING CONFIRMED! Alarm started.');
       startAlarm();
       setTimeout(stopAlarm, 30000);
+      return;
+    }
+
+    // Check for "slot already taken / no longer available" errors
+    if (/already.*(booked|taken|reserved)|no longer available|nicht mehr verfügbar|bereits gebucht|slot.*taken|not.*available|محجوز بالفعل|غير متاح/i.test(text)) {
+      log('SLOT_ALREADY_TAKEN — returning to scheduler to select next available slot');
+      _slotTaken = true;  // flag: next scheduler page will pick first available slot
+      stopAlarm();
+      setTimeout(() => {
+        location.href = CFG.rootUrl;  // navigate back to start
+      }, 800);
     }
   }
 
