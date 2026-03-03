@@ -1304,18 +1304,33 @@ function sessionColor(id) {
   return SESSION_COLORS[(id - 1) % SESSION_COLORS.length];
 }
 
-function makeDefaultSession(id) {
-  const isStealth = id <= 2;
+function makeDefaultSession(id, type = null) {
+  // Auto-assign type if not specified
+  if (!type) {
+    type = id <= 2 ? 'stealth' : 'normal';
+  }
+
+  let refreshSec = 30;
+  let delayMs = 800;
+
+  if (type === 'stealth') {
+    refreshSec = 15;
+    delayMs = 400;
+  } else if (type === 'rocket') {
+    refreshSec = 5;
+    delayMs = 100;  // ultra-fast
+  }
+
   return {
     id,
-    name: `جلسة ${id}`,
-    type: isStealth ? 'stealth' : 'normal',
+    name: type === 'rocket' ? `🚀 صاروخ ${id}` : `جلسة ${id}`,
+    type,
     office: '',
     reservationType: '',
-    refreshIntervalSec: isStealth ? 15 : 30,
-    navigationDelayMs:  isStealth ? 400 : 800,
+    refreshIntervalSec: refreshSec,
+    navigationDelayMs: delayMs,
     targetUrl: '',
-    slotPreference: String(id <= 10 ? id : 1)  // each session defaults to booking its slot number (1-10)
+    slotPreference: String(id <= 10 ? id : 1)
   };
 }
 
@@ -1370,10 +1385,29 @@ function renderSessionCards() {
 
   _sessions.forEach(sess => {
     const running = !!_sessionRunning[sess.id];
+    const isRocket = sess.type === 'rocket';
     const isStealth = sess.type === 'stealth';
 
+    let cardClass = 'session-card';
+    if (isStealth) cardClass += ' session-stealth';
+    if (isRocket) cardClass += ' session-rocket';
+
+    let typeLabel = '🌐 عادي';
+    let typeTitle = 'عادية — نافذة مرئية';
+    let typeBtnClass = 'normal';
+
+    if (isStealth) {
+      typeLabel = '🔒 خفي';
+      typeTitle = 'خفية — بدون نافذة مرئية';
+      typeBtnClass = 'stealth';
+    } else if (isRocket) {
+      typeLabel = '🚀 صاروخ';
+      typeTitle = 'صاروخ — سرعة قصوى';
+      typeBtnClass = 'rocket';
+    }
+
     const card = document.createElement('div');
-    card.className = `session-card${isStealth ? ' session-stealth' : ''}`;
+    card.className = cardClass;
     card.id = `session-card-${sess.id}`;
     card.innerHTML = `
       <div class="session-card-header">
@@ -1383,10 +1417,10 @@ function renderSessionCards() {
                  value="${escAttr(sess.name)}"
                  onchange="onSessNameChange(${sess.id}, this.value)" />
         </div>
-        <button class="session-type-btn ${isStealth ? 'stealth' : 'normal'}"
+        <button class="session-type-btn ${typeBtnClass}"
                 onclick="toggleSessionType(${sess.id})"
-                title="${isStealth ? 'خفية — بدون نافذة مرئية' : 'عادية — نافذة مرئية'}">
-          ${isStealth ? '🔒 خفي' : '🌐 عادي'}
+                title="${typeTitle}">
+          ${typeLabel}
         </button>
       </div>
 
@@ -1449,10 +1483,15 @@ function renderSessionCards() {
   const countEl = document.getElementById('sessions-count');
   if (countEl) {
     const sc = stealthCount();
-    countEl.textContent = `${_sessions.length} جلسات (${sc} خفية)`;
+    const rc = _sessions.filter(s => s.type === 'rocket').length;
+    let label = `${_sessions.length} جلسات`;
+    if (sc > 0) label += ` (${sc} خفية)`;
+    if (rc > 0) label += ` (${rc} صاروخ)`;
+    countEl.textContent = label;
   }
-  const addBtn = document.getElementById('sessions-add-btn');
-  if (addBtn) addBtn.disabled = _sessions.length >= MAX_SESSIONS;
+  // Disable add stealth button if max reached
+  const addStealthBtn = document.getElementById('sessions-add-stealth-btn');
+  if (addStealthBtn) addStealthBtn.disabled = stealthCount() >= MAX_STEALTH;
 }
 
 function onSessNameChange(id, val) {
@@ -1463,26 +1502,44 @@ function onSessNameChange(id, val) {
 function toggleSessionType(id) {
   const sess = _sessions.find(s => s.id === id);
   if (!sess) return;
-  if (sess.type === 'stealth') {
+
+  // Cycle: normal → stealth → rocket → normal
+  if (sess.type === 'normal') {
+    if (stealthCount() >= MAX_STEALTH) {
+      // Skip stealth, go to rocket
+      sess.type = 'rocket';
+      sess.refreshIntervalSec = 5;
+      sess.navigationDelayMs  = 100;
+      sess.name = `🚀 صاروخ ${sess.id}`;
+    } else {
+      sess.type = 'stealth';
+      sess.refreshIntervalSec = 15;
+      sess.navigationDelayMs  = 400;
+      sess.name = `جلسة ${sess.id}`;
+    }
+  } else if (sess.type === 'stealth') {
+    sess.type = 'rocket';
+    sess.refreshIntervalSec = 5;
+    sess.navigationDelayMs  = 100;
+    sess.name = `🚀 صاروخ ${sess.id}`;
+  } else if (sess.type === 'rocket') {
     sess.type = 'normal';
     sess.refreshIntervalSec = 30;
     sess.navigationDelayMs  = 800;
-  } else {
-    if (stealthCount() >= MAX_STEALTH) {
-      addSessionLog(id, 'error', `الحد الأقصى للجلسات الخفية هو ${MAX_STEALTH}`);
-      return;
-    }
-    sess.type = 'stealth';
-    sess.refreshIntervalSec = 15;
-    sess.navigationDelayMs  = 400;
+    sess.name = `جلسة ${sess.id}`;
   }
+
   renderSessionCards();
 }
 
-async function addSession() {
+async function addSession(type = 'normal') {
   if (_sessions.length >= MAX_SESSIONS) return;
+  if (type === 'stealth' && stealthCount() >= MAX_STEALTH) {
+    alert(`الحد الأقصى للجلسات الخفية هو ${MAX_STEALTH}`);
+    return;
+  }
   const nextId = (_sessions.length ? Math.max(..._sessions.map(s => s.id)) : 0) + 1;
-  _sessions.push(makeDefaultSession(nextId));
+  _sessions.push(makeDefaultSession(nextId, type));
   renderSessionCards();
   await _persistSessions();
 }

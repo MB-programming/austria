@@ -817,10 +817,15 @@
 
         <div class="sessions-toolbar">
           <span id="sessions-count" class="sessions-count-badge">5 جلسات</span>
-          <div style="display:flex;gap:8px;">
-            <button class="btn-sessions-action" id="sessions-add-btn" onclick="addSession()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              إضافة جلسة
+          <div style="display:flex;gap:6px;">
+            <button class="btn-sessions-action" onclick="addSession('normal')" title="إضافة جلسة عادية">
+              🌐 عادي
+            </button>
+            <button class="btn-sessions-action btn-add-stealth" id="sessions-add-stealth-btn" onclick="addSession('stealth')" title="إضافة جلسة خفية (حد أقصى 2)">
+              🔒 خفي
+            </button>
+            <button class="btn-sessions-action btn-add-rocket" onclick="addSession('rocket')" title="إضافة جلسة صاروخ — سرعة قصوى">
+              🚀 صاروخ
             </button>
           </div>
         </div>

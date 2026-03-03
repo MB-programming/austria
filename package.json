@@ -4,11 +4,17 @@
   "description": "Orbtasoft Appointment Automation Desktop App",
   "main": "src/main.js",
   "scripts": {
-    "start":     "electron .",
-    "dev":       "electron . --dev",
-    "build:mac": "electron-builder --mac --x64 --arm64",
-    "build:win": "electron-builder --win --x64",
-    "build:all": "electron-builder --mac --win --x64"
+    "start":            "electron .",
+    "dev":              "electron . --dev",
+    "build:mac":        "electron-builder --mac --x64 --arm64",
+    "build:win":        "electron-builder --win --x64",
+    "build:linux":      "electron-builder --linux --x64",
+    "build:linux:deb":  "electron-builder --linux deb --x64",
+    "build:linux:rpm":  "electron-builder --linux rpm --x64",
+    "build:linux:snap": "electron-builder --linux snap --x64",
+    "build:linux:tar":  "electron-builder --linux tar.gz --x64",
+    "build:linux:all":  "electron-builder --linux AppImage deb rpm snap tar.gz --x64",
+    "build:all":        "electron-builder --mac --win --linux --x64"
   },
   "build": {
     "appId":       "com.orbtasoft.automation",
@@ -38,7 +44,49 @@
       "createStartMenuShortcut": true
     },
     "linux": {
-      "target": ["AppImage"]
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb",      "arch": ["x64"] },
+        { "target": "rpm",      "arch": ["x64"] },
+        { "target": "snap",     "arch": ["x64"] },
+        { "target": "tar.gz",   "arch": ["x64"] }
+      ],
+      "category": "Utility",
+      "synopsis": "Orbtasoft Appointment Automation Tool",
+      "description": "Automated appointment booking system for Orbtasoft services",
+      "desktop": {
+        "Name": "Orbtasoft Automation",
+        "Type": "Application",
+        "Categories": "Utility;Office;"
+      }
+    },
+    "deb": {
+      "depends": [
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1"
+      ]
+    },
+    "rpm": {
+      "depends": [
+        "gtk3",
+        "libnotify",
+        "nss",
+        "libXScrnSaver",
+        "libXtst",
+        "xdg-utils",
+        "at-spi2-core",
+        "libuuid"
+      ]
+    },
+    "snap": {
+      "confinement": "classic",
+      "grade": "stable"
     }
   },
   "devDependencies": {

@@ -1129,6 +1129,10 @@ body.trial-mode .nav-btn[data-trial-locked]:hover {
   border-color: rgba(167,139,250,.4);
   background: rgba(167,139,250,.05);
 }
+.session-card.session-rocket {
+  border-color: rgba(255,138,101,.5);
+  background: rgba(255,138,101,.08);
+}
 
 .session-card-header {
   display: flex;
@@ -1192,6 +1196,24 @@ body.trial-mode .nav-btn[data-trial-locked]:hover {
   color: #a78bfa;
 }
 .session-type-btn.stealth:hover { background: rgba(167,139,250,.35); }
+.session-type-btn.rocket {
+  background: rgba(255,138,101,.2);
+  color: #ff8a65;
+}
+.session-type-btn.rocket:hover { background: rgba(255,138,101,.35); }
+
+.btn-add-rocket {
+  background: rgba(255,138,101,.15) !important;
+  border-color: rgba(255,138,101,.4) !important;
+  color: #ff8a65 !important;
+}
+.btn-add-rocket:hover { background: rgba(255,138,101,.3) !important; }
+.btn-add-stealth {
+  background: rgba(167,139,250,.15) !important;
+  border-color: rgba(167,139,250,.4) !important;
+  color: #a78bfa !important;
+}
+.btn-add-stealth:hover { background: rgba(167,139,250,.3) !important; }
 
 .session-fields { display: flex; flex-direction: column; gap: 8px; }
 .session-field-row { display: flex; flex-direction: column; gap: 3px; }
