@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "description": "Orbtasoft Appointment Automation Desktop App",
   "main": "src/main.js",
+  "author": {
+    "name": "Orbtasoft Team",
+    "email": "support@orbtasoft.com"
+  },
+  "homepage": "https://github.com/orbtasoft/automation",
+  "license": "MIT",
   "scripts": {
     "start":            "electron .",
     "dev":              "electron . --dev",
@@ -54,6 +60,7 @@
       "category": "Utility",
       "synopsis": "Orbtasoft Appointment Automation Tool",
       "description": "Automated appointment booking system for Orbtasoft services",
+      "maintainer": "Orbtasoft Team <support@orbtasoft.com>",
       "desktop": {
         "Name": "Orbtasoft Automation",
         "Type": "Application",
