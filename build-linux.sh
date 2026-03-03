@@ -20,15 +20,9 @@ echo "   - .deb (Ubuntu, Debian, Kali)"
 echo "   - .tar.gz (نسخة محمولة)"
 echo ""
 
-# بناء AppImage, deb, tar.gz (بدون snap و rpm لأنهم محتاجين dependencies إضافية)
-npm run build:linux:deb 2>&1 | grep -E "•|✓|⨯|building|file=" || true
-
-# محاولة بناء AppImage إذا لم يتم بناؤه مع .deb
-if [ ! -f "dist/Orbtasoft Automation-1.0.0.AppImage" ]; then
-    echo ""
-    echo "🔨 بناء AppImage..."
-    electron-builder --linux AppImage --x64 2>&1 | grep -E "•|✓|⨯|building|file=" || true
-fi
+# بناء جميع الحزم دفعة واحدة
+# AppImage + deb + tar.gz (بدون snap و rpm لأنهم محتاجين dependencies إضافية)
+npx electron-builder --linux AppImage deb tar.gz --x64 2>&1 | grep -E "•|✓|⨯|building|file=" || true
 
 echo ""
 echo "✅ [3/3] البناء اكتمل!"
