@@ -327,7 +327,18 @@ ipcMain.handle('start-session', async (_, id, config) => {
       }
       store.set('mode', null);
       if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('booking-complete');
-      setTimeout(() => { app.quit(); }, 120000);
+
+      // Stop ONLY this session after booking, not the entire app
+      setTimeout(() => {
+        const sessionWin = sessionWindows.get(id);
+        if (sessionWin && !sessionWin.isDestroyed()) {
+          sessionWin.close();
+        }
+        const termWin = terminalWindows.get(id);
+        if (termWin && !termWin.isDestroyed()) {
+          termWin.close();
+        }
+      }, 5000); // 5 seconds to see the confirmation
     }
   });
 
@@ -414,7 +425,12 @@ ipcMain.handle('start-grid', async (_, config) => {
 
   // Send grid config after window loads
   gridWindow.webContents.on('did-finish-load', () => {
-    gridWindow.webContents.send('init-grid', config);
+    // Add preload path to config
+    const configWithPreload = {
+      ...config,
+      preloadPath: path.join(__dirname, 'preload-grid-cell.js')
+    };
+    gridWindow.webContents.send('init-grid', configWithPreload);
   });
 
   // Create grid terminal

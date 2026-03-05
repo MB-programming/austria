@@ -199,7 +199,7 @@
     }
 
     function initializeGrid(config) {
-      const { rows, cols, cells } = config;
+      const { rows, cols, cells, preloadPath } = config;
       const gridContainer = document.getElementById('gridContainer');
       const gridInfo = document.getElementById('gridInfo');
 
@@ -224,9 +224,11 @@
             <div class="loading-spinner"></div>
             <div>Loading browser...</div>
           </div>
-          <webview id="webview-${cell.id}" src="${cell.url || 'https://appointment.bmeia.gv.at/'}"
+          <webview id="webview-${cell.id}"
+                   src="${cell.url || 'https://appointment.bmeia.gv.at/'}"
                    partition="persist:session-${cell.id}"
-                   webpreferences="contextIsolation=false,nodeIntegration=false"></webview>
+                   preload="${preloadPath}"
+                   webpreferences="nodeIntegration=true,contextIsolation=false"></webview>
         `;
 
         gridContainer.appendChild(cellDiv);
@@ -243,14 +245,25 @@
           if (loading) loading.remove();
           updateCellStatus(cell.id, 'Ready');
 
-          // Inject bot script directly into webview
-          try {
-            const botScript = await window.gridWindowAPI.getBotScript(cell.settings);
-            await webview.executeJavaScript(botScript);
-            updateCellStatus(cell.id, 'Bot Started');
-          } catch (err) {
-            console.error(`Failed to inject script in cell ${cell.id}:`, err);
-            updateCellStatus(cell.id, 'Script Error');
+          // Wait a bit for preload to be ready
+          setTimeout(async () => {
+            try {
+              const botScript = await window.gridWindowAPI.getBotScript(cell.settings);
+
+              // Send bot script to webview via IPC
+              webview.send('inject-bot-script', botScript);
+              updateCellStatus(cell.id, 'Bot Starting...');
+            } catch (err) {
+              console.error(`Failed to get bot script for cell ${cell.id}:`, err);
+              updateCellStatus(cell.id, 'Script Error');
+            }
+          }, 500);
+        });
+
+        // Listen for cell-ready signal from webview
+        webview.addEventListener('ipc-message', (e) => {
+          if (e.channel === 'grid-cell-ready') {
+            updateCellStatus(cell.id, 'Bot Active');
           }
         });
 
