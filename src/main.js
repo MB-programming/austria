@@ -275,8 +275,12 @@ ipcMain.handle('start-session', async (_, id, config) => {
     backgroundColor: '#0a0a0f'
   });
 
-  termWin.loadFile(path.join(__dirname, 'renderer', 'session-terminal.html'), {
-    query: { id: id }
+  const terminalPath = path.join(__dirname, 'renderer', 'session-terminal.html');
+  termWin.loadFile(terminalPath);
+
+  // Send session ID after page loads
+  termWin.webContents.on('did-finish-load', () => {
+    termWin.webContents.send('set-session-id', id);
   });
 
   terminalWindows.set(id, termWin);
