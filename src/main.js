@@ -10,6 +10,7 @@ let botWindow     = null;
 let authWindow    = null;
 let monitorWindow = null;
 const sessionWindows = new Map(); // sessionId -> BrowserWindow
+const terminalWindows = new Map(); // sessionId -> Terminal BrowserWindow
 
 // ─── Auth window ────────────────────────────────────────────────────────────
 function createAuthWindow() {
@@ -245,6 +246,12 @@ ipcMain.handle('stop-session', (_, id) => {
   const win = sessionWindows.get(id);
   if (win && !win.isDestroyed()) win.close();
   sessionWindows.delete(id);
+
+  // Also close terminal window
+  const termWin = terminalWindows.get(id);
+  if (termWin && !termWin.isDestroyed()) termWin.close();
+  terminalWindows.delete(id);
+
   return { success: true };
 });
 
@@ -256,6 +263,25 @@ ipcMain.handle('start-session', async (_, id, config) => {
 
   const isStealth = config.type === 'stealth';
 
+  // Create terminal window for this session
+  const termWin = new BrowserWindow({
+    width: 800, height: 600,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload-terminal.js')
+    },
+    title: `Terminal — Session ${id}`,
+    backgroundColor: '#0a0a0f'
+  });
+
+  termWin.loadFile(path.join(__dirname, 'renderer', 'session-terminal.html'), {
+    query: { id: id }
+  });
+
+  terminalWindows.set(id, termWin);
+
+  // Create session window
   const win = new BrowserWindow({
     width: 1200, height: 850,
     show: !isStealth,
@@ -271,9 +297,19 @@ ipcMain.handle('start-session', async (_, id, config) => {
 
   win.webContents.on('console-message', (_, level, message) => {
     if (!message.startsWith('[AustriaBot]')) return;
-    if (!mainWindow || mainWindow.isDestroyed()) return;
+
+    // Send logs to terminal window instead of main window
+    const termWin = terminalWindows.get(id);
+    if (!termWin || termWin.isDestroyed()) return;
+
     const type = level >= 3 ? 'error' : level === 2 ? 'warn' : 'success';
-    mainWindow.webContents.send('session-log', { id, type, message });
+    const cleanMessage = message.replace('[AustriaBot] ', '');
+    termWin.webContents.send('terminal-log', type, cleanMessage);
+
+    // Send also to main window for booking confirmation
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('session-log', { id, type, message });
+    }
 
     if (message.toLowerCase().includes('booking confirmed')) {
       const currentKey = store.get('currentKey');
@@ -300,9 +336,20 @@ ipcMain.handle('start-session', async (_, id, config) => {
 
   win.on('closed', () => {
     sessionWindows.delete(id);
+
+    // Also close terminal window
+    const termWin = terminalWindows.get(id);
+    if (termWin && !termWin.isDestroyed()) termWin.close();
+    terminalWindows.delete(id);
+
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('session-stopped', { id });
     }
+  });
+
+  // Also handle terminal window close
+  termWin.on('closed', () => {
+    terminalWindows.delete(id);
   });
 
   return { success: true };
