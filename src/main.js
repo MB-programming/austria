@@ -639,11 +639,13 @@ function buildMonitorScript(config) {
       const wait_s = Math.max(5, CFG.refreshIntervalSec);
       log('MONITOR_NO_APPTS:' + wait_s);
 
-      let remaining = wait_s;
+      // Ensure minimum 1 second for countdown
+      const countdown_s = Math.max(1, Math.floor(wait_s));
+      let remaining = countdown_s;
       const tick = setInterval(() => {
         remaining--;
-        if (remaining > 0) log('MONITOR_COUNTDOWN:' + remaining);
-        else clearInterval(tick);
+        log('MONITOR_COUNTDOWN:' + remaining);
+        if (remaining <= 0) clearInterval(tick);
       }, 1000);
 
       setTimeout(() => { clearInterval(tick); location.reload(); }, wait_s * 1000);
@@ -911,17 +913,17 @@ function buildScript(config) {
     const slots = Array.from(document.querySelectorAll('input[type="radio"][name="Start"]'));
 
     if (slots.length === 0) {
-      const wait_s = Math.max(0.25, CFG.refreshIntervalSec);
+      // Ensure minimum 1 second for countdown to work properly
+      const wait_s = Math.max(1, CFG.refreshIntervalSec);
       log('NO_APPOINTMENTS:' + wait_s);
       // No alarm here — alarm fires only when a slot IS found
 
       // Emit countdown every second so the UI can show it
-      let remaining = wait_s;
+      let remaining = Math.floor(wait_s); // Use integer for countdown
       const tick = setInterval(() => {
         remaining--;
-        if (remaining > 0) {
-          log('COUNTDOWN:' + remaining);
-        } else {
+        log('COUNTDOWN:' + remaining);
+        if (remaining <= 0) {
           clearInterval(tick);
         }
       }, 1000);

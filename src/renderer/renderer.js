@@ -1532,6 +1532,18 @@ function toggleSessionType(id) {
   renderSessionCards();
 }
 
+// ───────────────────────────────────────────────────────────────────────────
+// Grid Session
+// ───────────────────────────────────────────────────────────────────────────
+async function openGridSettings() {
+  if (window.electronAPI) {
+    const result = await window.electronAPI.openGridSettings();
+    if (!result.success) {
+      console.error('Failed to open grid settings:', result.message);
+    }
+  }
+}
+
 async function addSession(type = 'normal') {
   if (_sessions.length >= MAX_SESSIONS) return;
   if (type === 'stealth' && stealthCount() >= MAX_STEALTH) {

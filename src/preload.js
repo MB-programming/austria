@@ -22,5 +22,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   stopSession:      (id)         => ipcRenderer.invoke('stop-session', id),
   getSessionStatus: (id)         => ipcRenderer.invoke('session-status', id),
   onSessionLog:     (cb)         => ipcRenderer.on('session-log',     (_, data) => cb(data)),
-  onSessionStopped: (cb)         => ipcRenderer.on('session-stopped', (_, data) => cb(data))
+  onSessionStopped: (cb)         => ipcRenderer.on('session-stopped', (_, data) => cb(data)),
+  // Grid session
+  openGridSettings: ()           => ipcRenderer.invoke('open-grid-settings')
 });
