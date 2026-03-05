@@ -11,6 +11,9 @@ let authWindow    = null;
 let monitorWindow = null;
 const sessionWindows = new Map(); // sessionId -> BrowserWindow
 const terminalWindows = new Map(); // sessionId -> Terminal BrowserWindow
+let gridWindow = null;
+let gridTerminal = null;
+let gridSettings = null;
 
 // ─── Auth window ────────────────────────────────────────────────────────────
 function createAuthWindow() {
@@ -357,6 +360,115 @@ ipcMain.handle('start-session', async (_, id, config) => {
   });
 
   return { success: true };
+});
+
+// ─── Grid Session IPC handlers ─────────────────────────────────────────────
+ipcMain.handle('open-grid-settings', () => {
+  if (gridSettings && !gridSettings.isDestroyed()) {
+    gridSettings.focus();
+    return { success: true };
+  }
+
+  gridSettings = new BrowserWindow({
+    width: 1000,
+    height: 800,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload-grid.js')
+    },
+    title: 'Grid Session Settings',
+    backgroundColor: '#0f0f1a'
+  });
+
+  gridSettings.loadFile(path.join(__dirname, 'renderer', 'grid-settings.html'));
+
+  gridSettings.on('closed', () => {
+    gridSettings = null;
+  });
+
+  return { success: true };
+});
+
+ipcMain.handle('start-grid', async (_, config) => {
+  if (gridWindow && !gridWindow.isDestroyed()) {
+    gridWindow.focus();
+    return { success: false, message: 'Grid already running' };
+  }
+
+  // Create grid window
+  gridWindow = new BrowserWindow({
+    width: 1600,
+    height: 900,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload-grid-window.js'),
+      webviewTag: true  // Enable <webview> tags
+    },
+    title: 'Orbtasoft Grid Session',
+    backgroundColor: '#0a0a0f'
+  });
+
+  gridWindow.loadFile(path.join(__dirname, 'renderer', 'grid-window.html'));
+
+  // Send grid config after window loads
+  gridWindow.webContents.on('did-finish-load', () => {
+    gridWindow.webContents.send('init-grid', config);
+  });
+
+  // Create grid terminal
+  gridTerminal = new BrowserWindow({
+    width: 900,
+    height: 700,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload-terminal.js')
+    },
+    title: 'Grid Terminal',
+    backgroundColor: '#0a0a0f'
+  });
+
+  gridTerminal.loadFile(path.join(__dirname, 'renderer', 'session-terminal.html'));
+
+  gridTerminal.webContents.on('did-finish-load', () => {
+    gridTerminal.webContents.send('set-session-id', 'Grid');
+  });
+
+  gridWindow.on('closed', () => {
+    gridWindow = null;
+    if (gridTerminal && !gridTerminal.isDestroyed()) {
+      gridTerminal.close();
+    }
+  });
+
+  gridTerminal.on('closed', () => {
+    gridTerminal = null;
+  });
+
+  return { success: true };
+});
+
+ipcMain.on('grid-cell-log', (_, cellId, type, message) => {
+  if (!gridTerminal || gridTerminal.isDestroyed()) return;
+  const prefixedMessage = `[Cell #${cellId}] ${message}`;
+  gridTerminal.webContents.send('terminal-log', type, prefixedMessage);
+});
+
+ipcMain.on('open-grid-terminal', () => {
+  if (gridTerminal && !gridTerminal.isDestroyed()) {
+    gridTerminal.focus();
+  }
+});
+
+ipcMain.on('stop-grid', () => {
+  if (gridWindow && !gridWindow.isDestroyed()) {
+    gridWindow.close();
+  }
+  if (gridTerminal && !gridTerminal.isDestroyed()) {
+    gridTerminal.close();
+  }
 });
 
 // ─── Monitor script builder ────────────────────────────────────────────────

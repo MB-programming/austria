@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grid Session</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Cairo', sans-serif;
+      background: #0a0a0f;
+      color: #e0e0e0;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+      padding: 12px 20px;
+      border-bottom: 2px solid #00ff88;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 10px rgba(0, 255, 136, 0.2);
+      z-index: 100;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #00ff88;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-info {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      background: linear-gradient(135deg, #00ff88 0%, #00cc6f 100%);
+      color: #0a0a0f;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+    }
+
+    button.danger {
+      background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+      color: white;
+    }
+
+    .grid-container {
+      flex: 1;
+      display: grid;
+      gap: 2px;
+      padding: 2px;
+      background: #0a0a0f;
+      overflow: hidden;
+    }
+
+    .grid-cell {
+      position: relative;
+      background: #1a1a2e;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid rgba(0, 255, 136, 0.2);
+    }
+
+    .cell-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(26, 26, 46, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 6px 10px;
+      font-size: 11px;
+      color: #00ff88;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+    }
+
+    .cell-number {
+      font-weight: 700;
+    }
+
+    .cell-status {
+      font-size: 10px;
+      color: #666;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #666;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.active {
+      background: #00ff88;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    webview {
+      width: 100%;
+      height: calc(100% - 30px);
+      margin-top: 30px;
+      background: white;
+    }
+
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: #666;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(0, 255, 136, 0.2);
+      border-top-color: #00ff88;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>🎯 Grid Session</h1>
+      <div class="header-info" id="gridInfo">Loading...</div>
+    </div>
+    <div class="controls">
+      <button onclick="openTerminal()">📊 Terminal</button>
+      <button class="danger" onclick="stopAll()">⏹️ Stop All</button>
+    </div>
+  </div>
+
+  <div id="gridContainer" class="grid-container">
+    <!-- Grid cells will be inserted here -->
+  </div>
+
+  <script>
+    let gridConfig = null;
+
+    // Initialize grid
+    if (window.gridWindowAPI) {
+      window.gridWindowAPI.onInitGrid((config) => {
+        gridConfig = config;
+        initializeGrid(config);
+      });
+
+      window.gridWindowAPI.onCellLog((cellId, type, message) => {
+        updateCellStatus(cellId, message);
+      });
+    }
+
+    function initializeGrid(config) {
+      const { rows, cols, cells } = config;
+      const gridContainer = document.getElementById('gridContainer');
+      const gridInfo = document.getElementById('gridInfo');
+
+      gridInfo.textContent = `${rows}×${cols} Grid (${cells.length} cells)`;
+      gridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      gridContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
+      cells.forEach(cell => {
+        const cellDiv = document.createElement('div');
+        cellDiv.className = 'grid-cell';
+        cellDiv.id = `cell-${cell.id}`;
+
+        cellDiv.innerHTML = `
+          <div class="cell-header">
+            <span class="cell-number">Cell #${cell.id}</span>
+            <span class="cell-status">
+              <span class="status-dot active"></span>
+              <span id="status-${cell.id}">Starting...</span>
+            </span>
+          </div>
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            <div>Loading browser...</div>
+          </div>
+          <webview id="webview-${cell.id}" src="${cell.url || 'https://appointment.bmeia.gv.at/'}"
+                   partition="persist:session-${cell.id}"
+                   webpreferences="contextIsolation=false,nodeIntegration=false"></webview>
+        `;
+
+        gridContainer.appendChild(cellDiv);
+
+        // Handle webview events
+        const webview = document.getElementById(`webview-${cell.id}`);
+
+        webview.addEventListener('did-start-loading', () => {
+          updateCellStatus(cell.id, 'Loading...');
+        });
+
+        webview.addEventListener('did-finish-load', () => {
+          const loading = cellDiv.querySelector('.loading');
+          if (loading) loading.remove();
+          updateCellStatus(cell.id, 'Ready');
+
+          // Inject bot script
+          if (window.gridWindowAPI) {
+            window.gridWindowAPI.injectScript(cell.id, cell.settings);
+          }
+        });
+
+        webview.addEventListener('console-message', (e) => {
+          if (e.message.startsWith('[AustriaBot]')) {
+            const cleanMessage = e.message.replace('[AustriaBot] ', '');
+            updateCellStatus(cell.id, cleanMessage);
+
+            // Send to terminal
+            if (window.gridWindowAPI) {
+              const type = e.level >= 3 ? 'error' : e.level === 2 ? 'warn' : 'success';
+              window.gridWindowAPI.sendLog(cell.id, type, cleanMessage);
+            }
+          }
+        });
+      });
+    }
+
+    function updateCellStatus(cellId, message) {
+      const statusEl = document.getElementById(`status-${cellId}`);
+      if (statusEl) {
+        // Truncate long messages
+        const short = message.length > 30 ? message.substring(0, 27) + '...' : message;
+        statusEl.textContent = short;
+        statusEl.title = message; // Full message on hover
+      }
+    }
+
+    function openTerminal() {
+      if (window.gridWindowAPI) {
+        window.gridWindowAPI.openTerminal();
+      }
+    }
+
+    function stopAll() {
+      if (confirm('هل تريد إيقاف جميع الجلسات؟')) {
+        if (window.gridWindowAPI) {
+          window.gridWindowAPI.stopAll();
+        }
+        window.close();
+      }
+    }
+  </script>
+</body>
+</html>
