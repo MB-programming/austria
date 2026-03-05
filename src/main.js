@@ -471,6 +471,11 @@ ipcMain.on('stop-grid', () => {
   }
 });
 
+ipcMain.handle('get-bot-script', async (_, settings) => {
+  // Build bot script with cell-specific settings
+  return buildBotScript({ settings });
+});
+
 // ─── Monitor script builder ────────────────────────────────────────────────
 function buildMonitorScript(config) {
   const s = config.settings || {};

@@ -317,6 +317,44 @@
         <input type="text" id="cellReservationType">
       </div>
 
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>🎯 الموعد المفضل (Slot Preference)</label>
+        <select id="cellSlotPref">
+          <option value="1">الموعد الأول</option>
+          <option value="2">الموعد الثاني</option>
+          <option value="3">الموعد الثالث</option>
+          <option value="4">الموعد الرابع</option>
+          <option value="5">الموعد الخامس</option>
+          <option value="6">الموعد السادس</option>
+          <option value="7">الموعد السابع</option>
+          <option value="8">الموعد الثامن</option>
+          <option value="9">الموعد التاسع</option>
+          <option value="10">الموعد العاشر</option>
+          <option value="random" selected>عشوائي</option>
+          <option value="any">أي موعد متاح</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>⏱️ Refresh Interval (ثانية)</label>
+        <input type="number" id="cellRefreshInterval" min="1" max="300" step="1" placeholder="30">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>⚡ Navigation Delay (ms)</label>
+        <input type="number" id="cellNavDelay" min="100" max="5000" step="100" placeholder="800">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>
+          <input type="checkbox" id="cellRetryOnTaken" checked style="margin-left: 8px;">
+          🔄 إعادة المحاولة لو المعاد محجوز
+        </label>
+        <small style="display: block; margin-top: 8px; color: #999; font-size: 12px;">
+          لو المعاد اللي اختارته الخلية محجوز، هترجع تاني من الأول وتحاول معاد تاني
+        </small>
+      </div>
+
       <div class="actions">
         <button class="secondary" onclick="closeModal()">إلغاء</button>
         <button onclick="saveCellConfig()">حفظ</button>
@@ -348,10 +386,19 @@
         cell.className = 'grid-cell';
         if (cellConfigs[i]) cell.classList.add('configured');
 
+        const cfg = cellConfigs[i];
+        const slotInfo = cfg?.slotPreference
+          ? (cfg.slotPreference === 'random' ? '🎲 عشوائي' :
+             cfg.slotPreference === 'any' ? '⚡ أي معاد' : `🎯 معاد #${cfg.slotPreference}`)
+          : `🎯 معاد #${i}`;
+
         cell.innerHTML = `
           <div class="cell-number">${i}</div>
-          <div class="cell-status ${cellConfigs[i] ? 'configured' : ''}">
-            ${cellConfigs[i] ? '✓ معدّلة' : 'انقر للتخصيص'}
+          <div class="cell-status ${cfg ? 'configured' : ''}">
+            ${cfg ? '✓ معدّلة' : 'انقر للتخصيص'}
+          </div>
+          <div style="font-size: 10px; color: #666; margin-top: 4px;">
+            ${slotInfo}
           </div>
         `;
 
@@ -363,8 +410,25 @@
     function openCellConfig(cellNum) {
       currentCell = cellNum;
       document.getElementById('cellNumber').textContent = `#${cellNum}`;
-      document.getElementById('cellOffice').value = cellConfigs[cellNum]?.office || document.getElementById('office').value;
-      document.getElementById('cellReservationType').value = cellConfigs[cellNum]?.reservationType || document.getElementById('reservationType').value;
+
+      const defaults = {
+        office: document.getElementById('office').value,
+        reservationType: document.getElementById('reservationType').value,
+        slotPreference: String(cellNum), // Default: each cell picks its number (cell 1 → slot 1)
+        refreshInterval: parseInt(document.getElementById('refreshInterval').value) || 30,
+        navDelay: parseInt(document.getElementById('navDelay').value) || 800,
+        retryOnTaken: true
+      };
+
+      const config = cellConfigs[cellNum] || defaults;
+
+      document.getElementById('cellOffice').value = config.office;
+      document.getElementById('cellReservationType').value = config.reservationType;
+      document.getElementById('cellSlotPref').value = config.slotPreference || defaults.slotPreference;
+      document.getElementById('cellRefreshInterval').value = config.refreshInterval || defaults.refreshInterval;
+      document.getElementById('cellNavDelay').value = config.navDelay || defaults.navDelay;
+      document.getElementById('cellRetryOnTaken').checked = config.retryOnTaken !== false;
+
       document.getElementById('cellModal').classList.add('active');
     }
 
@@ -378,7 +442,11 @@
 
       cellConfigs[currentCell] = {
         office: document.getElementById('cellOffice').value,
-        reservationType: document.getElementById('cellReservationType').value
+        reservationType: document.getElementById('cellReservationType').value,
+        slotPreference: document.getElementById('cellSlotPref').value,
+        refreshInterval: parseInt(document.getElementById('cellRefreshInterval').value) || 30,
+        navDelay: parseInt(document.getElementById('cellNavDelay').value) || 800,
+        retryOnTaken: document.getElementById('cellRetryOnTaken').checked
       };
 
       closeModal();
@@ -398,13 +466,17 @@
 
       // Prepare config for each cell
       for (let i = 1; i <= total; i++) {
+        const cellConfig = cellConfigs[i] || {};
+
         config.cells.push({
           id: i,
           settings: {
-            office: cellConfigs[i]?.office || document.getElementById('office').value,
-            reservationType: cellConfigs[i]?.reservationType || document.getElementById('reservationType').value,
-            refreshIntervalSec: parseInt(document.getElementById('refreshInterval').value) || 30,
-            navigationDelayMs: parseInt(document.getElementById('navDelay').value) || 800
+            office: cellConfig.office || document.getElementById('office').value,
+            reservationType: cellConfig.reservationType || document.getElementById('reservationType').value,
+            refreshIntervalSec: cellConfig.refreshInterval || parseInt(document.getElementById('refreshInterval').value) || 30,
+            navigationDelayMs: cellConfig.navDelay || parseInt(document.getElementById('navDelay').value) || 800,
+            slotPreferences: [cellConfig.slotPreference || String(i)], // Default: cell number
+            retryOnSlotTaken: cellConfig.retryOnTaken !== false
           }
         });
       }

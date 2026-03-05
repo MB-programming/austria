@@ -11,8 +11,8 @@ contextBridge.exposeInMainWorld('gridWindowAPI', {
       callback(cellId, type, message);
     });
   },
-  injectScript: (cellId, settings) => {
-    ipcRenderer.send('inject-cell-script', cellId, settings);
+  getBotScript: (settings) => {
+    return ipcRenderer.invoke('get-bot-script', settings);
   },
   sendLog: (cellId, type, message) => {
     ipcRenderer.send('grid-cell-log', cellId, type, message);

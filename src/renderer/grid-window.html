@@ -238,14 +238,19 @@
           updateCellStatus(cell.id, 'Loading...');
         });
 
-        webview.addEventListener('did-finish-load', () => {
+        webview.addEventListener('did-finish-load', async () => {
           const loading = cellDiv.querySelector('.loading');
           if (loading) loading.remove();
           updateCellStatus(cell.id, 'Ready');
 
-          // Inject bot script
-          if (window.gridWindowAPI) {
-            window.gridWindowAPI.injectScript(cell.id, cell.settings);
+          // Inject bot script directly into webview
+          try {
+            const botScript = await window.gridWindowAPI.getBotScript(cell.settings);
+            await webview.executeJavaScript(botScript);
+            updateCellStatus(cell.id, 'Bot Started');
+          } catch (err) {
+            console.error(`Failed to inject script in cell ${cell.id}:`, err);
+            updateCellStatus(cell.id, 'Script Error');
           }
         });
 
