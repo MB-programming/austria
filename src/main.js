@@ -312,8 +312,7 @@ ipcMain.handle('start-session', async (_, id, config) => {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: false,
-      webSecurity: true,
-      partition: `persist:session-${id}` // Complete isolation between sessions
+      webSecurity: true
     },
     title: `Orbtasoft — Session ${id}${isStealth ? ' (Stealth)' : isRocket ? ' (Rocket)' : ' (Headless)'}`
   });
