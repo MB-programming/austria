@@ -242,22 +242,7 @@ ipcMain.handle('save-sessions', (_, sessions) => {
 
 ipcMain.handle('session-status', (_, id) => {
   const win = sessionWindows.get(id);
-  if (!win || win.isDestroyed()) return { running: false };
-  return { running: true, visible: win.isVisible() };
-});
-
-ipcMain.handle('toggle-session-visibility', (_, id) => {
-  const win = sessionWindows.get(id);
-  if (!win || win.isDestroyed()) return { success: false };
-
-  if (win.isVisible()) {
-    win.hide();
-  } else {
-    win.show();
-    win.focus();
-  }
-
-  return { success: true, visible: win.isVisible() };
+  return { running: !!(win && !win.isDestroyed()) };
 });
 
 ipcMain.handle('stop-session', (_, id) => {
@@ -280,8 +265,6 @@ ipcMain.handle('start-session', async (_, id, config) => {
   }
 
   const isStealth = config.type === 'stealth';
-  const isRocket = config.type === 'rocket';
-  const isHeadless = config.type === 'normal'; // Normal sessions run headless for performance
 
   // Create terminal window for this session
   const termWin = new BrowserWindow({
@@ -305,16 +288,16 @@ ipcMain.handle('start-session', async (_, id, config) => {
 
   terminalWindows.set(id, termWin);
 
-  // Create session window - headless for normal, visible for stealth/rocket
+  // Create session window
   const win = new BrowserWindow({
     width: 1200, height: 850,
-    show: !isHeadless, // Normal sessions are headless (hidden)
+    show: !isStealth,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: false,
       webSecurity: true
     },
-    title: `Orbtasoft — Session ${id}${isStealth ? ' (Stealth)' : isRocket ? ' (Rocket)' : ' (Headless)'}`
+    title: `Orbtasoft — Session ${id}${isStealth ? ' (Stealth)' : ''}`
   });
 
   sessionWindows.set(id, win);
