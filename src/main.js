@@ -12,6 +12,7 @@ let monitorWindow = null;
 const sessionWindows = new Map(); // sessionId -> BrowserWindow
 const terminalWindows = new Map(); // sessionId -> Terminal BrowserWindow
 let gridWindow = null;
+let gridTerminal = null;
 let gridSettings = null;
 
 // ─── Auth window ────────────────────────────────────────────────────────────
@@ -424,38 +425,66 @@ ipcMain.handle('start-grid', async (_, config) => {
 
   // Send grid config after window loads
   gridWindow.webContents.on('did-finish-load', () => {
-    // Add preload path to config
+    // Add preload path to config - use file:// URL for webview
+    const preloadFullPath = path.join(__dirname, 'preload-grid-cell.js');
     const configWithPreload = {
       ...config,
-      preloadPath: path.join(__dirname, 'preload-grid-cell.js')
+      preloadPath: `file://${preloadFullPath.replace(/\\/g, '/')}`
     };
     gridWindow.webContents.send('init-grid', configWithPreload);
   });
 
-  // No terminal window - logs go to console only for better performance
+  // Create grid terminal
+  gridTerminal = new BrowserWindow({
+    width: 900,
+    height: 700,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload-terminal.js')
+    },
+    title: 'Grid Terminal',
+    backgroundColor: '#0a0a0f'
+  });
+
+  gridTerminal.loadFile(path.join(__dirname, 'renderer', 'session-terminal.html'));
+
+  gridTerminal.webContents.on('did-finish-load', () => {
+    gridTerminal.webContents.send('set-session-id', 'Grid');
+  });
 
   gridWindow.on('closed', () => {
     gridWindow = null;
+    if (gridTerminal && !gridTerminal.isDestroyed()) {
+      gridTerminal.close();
+    }
+  });
+
+  gridTerminal.on('closed', () => {
+    gridTerminal = null;
   });
 
   return { success: true };
 });
 
 ipcMain.on('grid-cell-log', (_, cellId, type, message) => {
-  // Log to console only - no terminal window for better performance
-  console.log(`[Grid Cell #${cellId}] [${type}] ${message}`);
+  if (!gridTerminal || gridTerminal.isDestroyed()) return;
+  const prefixedMessage = `[Cell #${cellId}] ${message}`;
+  gridTerminal.webContents.send('terminal-log', type, prefixedMessage);
 });
 
 ipcMain.on('open-grid-terminal', () => {
-  // No terminal window - open DevTools instead to see console logs
-  if (gridWindow && !gridWindow.isDestroyed()) {
-    gridWindow.webContents.openDevTools();
+  if (gridTerminal && !gridTerminal.isDestroyed()) {
+    gridTerminal.focus();
   }
 });
 
 ipcMain.on('stop-grid', () => {
   if (gridWindow && !gridWindow.isDestroyed()) {
     gridWindow.close();
+  }
+  if (gridTerminal && !gridTerminal.isDestroyed()) {
+    gridTerminal.close();
   }
 });
 
