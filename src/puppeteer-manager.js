@@ -137,32 +137,53 @@ class PuppeteerSessionManager {
     try {
       this.log(terminal, 'info', `[Puppeteer] Navigating to ${url}...`);
 
-      // Navigate to page
+      // Navigate to page with longer timeout and faster wait strategy
       await page.goto(url, {
-        waitUntil: 'networkidle2',
-        timeout: 60000
+        waitUntil: 'domcontentloaded', // Faster than networkidle2
+        timeout: 120000 // 2 minutes
       });
 
-      this.log(terminal, 'success', '[Puppeteer] Page loaded successfully');
+      this.log(terminal, 'success', '[Puppeteer] Page loaded (DOM ready)');
+
+      // Wait a bit for dynamic content
+      await page.waitForTimeout(2000);
+
+      this.log(terminal, 'info', '[Puppeteer] Waiting for page stability...');
 
       // Wait for body to be ready
       await page.waitForSelector('body', { timeout: 10000 });
+
+      this.log(terminal, 'success', '[Puppeteer] Page fully loaded');
 
       // Inject automation script
       await this.injectAutomationScript(sessionId, settings);
 
     } catch (error) {
       this.log(terminal, 'error', `[Puppeteer] Navigation failed: ${error.message}`);
-      throw error;
+      this.log(terminal, 'info', '[Puppeteer] Retrying with minimal wait...');
+
+      // Retry with even more minimal wait
+      try {
+        await page.goto(url, {
+          waitUntil: 'load',
+          timeout: 120000
+        });
+        await page.waitForTimeout(3000);
+        await this.injectAutomationScript(sessionId, settings);
+        this.log(terminal, 'success', '[Puppeteer] Recovered successfully!');
+      } catch (retryError) {
+        this.log(terminal, 'error', `[Puppeteer] Retry failed: ${retryError.message}`);
+        throw retryError;
+      }
     }
   }
 
   /**
    * Inject Austrian appointment automation script
    * @param {string} sessionId - Session identifier
-   * @param {object} settings - Bot settings
+   * @param {object} config - Full config with person and settings
    */
-  async injectAutomationScript(sessionId, settings) {
+  async injectAutomationScript(sessionId, config) {
     const session = this.sessions.get(sessionId);
     if (!session) {
       throw new Error(`Session ${sessionId} not found`);
@@ -173,16 +194,9 @@ class PuppeteerSessionManager {
     try {
       this.log(terminal, 'info', '[Puppeteer] Injecting automation script...');
 
-      // Read the bot script
-      const fs = require('fs').promises;
-      const scriptPath = path.join(__dirname, 'bot-script.js');
-      let botScript = await fs.readFile(scriptPath, 'utf8');
-
-      // Replace settings placeholder
-      botScript = botScript.replace(
-        'const SETTINGS = null;',
-        `const SETTINGS = ${JSON.stringify(settings)};`
-      );
+      // Build the bot script using the same function as Electron sessions
+      const buildScript = require('./build-script');
+      const botScript = buildScript(config);
 
       // Inject script
       await page.evaluate(botScript);
@@ -191,6 +205,7 @@ class PuppeteerSessionManager {
 
     } catch (error) {
       this.log(terminal, 'error', `[Puppeteer] Script injection failed: ${error.message}`);
+      this.log(terminal, 'error', `[Puppeteer] Error details: ${error.stack || error}`);
       throw error;
     }
   }
