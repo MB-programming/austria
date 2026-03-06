@@ -12,7 +12,6 @@ let monitorWindow = null;
 const sessionWindows = new Map(); // sessionId -> BrowserWindow
 const terminalWindows = new Map(); // sessionId -> Terminal BrowserWindow
 let gridWindow = null;
-let gridTerminal = null;
 let gridSettings = null;
 
 // ─── Auth window ────────────────────────────────────────────────────────────
@@ -433,57 +432,30 @@ ipcMain.handle('start-grid', async (_, config) => {
     gridWindow.webContents.send('init-grid', configWithPreload);
   });
 
-  // Create grid terminal
-  gridTerminal = new BrowserWindow({
-    width: 900,
-    height: 700,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'preload-terminal.js')
-    },
-    title: 'Grid Terminal',
-    backgroundColor: '#0a0a0f'
-  });
-
-  gridTerminal.loadFile(path.join(__dirname, 'renderer', 'session-terminal.html'));
-
-  gridTerminal.webContents.on('did-finish-load', () => {
-    gridTerminal.webContents.send('set-session-id', 'Grid');
-  });
+  // No terminal window - logs go to console only for better performance
 
   gridWindow.on('closed', () => {
     gridWindow = null;
-    if (gridTerminal && !gridTerminal.isDestroyed()) {
-      gridTerminal.close();
-    }
-  });
-
-  gridTerminal.on('closed', () => {
-    gridTerminal = null;
   });
 
   return { success: true };
 });
 
 ipcMain.on('grid-cell-log', (_, cellId, type, message) => {
-  if (!gridTerminal || gridTerminal.isDestroyed()) return;
-  const prefixedMessage = `[Cell #${cellId}] ${message}`;
-  gridTerminal.webContents.send('terminal-log', type, prefixedMessage);
+  // Log to console only - no terminal window for better performance
+  console.log(`[Grid Cell #${cellId}] [${type}] ${message}`);
 });
 
 ipcMain.on('open-grid-terminal', () => {
-  if (gridTerminal && !gridTerminal.isDestroyed()) {
-    gridTerminal.focus();
+  // No terminal window - open DevTools instead to see console logs
+  if (gridWindow && !gridWindow.isDestroyed()) {
+    gridWindow.webContents.openDevTools();
   }
 });
 
 ipcMain.on('stop-grid', () => {
   if (gridWindow && !gridWindow.isDestroyed()) {
     gridWindow.close();
-  }
-  if (gridTerminal && !gridTerminal.isDestroyed()) {
-    gridTerminal.close();
   }
 });
 
@@ -943,16 +915,15 @@ function buildScript(config) {
       let remaining = Math.floor(wait_s); // Use integer for countdown
       const tick = setInterval(() => {
         remaining--;
-        log('COUNTDOWN:' + remaining);
-        if (remaining <= 0) {
+        if (remaining > 0) {
+          log('COUNTDOWN:' + remaining);
+        } else {
+          log('COUNTDOWN:0 — Reloading...');
           clearInterval(tick);
+          location.reload(); // Reload immediately when countdown reaches 0
         }
       }, 1000);
 
-      setTimeout(() => {
-        clearInterval(tick);
-        location.reload();           // stay on scheduler page, just refresh
-      }, wait_s * 1000);
       return;
     }
 

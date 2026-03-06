@@ -6,13 +6,20 @@ const { ipcRenderer } = require('electron');
 // Wait for bot script from main process
 ipcRenderer.on('inject-bot-script', (_, script) => {
   try {
+    console.log('[GridCell] Executing bot script...');
     // Execute the bot script
     eval(script);
-    console.log('[GridCell] Bot script injected successfully');
+    console.log('[GridCell] ✓ Bot script injected successfully');
   } catch (err) {
-    console.error('[GridCell] Failed to execute bot script:', err);
+    console.error('[GridCell] ✗ Failed to execute bot script:', err);
   }
 });
 
-// Send ready signal
-ipcRenderer.send('grid-cell-ready', window.location.href);
+// Signal ready after DOM is loaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('[GridCell] ✓ Ready');
+  });
+} else {
+  console.log('[GridCell] ✓ Ready');
+}

@@ -174,7 +174,6 @@
       <div class="header-info" id="gridInfo">Loading...</div>
     </div>
     <div class="controls">
-      <button onclick="openTerminal()">📊 Terminal</button>
       <button class="danger" onclick="stopAll()">⏹️ Stop All</button>
     </div>
   </div>
@@ -245,38 +244,29 @@
           if (loading) loading.remove();
           updateCellStatus(cell.id, 'Ready');
 
-          // Wait a bit for preload to be ready
+          // Wait a bit for preload to be ready, then inject bot script
           setTimeout(async () => {
             try {
               const botScript = await window.gridWindowAPI.getBotScript(cell.settings);
 
               // Send bot script to webview via IPC
               webview.send('inject-bot-script', botScript);
-              updateCellStatus(cell.id, 'Bot Starting...');
+              updateCellStatus(cell.id, 'Bot Injected');
             } catch (err) {
               console.error(`Failed to get bot script for cell ${cell.id}:`, err);
               updateCellStatus(cell.id, 'Script Error');
             }
-          }, 500);
-        });
-
-        // Listen for cell-ready signal from webview
-        webview.addEventListener('ipc-message', (e) => {
-          if (e.channel === 'grid-cell-ready') {
-            updateCellStatus(cell.id, 'Bot Active');
-          }
+          }, 1000); // Wait 1 second for preload to be ready
         });
 
         webview.addEventListener('console-message', (e) => {
-          if (e.message.startsWith('[AustriaBot]')) {
-            const cleanMessage = e.message.replace('[AustriaBot] ', '');
+          if (e.message.startsWith('[AustriaBot]') || e.message.startsWith('[GridCell]')) {
+            const cleanMessage = e.message.replace('[AustriaBot] ', '').replace('[GridCell] ', '');
             updateCellStatus(cell.id, cleanMessage);
 
-            // Send to terminal
-            if (window.gridWindowAPI) {
-              const type = e.level >= 3 ? 'error' : e.level === 2 ? 'warn' : 'success';
-              window.gridWindowAPI.sendLog(cell.id, type, cleanMessage);
-            }
+            // Log to main console for debugging (lightweight - no popup window)
+            const type = e.level >= 3 ? 'error' : e.level === 2 ? 'warn' : 'info';
+            console.log(`[Cell #${cell.id}] [${type}] ${cleanMessage}`);
           }
         });
       });
@@ -289,12 +279,6 @@
         const short = message.length > 30 ? message.substring(0, 27) + '...' : message;
         statusEl.textContent = short;
         statusEl.title = message; // Full message on hover
-      }
-    }
-
-    function openTerminal() {
-      if (window.gridWindowAPI) {
-        window.gridWindowAPI.openTerminal();
       }
     }
 
