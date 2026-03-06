@@ -23,6 +23,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSessionStatus: (id)         => ipcRenderer.invoke('session-status', id),
   onSessionLog:     (cb)         => ipcRenderer.on('session-log',     (_, data) => cb(data)),
   onSessionStopped: (cb)         => ipcRenderer.on('session-stopped', (_, data) => cb(data)),
+  // Puppeteer sessions
+  startPuppeteerSession:  (id, config) => ipcRenderer.invoke('start-puppeteer-session', id, config),
+  stopPuppeteerSession:   (id)         => ipcRenderer.invoke('stop-puppeteer-session', id),
+  getPuppeteerStatus:     (id)         => ipcRenderer.invoke('puppeteer-session-status', id),
   // Grid session
   openGridSettings: ()           => ipcRenderer.invoke('open-grid-settings')
 });

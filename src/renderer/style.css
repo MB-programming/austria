@@ -1133,6 +1133,10 @@ body.trial-mode .nav-btn[data-trial-locked]:hover {
   border-color: rgba(255,138,101,.5);
   background: rgba(255,138,101,.08);
 }
+.session-card.session-puppeteer {
+  border-color: rgba(0,212,255,.5);
+  background: rgba(0,212,255,.08);
+}
 
 .session-card-header {
   display: flex;
@@ -1201,6 +1205,11 @@ body.trial-mode .nav-btn[data-trial-locked]:hover {
   color: #ff8a65;
 }
 .session-type-btn.rocket:hover { background: rgba(255,138,101,.35); }
+.session-type-btn.puppeteer {
+  background: rgba(0,212,255,.2);
+  color: #00d4ff;
+}
+.session-type-btn.puppeteer:hover { background: rgba(0,212,255,.35); }
 
 .btn-add-rocket {
   background: rgba(255,138,101,.15) !important;

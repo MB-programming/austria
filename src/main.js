@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path  = require('path');
 const https = require('https');
 const Store = require('electron-store');
+const puppeteerManager = require('./puppeteer-manager');
 
 const store = new Store();
 
@@ -491,6 +492,65 @@ ipcMain.on('stop-grid', () => {
 ipcMain.handle('get-bot-script', async (_, settings) => {
   // Build bot script with cell-specific settings
   return buildBotScript({ settings });
+});
+
+// ─── Puppeteer Session IPC handlers ────────────────────────────────────────
+ipcMain.handle('start-puppeteer-session', async (_, id, config) => {
+  try {
+    // Create terminal window for this Puppeteer session
+    const termWin = new BrowserWindow({
+      width: 800, height: 600,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+        preload: path.join(__dirname, 'preload-terminal.js')
+      },
+      title: `Puppeteer Terminal — Session ${id}`,
+      backgroundColor: '#0a0a0f'
+    });
+
+    const terminalPath = path.join(__dirname, 'renderer', 'session-terminal.html');
+    termWin.loadFile(terminalPath);
+
+    // Send session ID after page loads
+    termWin.webContents.on('did-finish-load', () => {
+      termWin.webContents.send('set-session-id', id);
+    });
+
+    terminalWindows.set(id, termWin);
+
+    // Launch Puppeteer session
+    const result = await puppeteerManager.launchSession(id, config, termWin);
+
+    // Get settings from store
+    const settings = store.get('settings') || {};
+    const url = config.url || 'https://appointment.bmeia.gv.at/?AspxAutoDetectCookieSupport=1';
+
+    // Navigate and start automation
+    await puppeteerManager.navigateAndAutomate(id, url, settings);
+
+    return { success: true, ...result };
+
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle('stop-puppeteer-session', async (_, id) => {
+  const result = await puppeteerManager.stopSession(id);
+
+  // Close terminal window
+  const termWin = terminalWindows.get(id);
+  if (termWin && !termWin.isDestroyed()) {
+    termWin.close();
+  }
+  terminalWindows.delete(id);
+
+  return result;
+});
+
+ipcMain.handle('puppeteer-session-status', (_, id) => {
+  return puppeteerManager.getSessionStatus(id);
 });
 
 // ─── Monitor script builder ────────────────────────────────────────────────
@@ -1288,4 +1348,11 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+app.on('before-quit', async (event) => {
+  // Stop all Puppeteer sessions before quitting
+  event.preventDefault();
+  await puppeteerManager.stopAllSessions();
+  app.exit(0);
 });

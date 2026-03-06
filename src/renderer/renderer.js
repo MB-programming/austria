@@ -1387,10 +1387,12 @@ function renderSessionCards() {
     const running = !!_sessionRunning[sess.id];
     const isRocket = sess.type === 'rocket';
     const isStealth = sess.type === 'stealth';
+    const isPuppeteer = sess.type === 'puppeteer';
 
     let cardClass = 'session-card';
     if (isStealth) cardClass += ' session-stealth';
     if (isRocket) cardClass += ' session-rocket';
+    if (isPuppeteer) cardClass += ' session-puppeteer';
 
     let typeLabel = '🌐 عادي';
     let typeTitle = 'عادية — نافذة مرئية';
@@ -1404,6 +1406,10 @@ function renderSessionCards() {
       typeLabel = '🚀 صاروخ';
       typeTitle = 'صاروخ — سرعة قصوى';
       typeBtnClass = 'rocket';
+    } else if (isPuppeteer) {
+      typeLabel = '⚡ Puppeteer';
+      typeTitle = 'Puppeteer — خفيفة جداً';
+      typeBtnClass = 'puppeteer';
     }
 
     const card = document.createElement('div');
@@ -1623,11 +1629,19 @@ async function startSession(id) {
     return;
   }
 
-  const result = await window.electronAPI.startSession(id, config);
+  // Use Puppeteer for puppeteer type, regular Electron otherwise
+  const isPuppeteer = sessConfig.type === 'puppeteer';
+  const result = isPuppeteer ?
+    await window.electronAPI.startPuppeteerSession(id, config) :
+    await window.electronAPI.startSession(id, config);
+
   if (result.success) {
     _sessionRunning[id] = true;
     updateSessionButtons(id, true);
-    addSessionLog(id, 'success', `▶ الجلسة ${id} انطلقت — ${sessConfig.type === 'stealth' ? 'خفية بلا نافذة' : 'عادية مع نافذة'}`);
+    const typeLabel = sessConfig.type === 'stealth' ? 'خفية بلا نافذة' :
+                      sessConfig.type === 'puppeteer' ? 'Puppeteer خفيفة جداً' :
+                      sessConfig.type === 'rocket' ? 'صاروخ سريعة' : 'عادية مع نافذة';
+    addSessionLog(id, 'success', `▶ الجلسة ${id} انطلقت — ${typeLabel}`);
     // Update stored session name/office in case changed
     const sess = _sessions.find(s => s.id === id);
     if (sess) Object.assign(sess, sessConfig);
@@ -1638,7 +1652,14 @@ async function startSession(id) {
 }
 
 async function stopSession(id) {
-  if (IS_ELECTRON) await window.electronAPI.stopSession(id);
+  if (IS_ELECTRON) {
+    const sess = _sessions.find(s => s.id === id);
+    if (sess && sess.type === 'puppeteer') {
+      await window.electronAPI.stopPuppeteerSession(id);
+    } else {
+      await window.electronAPI.stopSession(id);
+    }
+  }
   _sessionRunning[id] = false;
   updateSessionButtons(id, false);
   addSessionLog(id, 'warn', `■ الجلسة ${id} توقفت`);
