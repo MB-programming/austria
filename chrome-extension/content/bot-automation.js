@@ -118,6 +118,44 @@
       return true;
     }
 
+    /**
+     * DEBUG: Print all dropdowns on the page with their options
+     * Call from console: window.austriaBotShowDropdowns()
+     */
+    window.austriaBotShowDropdowns = function() {
+      const allSelects = document.querySelectorAll('select');
+      log('═══════════════════════════════════════════');
+      log('📋 FOUND ' + allSelects.length + ' DROPDOWN FIELDS:');
+      log('═══════════════════════════════════════════');
+
+      allSelects.forEach((select, index) => {
+        const id = select.id || select.name || 'unknown-' + index;
+        const label = select.closest('.form-group, .field, div')?.querySelector('label')?.textContent || 'No label';
+
+        log('');
+        log('┌─ DROPDOWN #' + (index + 1) + ' ────────────────────────');
+        log('│ ID: ' + id);
+        log('│ Label: ' + label.trim());
+        log('│ Total Options: ' + select.options.length);
+        log('└────────────────────────────────────────');
+
+        Array.from(select.options).forEach((opt, i) => {
+          const text = opt.text.trim();
+          const value = opt.value;
+          const selected = opt.selected ? ' ✓ SELECTED' : '';
+          log('  ' + (i + 1) + '. "' + text + '" → value: "' + value + '"' + selected);
+        });
+
+        log('');
+      });
+
+      log('═══════════════════════════════════════════');
+      log('💡 TIP: Copy the exact "text" or "value" to your settings');
+      log('═══════════════════════════════════════════');
+
+      return allSelects.length + ' dropdowns found';
+    };
+
     // ── Audio alarm (Web Audio API — no external deps) ────────────────────────
     let alarmTimer = null;
     let _slotTaken = false;
@@ -367,13 +405,39 @@
 
       const pickOpt = (id, labelText, fallbackCode) => {
         const sel = findEl(id);
-        if (!sel) { log('Select not found: ' + id); return; }
+        if (!sel) {
+          log('Select not found: ' + id);
+          return;
+        }
+
+        // Log all available options for debugging
+        const allOptions = Array.from(sel.options).map(o => ({
+          text: o.text.trim(),
+          value: o.value
+        }));
+
+        log('Field: ' + id + ' | Looking for: "' + labelText + '" (code: ' + fallbackCode + ')');
+        log('  → Available options: ' + JSON.stringify(allOptions.slice(0, 10))); // First 10 options
+
         const label = (labelText || '').trim().toUpperCase();
         const opt =
           Array.from(sel.options).find(o => o.text.trim().toUpperCase() === label) ||
           Array.from(sel.options).find(o => o.text.trim().toUpperCase().includes(label)) ||
           Array.from(sel.options).find(o => String(o.value) === String(fallbackCode));
-        if (opt) sel.value = opt.value;
+
+        if (opt) {
+          sel.value = opt.value;
+          log('  → ✅ Selected: "' + opt.text.trim() + '" (value: ' + opt.value + ')');
+        } else {
+          logErr('  → ❌ NOT FOUND! Please check available options above');
+          // Try to select first non-empty option as fallback
+          const firstOption = Array.from(sel.options).find(o => o.value && o.value !== '0' && o.value !== '');
+          if (firstOption) {
+            sel.value = firstOption.value;
+            log('  → ⚠️ Selected first available: "' + firstOption.text.trim() + '" (value: ' + firstOption.value + ')');
+          }
+        }
+
         sel.dispatchEvent(new Event('change', { bubbles: true }));
       };
 
@@ -606,12 +670,29 @@
       const pickOpt = (id, labelText, fallbackCode) => {
         const sel = findEl(id);
         if (!sel) return;
+
+        // Log for debugging
+        log('RETRY - Field: ' + id + ' | Looking for: "' + labelText + '"');
+
         const label = (labelText || '').trim().toUpperCase();
         const opt =
           Array.from(sel.options).find(o => o.text.trim().toUpperCase() === label) ||
           Array.from(sel.options).find(o => o.text.trim().toUpperCase().includes(label)) ||
           Array.from(sel.options).find(o => String(o.value) === String(fallbackCode));
-        if (opt) sel.value = opt.value;
+
+        if (opt) {
+          sel.value = opt.value;
+          log('  → ✅ Selected: "' + opt.text.trim() + '"');
+        } else {
+          logErr('  → ❌ NOT FOUND!');
+          // Try first non-empty option
+          const firstOption = Array.from(sel.options).find(o => o.value && o.value !== '0' && o.value !== '');
+          if (firstOption) {
+            sel.value = firstOption.value;
+            log('  → ⚠️ Using first available: "' + firstOption.text.trim() + '"');
+          }
+        }
+
         sel.dispatchEvent(new Event('change', { bubbles: true }));
       };
       const sexLabel = (P.sex || 'Male').charAt(0).toUpperCase() + (P.sex || 'Male').slice(1).toLowerCase();
