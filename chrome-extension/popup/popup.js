@@ -49,6 +49,8 @@ function loadSettings() {
       document.getElementById('navDelay').value = settings.navDelay || 800;
       document.getElementById('slotPreference').value = (settings.slotPreferences && settings.slotPreferences[0]) || 'random';
       document.getElementById('notificationSound').value = settings.notificationSound || 'beep';
+      document.getElementById('activationCode').value = settings.activationCode || '';
+      document.getElementById('openaiApiKey').value = settings.openaiApiKey || '';
     }
 
     // Load personal data
@@ -87,7 +89,9 @@ function saveSettings() {
     navDelay: parseInt(document.getElementById('navDelay').value) || 800,
     slotPreferences: [document.getElementById('slotPreference').value || 'random'],
     notificationSound: document.getElementById('notificationSound').value || 'beep',
-    navRetryIntervalSec: 5
+    navRetryIntervalSec: 5,
+    activationCode: document.getElementById('activationCode').value.trim() || '',
+    openaiApiKey: document.getElementById('openaiApiKey').value.trim() || ''
   };
 
   const personData = {

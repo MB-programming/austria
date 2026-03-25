@@ -25,6 +25,46 @@
 
     console.log('[AustriaBot] Starting automation with settings:', CFG);
 
+    // ── Infinite Reload Protection ────────────────────────────────────────────
+    const RELOAD_LIMIT = 5; // Max consecutive reloads before full refresh
+    const RELOAD_TIMEOUT = 60000; // Reset counter after 60s
+
+    function incrementReloadCounter() {
+      const now = Date.now();
+      const data = sessionStorage.getItem('austriaBot_reloads');
+      let reloadData = data ? JSON.parse(data) : { count: 0, lastReload: now };
+
+      // Reset if last reload was more than 60s ago
+      if (now - reloadData.lastReload > RELOAD_TIMEOUT) {
+        reloadData = { count: 0, lastReload: now };
+      }
+
+      reloadData.count++;
+      reloadData.lastReload = now;
+      sessionStorage.setItem('austriaBot_reloads', JSON.stringify(reloadData));
+
+      return reloadData.count;
+    }
+
+    function resetReloadCounter() {
+      sessionStorage.removeItem('austriaBot_reloads');
+    }
+
+    function safeReload() {
+      const count = incrementReloadCounter();
+
+      if (count >= RELOAD_LIMIT) {
+        logErr(`⚠️ Infinite reload detected! (${count} reloads in ${RELOAD_TIMEOUT/1000}s)`);
+        log('Performing full page refresh to break the loop...');
+        resetReloadCounter();
+        // Full page refresh (clears all state)
+        window.location.href = window.location.href;
+      } else {
+        log(`Reloading... (${count}/${RELOAD_LIMIT})`);
+        safeReload();
+      }
+    }
+
     // ── Utilities ─────────────────────────────────────────────────────────────
     const wait = ms => new Promise(r => setTimeout(r, ms));
     const log = msg => console.log('[AustriaBot] ' + msg);
@@ -174,7 +214,7 @@
       } else {
         const retryS = Math.max(1, CFG.navRetryIntervalSec || 5);
         log('NAV_RETRY:office:' + retryS);
-        setTimeout(() => location.reload(), retryS * 1000);
+        setTimeout(() => safeReload(), retryS * 1000);
       }
     }
 
@@ -188,7 +228,7 @@
       } else {
         const retryS = Math.max(1, CFG.navRetryIntervalSec || 5);
         log('NAV_RETRY:calendar:' + retryS);
-        setTimeout(() => location.reload(), retryS * 1000);
+        setTimeout(() => safeReload(), retryS * 1000);
       }
     }
 
@@ -224,7 +264,7 @@
           } else {
             log('COUNTDOWN:0 — Reloading...');
             clearInterval(tick);
-            location.reload();
+            safeReload();
           }
         }, 1000);
         return;
@@ -316,14 +356,106 @@
       if (gdpr && !gdpr.checked) gdpr.click();
 
       log('Form filled successfully!');
-      log('⚠️ CAPTCHA detected - Please solve manually and submit!');
 
-      // Highlight the CAPTCHA field
-      const captchaInput = document.getElementById('CaptchaText');
+      // Try to solve CAPTCHA with GPT-4 Vision if API key is available
+      const captchaInput = findEl('CaptchaText');
       if (captchaInput) {
+        if (CFG.openaiApiKey) {
+          log('🤖 Attempting to solve CAPTCHA with GPT-4 Vision...');
+          await solveCaptchaWithGPT4(captchaInput);
+        } else {
+          log('⚠️ CAPTCHA detected - Please solve manually and submit!');
+          captchaInput.focus();
+          captchaInput.style.border = '3px solid #00ff88';
+          captchaInput.style.boxShadow = '0 0 10px #00ff88';
+        }
+      }
+    }
+
+    // ── CAPTCHA Solver with GPT-4 Vision ──────────────────────────────────────
+    async function solveCaptchaWithGPT4(captchaInput) {
+      try {
+        // Find CAPTCHA image
+        const captchaImg = document.querySelector('#Captcha_CaptchaImage') ||
+                          document.querySelector('img[src*="BotDetectCaptcha"]') ||
+                          document.querySelector('img[src*="captcha" i]');
+
+        if (!captchaImg) {
+          logErr('CAPTCHA image not found');
+          return;
+        }
+
+        // Convert image to base64
+        const canvas = document.createElement('canvas');
+        canvas.width = captchaImg.naturalWidth || captchaImg.width || 250;
+        canvas.height = captchaImg.naturalHeight || captchaImg.height || 60;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(captchaImg, 0, 0);
+        const base64Image = canvas.toDataURL('image/png').split(',')[1];
+
+        log('📸 CAPTCHA image captured');
+
+        // Call OpenAI GPT-4 Vision API
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${CFG.openaiApiKey}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4-vision-preview',
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'text',
+                    text: 'This is a CAPTCHA image. Please read the text/numbers in the image and return ONLY the CAPTCHA text, nothing else. No explanations, no formatting, just the raw text.'
+                  },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: `data:image/png;base64,${base64Image}`
+                    }
+                  }
+                ]
+              }
+            ],
+            max_tokens: 50
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const captchaText = data.choices[0].message.content.trim();
+
+        log(`✅ CAPTCHA solved: "${captchaText}"`);
+
+        // Fill CAPTCHA input
+        captchaInput.value = captchaText;
+        captchaInput.dispatchEvent(new Event('input', { bubbles: true }));
+        captchaInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+        // Auto-submit after 1 second
+        await wait(1000);
+        log('📤 Submitting form...');
+
+        const submitBtn = document.querySelector('input[type="submit"]') ||
+                         document.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.click();
+          log('✅ Form submitted successfully!');
+        }
+
+      } catch (error) {
+        logErr('CAPTCHA solver failed: ' + error.message);
+        log('⚠️ Please solve CAPTCHA manually');
         captchaInput.focus();
-        captchaInput.style.border = '3px solid #00ff88';
-        captchaInput.style.boxShadow = '0 0 10px #00ff88';
+        captchaInput.style.border = '3px solid #ff4444';
+        captchaInput.style.boxShadow = '0 0 10px #ff4444';
       }
     }
 
