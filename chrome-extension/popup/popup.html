@@ -103,6 +103,14 @@
       </div>
 
       <div class="field">
+        <label>اسم العائلة عند الميلاد (Name at Birth)</label>
+        <input type="text" id="lastnameAtBirth" placeholder="Mohamed">
+        <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
+          اتركه فاضي → هيستخدم اسم العائلة الحالي
+        </small>
+      </div>
+
+      <div class="field">
         <label>تاريخ الميلاد (Date of Birth)</label>
         <input type="date" id="dateOfBirth" placeholder="MM/DD/YYYY">
         <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
@@ -259,6 +267,13 @@
     <div class="actions">
       <button id="saveBtn" class="btn btn-primary">💾 حفظ الإعدادات</button>
       <button id="toggleBtn" class="btn btn-secondary">▶ تفعيل البوت</button>
+    </div>
+
+    <!-- Data Management -->
+    <div class="actions" style="margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px;">
+      <button id="exportBtn" class="btn btn-secondary" style="background: #28a745;">📤 تصدير البيانات (Export)</button>
+      <button id="importBtn" class="btn btn-secondary" style="background: #17a2b8;">📥 استيراد البيانات (Import)</button>
+      <input type="file" id="importFile" accept=".json" style="display: none;">
     </div>
 
     <!-- Message -->

@@ -5,6 +5,9 @@
 // Elements
 const saveBtn = document.getElementById('saveBtn');
 const toggleBtn = document.getElementById('toggleBtn');
+const exportBtn = document.getElementById('exportBtn');
+const importBtn = document.getElementById('importBtn');
+const importFile = document.getElementById('importFile');
 const message = document.getElementById('message');
 const statusIndicator = document.getElementById('statusIndicator');
 const statusText = document.getElementById('statusText');
@@ -35,6 +38,11 @@ saveBtn.addEventListener('click', saveSettings);
 // Toggle bot
 toggleBtn.addEventListener('click', toggleBot);
 
+// Export/Import data
+exportBtn.addEventListener('click', exportData);
+importBtn.addEventListener('click', () => importFile.click());
+importFile.addEventListener('change', importData);
+
 /**
  * Load settings from Chrome storage
  */
@@ -58,6 +66,7 @@ function loadSettings() {
       const person = data.personData;
       document.getElementById('firstname').value = person.firstname || '';
       document.getElementById('lastname').value = person.lastname || '';
+      document.getElementById('lastnameAtBirth').value = person.lastnameAtBirth || '';
       // Convert date from M/D/YYYY to YYYY-MM-DD for date picker
       document.getElementById('dateOfBirth').value = convertToDatePickerFormat(person.dateOfBirth) || '';
       document.getElementById('passportNumber').value = person.passportNumber || '';
@@ -126,7 +135,7 @@ function saveSettings() {
     placeOfBirth: document.getElementById('placeOfBirth').value.trim(),
     passportIssueDate: convertToFormFormat(issueValue),
     passportExpiry: convertToFormFormat(expiryValue),
-    lastnameAtBirth: document.getElementById('lastname').value.trim() // Same as lastname
+    lastnameAtBirth: document.getElementById('lastnameAtBirth').value.trim() || document.getElementById('lastname').value.trim()
   };
 
   // Validate
@@ -246,4 +255,79 @@ function convertToDatePickerFormat(dateStr) {
   const [month, day, year] = parts;
   // Pad with zeros and format as YYYY-MM-DD
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+}
+
+/**
+ * Export all settings and data as JSON file
+ */
+function exportData() {
+  chrome.storage.local.get(['botSettings', 'personData'], (data) => {
+    const exportData = {
+      version: '1.0.0',
+      exportDate: new Date().toISOString(),
+      botSettings: data.botSettings || {},
+      personData: data.personData || {}
+    };
+
+    // Create download link
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `austria-bot-data-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showMessage('✅ تم تصدير البيانات بنجاح!', 'success');
+    console.log('Data exported:', exportData);
+  });
+}
+
+/**
+ * Import settings and data from JSON file
+ */
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const importedData = JSON.parse(e.target.result);
+
+      // Validate structure
+      if (!importedData.botSettings && !importedData.personData) {
+        showMessage('⚠️ ملف غير صالح! الرجاء اختيار ملف صحيح', 'error');
+        return;
+      }
+
+      // Save to storage
+      chrome.storage.local.set({
+        botSettings: importedData.botSettings || {},
+        personData: importedData.personData || {}
+      }, () => {
+        showMessage('✅ تم استيراد البيانات بنجاح!', 'success');
+        console.log('Data imported:', importedData);
+
+        // Reload settings to show imported data
+        setTimeout(() => {
+          loadSettings();
+          showMessage('✅ تم تحديث الإعدادات!', 'success');
+        }, 1000);
+      });
+
+    } catch (error) {
+      showMessage('❌ خطأ في قراءة الملف: ' + error.message, 'error');
+      console.error('Import error:', error);
+    }
+  };
+
+  reader.readAsText(file);
+
+  // Reset file input
+  event.target.value = '';
 }
