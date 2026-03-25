@@ -375,15 +375,32 @@
     // ── CAPTCHA Solver with GPT-4 Vision ──────────────────────────────────────
     async function solveCaptchaWithGPT4(captchaInput) {
       try {
+        log('🔍 Step 1: Finding CAPTCHA image...');
+
         // Find CAPTCHA image
         const captchaImg = document.querySelector('#Captcha_CaptchaImage') ||
                           document.querySelector('img[src*="BotDetectCaptcha"]') ||
                           document.querySelector('img[src*="captcha" i]');
 
         if (!captchaImg) {
-          logErr('CAPTCHA image not found');
+          logErr('❌ CAPTCHA image not found');
+          log('⚠️ Available images: ' + document.querySelectorAll('img').length);
           return;
         }
+
+        log('✅ CAPTCHA image found: ' + captchaImg.src.substring(0, 50) + '...');
+
+        // Wait for image to load
+        if (!captchaImg.complete) {
+          log('⏳ Waiting for image to load...');
+          await new Promise((resolve, reject) => {
+            captchaImg.onload = resolve;
+            captchaImg.onerror = reject;
+            setTimeout(reject, 5000); // 5s timeout
+          });
+        }
+
+        log('🎨 Step 2: Converting image to base64...');
 
         // Convert image to base64
         const canvas = document.createElement('canvas');
@@ -393,7 +410,8 @@
         ctx.drawImage(captchaImg, 0, 0);
         const base64Image = canvas.toDataURL('image/png').split(',')[1];
 
-        log('📸 CAPTCHA image captured');
+        log('✅ Image captured (' + canvas.width + 'x' + canvas.height + ')');
+        log('📡 Step 3: Calling GPT-4 Vision API...');
 
         // Call OpenAI GPT-4 Vision API
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -425,33 +443,141 @@
           })
         });
 
+        log('📥 API Response: ' + response.status + ' ' + response.statusText);
+
         if (!response.ok) {
+          const errorBody = await response.text();
+          logErr('API Error Body: ' + errorBody.substring(0, 200));
           throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
+        log('📦 API Response received');
+
+        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+          logErr('Invalid API response structure');
+          log('Response: ' + JSON.stringify(data).substring(0, 200));
+          throw new Error('Invalid API response');
+        }
+
         const captchaText = data.choices[0].message.content.trim();
 
         log(`✅ CAPTCHA solved: "${captchaText}"`);
+        log('✍️ Step 4: Filling CAPTCHA input...');
 
-        // Fill CAPTCHA input
+        // Fill CAPTCHA input - try multiple methods
         captchaInput.value = captchaText;
+        log('  → Set value property');
+
         captchaInput.dispatchEvent(new Event('input', { bubbles: true }));
+        log('  → Dispatched input event');
+
         captchaInput.dispatchEvent(new Event('change', { bubbles: true }));
+        log('  → Dispatched change event');
 
-        // Auto-submit after 1 second
-        await wait(1000);
-        log('📤 Submitting form...');
+        captchaInput.dispatchEvent(new Event('keyup', { bubbles: true }));
+        log('  → Dispatched keyup event');
 
-        const submitBtn = document.querySelector('input[type="submit"]') ||
-                         document.querySelector('button[type="submit"]');
-        if (submitBtn) {
-          submitBtn.click();
-          log('✅ Form submitted successfully!');
+        // Focus to trigger any validation
+        captchaInput.focus();
+        log('  → Focused input');
+
+        // Verify value was set
+        await wait(500);
+        const currentValue = captchaInput.value;
+        log(`  → Current value: "${currentValue}"`);
+
+        if (currentValue !== captchaText) {
+          logErr('❌ Value not set correctly! Trying again...');
+          captchaInput.value = captchaText;
+          await wait(500);
         }
 
+        log('📤 Step 5: Finding and clicking submit button...');
+
+        // Find submit button - try multiple selectors
+        const submitSelectors = [
+          'input[type="submit"]',
+          'button[type="submit"]',
+          'input[type="submit"][value*="Next"]',
+          'input[type="submit"][value*="Weiter"]',
+          'button:contains("Next")',
+          'button:contains("Submit")',
+          '.btn-submit',
+          '#submitButton'
+        ];
+
+        let submitBtn = null;
+        for (const selector of submitSelectors) {
+          submitBtn = document.querySelector(selector);
+          if (submitBtn) {
+            log(`  → Found button: ${selector}`);
+            break;
+          }
+        }
+
+        if (!submitBtn) {
+          // Try finding by text content
+          const allButtons = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"]'));
+          submitBtn = allButtons.find(btn => {
+            const text = (btn.value || btn.textContent || '').toLowerCase();
+            return text.includes('next') || text.includes('submit') || text.includes('weiter') || text.includes('send');
+          });
+
+          if (submitBtn) {
+            log(`  → Found button by text: "${submitBtn.value || submitBtn.textContent}"`);
+          }
+        }
+
+        if (!submitBtn) {
+          logErr('❌ Submit button not found!');
+          log('Available buttons: ' + document.querySelectorAll('button, input[type="submit"]').length);
+          log('⚠️ Please click Submit manually');
+          captchaInput.style.border = '3px solid #ffaa00';
+          captchaInput.style.boxShadow = '0 0 10px #ffaa00';
+          return;
+        }
+
+        log(`  → Submit button found: ${submitBtn.tagName} "${submitBtn.value || submitBtn.textContent || ''}"`);
+
+        // Wait before submitting
+        await wait(1000);
+
+        log('🚀 Clicking submit button...');
+
+        // Try multiple click methods
+        try {
+          submitBtn.click();
+          log('  → Clicked with .click()');
+        } catch (e) {
+          log('  → .click() failed, trying dispatchEvent');
+          submitBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        }
+
+        // Also try form.submit() if button has a form
+        const form = submitBtn.form || document.querySelector('form');
+        if (form) {
+          await wait(500);
+          log('  → Also found form, trying form.submit()');
+          try {
+            if (form.requestSubmit) {
+              form.requestSubmit(submitBtn);
+              log('  → Used form.requestSubmit()');
+            } else {
+              form.submit();
+              log('  → Used form.submit()');
+            }
+          } catch (e) {
+            log('  → Form submit failed: ' + e.message);
+          }
+        }
+
+        log('✅ Form submission attempted!');
+        log('⏳ Waiting for navigation...');
+
       } catch (error) {
-        logErr('CAPTCHA solver failed: ' + error.message);
+        logErr('❌ CAPTCHA solver failed: ' + error.message);
+        log('Stack trace: ' + (error.stack || 'none'));
         log('⚠️ Please solve CAPTCHA manually');
         captchaInput.focus();
         captchaInput.style.border = '3px solid #ff4444';
