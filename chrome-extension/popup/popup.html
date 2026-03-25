@@ -140,38 +140,57 @@
 
       <div class="field">
         <label>الدولة (Country)</label>
-        <input type="text" id="country" placeholder="Egypt">
+        <input type="text" id="country" placeholder="EGYPT">
+        <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
+          اكتب النص بالظبط (كل الحروف كبيرة) أو الكود
+        </small>
+      </div>
+
+      <div class="field">
+        <label>كود الدولة (Country Code - اختياري)</label>
+        <input type="number" id="countryCode" placeholder="65">
+        <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
+          مثال: Egypt = 65 | شغل window.austriaBotShowDropdowns() عشان تشوف الأكواد
+        </small>
       </div>
 
       <div class="field">
         <label>الجنسية (Nationality)</label>
-        <input type="text" id="nationality" placeholder="Egyptian">
+        <input type="text" id="nationality" placeholder="EGYPT">
         <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
-          الجنسية الحالية
+          اكتب النص بالظبط (مثل: EGYPT مش Egyptian)
+        </small>
+      </div>
+
+      <div class="field">
+        <label>كود الجنسية (Nationality Code - اختياري)</label>
+        <input type="number" id="nationalityCode" placeholder="71">
+        <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
+          مثال: EGYPT = 71 | يستخدم لكل الحقول: at birth, actual, authority
         </small>
       </div>
 
       <div class="field">
         <label>الجنسية عند الميلاد (Nationality at Birth)</label>
-        <input type="text" id="nationalityAtBirth" placeholder="Egyptian">
+        <input type="text" id="nationalityAtBirth" placeholder="EGYPT">
         <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
-          اتركه فاضي إذا كانت نفس الجنسية الحالية
+          اتركه فاضي → هيستخدم الجنسية الأساسية
         </small>
       </div>
 
       <div class="field">
         <label>الجنسية للطلب (Actual Nationality for Application)</label>
-        <input type="text" id="actualNationality" placeholder="Egyptian">
+        <input type="text" id="actualNationality" placeholder="EGYPT">
         <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
-          الجنسية التي ستستخدمها في التقديم (عادةً نفس الجنسية الحالية)
+          اتركه فاضي → هيستخدم الجنسية الأساسية
         </small>
       </div>
 
       <div class="field">
         <label>بلد الميلاد (Country of Birth)</label>
-        <input type="text" id="countryOfBirth" placeholder="Egypt">
+        <input type="text" id="countryOfBirth" placeholder="EGYPT">
         <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
-          البلد الذي ولدت فيه
+          اتركه فاضي → هيستخدم بلد الميلاد الأساسي
         </small>
       </div>
 

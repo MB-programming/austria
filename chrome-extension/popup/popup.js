@@ -66,7 +66,9 @@ function loadSettings() {
       document.getElementById('postcode').value = person.postcode || '';
       document.getElementById('city').value = person.city || '';
       document.getElementById('country').value = person.country || '';
+      document.getElementById('countryCode').value = person.countryCode || '';
       document.getElementById('nationality').value = person.nationality || '';
+      document.getElementById('nationalityCode').value = person.nationalityCode || '';
       document.getElementById('nationalityAtBirth').value = person.nationalityAtBirth || '';
       document.getElementById('actualNationality').value = person.actualNationality || '';
       document.getElementById('countryOfBirth').value = person.countryOfBirth || '';
@@ -113,7 +115,9 @@ function saveSettings() {
     postcode: document.getElementById('postcode').value.trim(),
     city: document.getElementById('city').value.trim(),
     country: document.getElementById('country').value.trim(),
+    countryCode: document.getElementById('countryCode').value.trim(),
     nationality: document.getElementById('nationality').value.trim(),
+    nationalityCode: document.getElementById('nationalityCode').value.trim(),
     nationalityAtBirth: document.getElementById('nationalityAtBirth').value.trim() || document.getElementById('nationality').value.trim(),
     actualNationality: document.getElementById('actualNationality').value.trim() || document.getElementById('nationality').value.trim(),
     countryOfBirth: document.getElementById('countryOfBirth').value.trim() || document.getElementById('country').value.trim(),
