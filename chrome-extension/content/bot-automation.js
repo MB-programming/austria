@@ -463,34 +463,47 @@
         const captchaText = data.choices[0].message.content.trim();
 
         log(`✅ CAPTCHA solved: "${captchaText}"`);
-        log('✍️ Step 4: Filling CAPTCHA input...');
+        log('✍️ Step 4: Filling CAPTCHA input (typing simulation)...');
 
-        // Fill CAPTCHA input - try multiple methods
-        captchaInput.value = captchaText;
-        log('  → Set value property');
-
-        captchaInput.dispatchEvent(new Event('input', { bubbles: true }));
-        log('  → Dispatched input event');
-
-        captchaInput.dispatchEvent(new Event('change', { bubbles: true }));
-        log('  → Dispatched change event');
-
-        captchaInput.dispatchEvent(new Event('keyup', { bubbles: true }));
-        log('  → Dispatched keyup event');
-
-        // Focus to trigger any validation
+        // Clear input first
+        captchaInput.value = '';
         captchaInput.focus();
-        log('  → Focused input');
+
+        // Type each character with human-like delay
+        for (let i = 0; i < captchaText.length; i++) {
+          const char = captchaText[i];
+
+          // Add character
+          captchaInput.value += char;
+
+          // Dispatch events for each character
+          captchaInput.dispatchEvent(new Event('input', { bubbles: true }));
+          captchaInput.dispatchEvent(new Event('keydown', { bubbles: true }));
+          captchaInput.dispatchEvent(new Event('keypress', { bubbles: true }));
+          captchaInput.dispatchEvent(new Event('keyup', { bubbles: true }));
+
+          // Random human-like delay between 80-150ms
+          const delay = 80 + Math.random() * 70;
+          await wait(delay);
+
+          log(`  → Typed: "${captchaInput.value}" (${i + 1}/${captchaText.length})`);
+        }
+
+        // Final events after typing complete
+        captchaInput.dispatchEvent(new Event('change', { bubbles: true }));
+        captchaInput.dispatchEvent(new Event('blur', { bubbles: true }));
+
+        log('  → Typing complete!');
 
         // Verify value was set
-        await wait(500);
+        await wait(300);
         const currentValue = captchaInput.value;
-        log(`  → Current value: "${currentValue}"`);
+        log(`  → Final value: "${currentValue}"`);
 
         if (currentValue !== captchaText) {
-          logErr('❌ Value not set correctly! Trying again...');
-          captchaInput.value = captchaText;
-          await wait(500);
+          logErr('❌ Value mismatch! Expected: "' + captchaText + '", Got: "' + currentValue + '"');
+        } else {
+          log('  → ✅ Value verified correctly!');
         }
 
         log('📤 Step 5: Finding and clicking submit button...');
