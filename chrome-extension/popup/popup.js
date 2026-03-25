@@ -84,7 +84,7 @@ function loadSettings() {
 function saveSettings() {
   const botSettings = {
     office: document.getElementById('office').value.trim() || 'KAIRO',
-    reservationType: document.getElementById('reservationType').value || 'Bachelor',
+    reservationType: document.getElementById('reservationType').value.trim() || 'Bachelor',
     refreshIntervalSec: parseInt(document.getElementById('refreshInterval').value) || 30,
     navDelay: parseInt(document.getElementById('navDelay').value) || 800,
     slotPreferences: [document.getElementById('slotPreference').value || 'random'],
