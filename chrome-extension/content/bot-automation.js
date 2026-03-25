@@ -349,7 +349,16 @@
       pickOpt('NationalityForApplication', P.nationality, P.nationalityCode);
       setVal('TraveldocumentDateOfIssue', P.passportIssueDate);
       setVal('TraveldocumentValidUntil', P.passportExpiry);
-      pickOpt('TraveldocumentIssuingAuthority', P.nationality, P.nationalityCode);
+
+      // Passport issuing authority - try multiple approaches
+      const authorityField = findEl('TraveldocumentIssuingAuthority');
+      if (authorityField && authorityField.tagName === 'SELECT') {
+        log('Setting passport issuing authority...');
+        pickOpt('TraveldocumentIssuingAuthority', P.nationality, P.nationalityCode);
+        // Verify it was selected
+        const selectedAuthority = authorityField.options[authorityField.selectedIndex]?.text;
+        log('  → Authority selected: ' + (selectedAuthority || 'none'));
+      }
 
       // GDPR consent
       const gdpr = findEl('DSGVOAccepted');
@@ -473,17 +482,49 @@
         for (let i = 0; i < captchaText.length; i++) {
           const char = captchaText[i];
 
+          // Simulate real keyboard events with key codes
+          const keyCode = char.charCodeAt(0);
+
+          // KeyDown event
+          const keydownEvent = new KeyboardEvent('keydown', {
+            key: char,
+            code: 'Key' + char.toUpperCase(),
+            keyCode: keyCode,
+            which: keyCode,
+            bubbles: true,
+            cancelable: true
+          });
+          captchaInput.dispatchEvent(keydownEvent);
+
+          // KeyPress event
+          const keypressEvent = new KeyboardEvent('keypress', {
+            key: char,
+            keyCode: keyCode,
+            which: keyCode,
+            bubbles: true,
+            cancelable: true
+          });
+          captchaInput.dispatchEvent(keypressEvent);
+
           // Add character
           captchaInput.value += char;
 
-          // Dispatch events for each character
+          // Input event
           captchaInput.dispatchEvent(new Event('input', { bubbles: true }));
-          captchaInput.dispatchEvent(new Event('keydown', { bubbles: true }));
-          captchaInput.dispatchEvent(new Event('keypress', { bubbles: true }));
-          captchaInput.dispatchEvent(new Event('keyup', { bubbles: true }));
 
-          // Random human-like delay between 80-150ms
-          const delay = 80 + Math.random() * 70;
+          // KeyUp event
+          const keyupEvent = new KeyboardEvent('keyup', {
+            key: char,
+            code: 'Key' + char.toUpperCase(),
+            keyCode: keyCode,
+            which: keyCode,
+            bubbles: true,
+            cancelable: true
+          });
+          captchaInput.dispatchEvent(keyupEvent);
+
+          // Random human-like delay between 100-200ms (slower is more human)
+          const delay = 100 + Math.random() * 100;
           await wait(delay);
 
           log(`  → Typed: "${captchaInput.value}" (${i + 1}/${captchaText.length})`);
@@ -587,6 +628,72 @@
 
         log('✅ Form submission attempted!');
         log('⏳ Waiting for navigation...');
+
+        // Wait and check for confirmation page
+        await wait(3000);
+
+        // Check if we're on a confirmation page that needs another Next click
+        log('🔍 Checking for confirmation page...');
+
+        const confirmationSelectors = [
+          'input[type="submit"]',
+          'button[type="submit"]',
+          'input[value*="Next"]',
+          'input[value*="Weiter"]',
+          'button:contains("Next")'
+        ];
+
+        let confirmBtn = null;
+        for (const selector of confirmationSelectors) {
+          confirmBtn = document.querySelector(selector);
+          if (confirmBtn) {
+            const btnText = (confirmBtn.value || confirmBtn.textContent || '').trim();
+            // Make sure it's not a "Back" button
+            if (!btnText.toLowerCase().includes('back') &&
+                !btnText.toLowerCase().includes('zurück')) {
+              log(`  → Found confirmation button: "${btnText}"`);
+              break;
+            }
+            confirmBtn = null;
+          }
+        }
+
+        if (confirmBtn) {
+          log('📄 Confirmation page detected!');
+          log('🚀 Clicking final Next button...');
+
+          await wait(1000);
+
+          try {
+            confirmBtn.click();
+            log('  → Clicked confirmation Next button');
+          } catch (e) {
+            confirmBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+          }
+
+          // Try form submit too
+          const confirmForm = confirmBtn.form || document.querySelector('form');
+          if (confirmForm) {
+            await wait(500);
+            try {
+              if (confirmForm.requestSubmit) {
+                confirmForm.requestSubmit(confirmBtn);
+                log('  → Used form.requestSubmit() on confirmation');
+              } else {
+                confirmForm.submit();
+                log('  → Used form.submit() on confirmation');
+              }
+            } catch (e) {
+              log('  → Confirmation form submit: ' + e.message);
+            }
+          }
+
+          log('✅ Confirmation submitted!');
+          log('🎉 Booking should be complete now!');
+        } else {
+          log('  → No confirmation page detected');
+          log('✅ Booking process complete!');
+        }
 
       } catch (error) {
         logErr('❌ CAPTCHA solver failed: ' + error.message);
