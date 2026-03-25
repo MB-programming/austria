@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Austria Appointment Bot</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🇦🇹 Austria Bot</h1>
+      <p class="subtitle">مساعد حجز المواعيد الآلي</p>
+    </div>
+
+    <!-- Status -->
+    <div class="status" id="status">
+      <div class="status-indicator" id="statusIndicator"></div>
+      <span id="statusText">معطل</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="settings">الإعدادات</button>
+      <button class="tab" data-tab="personal">البيانات الشخصية</button>
+      <button class="tab" data-tab="about">عن التطبيق</button>
+    </div>
+
+    <!-- Settings Tab -->
+    <div class="tab-content active" id="settings">
+      <div class="field">
+        <label>المنظمة (Office)</label>
+        <input type="text" id="office" placeholder="KAIRO" value="KAIRO">
+      </div>
+
+      <div class="field">
+        <label>نوع الحجز (Reservation Type)</label>
+        <select id="reservationType">
+          <option value="Bachelor">Bachelor</option>
+          <option value="Master">Master</option>
+          <option value="PhD">PhD</option>
+          <option value="Schengen Visa">Schengen Visa</option>
+          <option value="National Visa">National Visa</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>إعادة البحث (ثانية)</label>
+        <input type="number" id="refreshInterval" value="30" min="5" step="5">
+      </div>
+
+      <div class="field">
+        <label>تأخير التنقل (ms)</label>
+        <input type="number" id="navDelay" value="800" min="200" step="100">
+      </div>
+
+      <div class="field">
+        <label>الموعد المفضل</label>
+        <select id="slotPreference">
+          <option value="1">الموعد الأول</option>
+          <option value="2">الموعد الثاني</option>
+          <option value="3">الموعد الثالث</option>
+          <option value="random">عشوائي</option>
+          <option value="any">أي موعد متاح</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>صوت التنبيه</label>
+        <select id="notificationSound">
+          <option value="beep">Beep</option>
+          <option value="chime">Chime</option>
+          <option value="alert">Alert</option>
+          <option value="ding">Ding</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Personal Data Tab -->
+    <div class="tab-content" id="personal">
+      <div class="field">
+        <label>الاسم الأول (First Name)</label>
+        <input type="text" id="firstname" placeholder="Ahmed">
+      </div>
+
+      <div class="field">
+        <label>اسم العائلة (Last Name)</label>
+        <input type="text" id="lastname" placeholder="Mohamed">
+      </div>
+
+      <div class="field">
+        <label>تاريخ الميلاد (DD.MM.YYYY)</label>
+        <input type="text" id="dateOfBirth" placeholder="01.01.1990">
+      </div>
+
+      <div class="field">
+        <label>رقم الجواز (Passport Number)</label>
+        <input type="text" id="passportNumber" placeholder="A12345678">
+      </div>
+
+      <div class="field">
+        <label>الجنس (Sex)</label>
+        <select id="sex">
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>الشارع (Street)</label>
+        <input type="text" id="street" placeholder="123 Main St">
+      </div>
+
+      <div class="field">
+        <label>الرمز البريدي (Postcode)</label>
+        <input type="text" id="postcode" placeholder="12345">
+      </div>
+
+      <div class="field">
+        <label>المدينة (City)</label>
+        <input type="text" id="city" placeholder="Cairo">
+      </div>
+
+      <div class="field">
+        <label>الدولة (Country)</label>
+        <input type="text" id="country" placeholder="Egypt">
+      </div>
+
+      <div class="field">
+        <label>الجنسية (Nationality)</label>
+        <input type="text" id="nationality" placeholder="Egyptian">
+      </div>
+
+      <div class="field">
+        <label>رقم الهاتف (Telephone)</label>
+        <input type="text" id="telephone" placeholder="+20 123 456 7890">
+      </div>
+
+      <div class="field">
+        <label>البريد الإلكتروني (Email)</label>
+        <input type="email" id="email" placeholder="example@example.com">
+      </div>
+
+      <div class="field">
+        <label>مكان الميلاد (Place of Birth)</label>
+        <input type="text" id="placeOfBirth" placeholder="Cairo">
+      </div>
+
+      <div class="field">
+        <label>تاريخ إصدار الجواز (DD.MM.YYYY)</label>
+        <input type="text" id="passportIssueDate" placeholder="01.01.2020">
+      </div>
+
+      <div class="field">
+        <label>تاريخ انتهاء الجواز (DD.MM.YYYY)</label>
+        <input type="text" id="passportExpiry" placeholder="01.01.2030">
+      </div>
+    </div>
+
+    <!-- About Tab -->
+    <div class="tab-content" id="about">
+      <div class="about-content">
+        <h2>🤖 Austria Appointment Bot</h2>
+        <p class="version">Version 1.0.0</p>
+        <p>مساعد آلي لحجز مواعيد السفارة النمساوية</p>
+
+        <h3>المميزات:</h3>
+        <ul>
+          <li>✅ ملء النماذج تلقائياً</li>
+          <li>✅ البحث المستمر عن المواعيد</li>
+          <li>✅ تنبيه صوتي عند وجود موعد</li>
+          <li>✅ دعم جميع أنواع التأشيرات</li>
+          <li>✅ واجهة عربية سهلة</li>
+        </ul>
+
+        <h3>طريقة الاستخدام:</h3>
+        <ol>
+          <li>املأ الإعدادات والبيانات الشخصية</li>
+          <li>اضغط "حفظ الإعدادات"</li>
+          <li>افتح موقع السفارة</li>
+          <li>فعّل البوت من الأيقونة</li>
+          <li>استرخِ ودع البوت يعمل!</li>
+        </ol>
+
+        <p class="copyright">© 2024 MB-programming</p>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button id="saveBtn" class="btn btn-primary">💾 حفظ الإعدادات</button>
+      <button id="toggleBtn" class="btn btn-secondary">▶ تفعيل البوت</button>
+    </div>
+
+    <!-- Message -->
+    <div id="message" class="message"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
