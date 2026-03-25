@@ -61,7 +61,7 @@
         window.location.href = window.location.href;
       } else {
         log(`Reloading... (${count}/${RELOAD_LIMIT})`);
-        safeReload();
+        location.reload();
       }
     }
 
@@ -69,6 +69,45 @@
     const wait = ms => new Promise(r => setTimeout(r, ms));
     const log = msg => console.log('[AustriaBot] ' + msg);
     const logErr = msg => console.error('[AustriaBot] ERROR: ' + msg);
+
+    /**
+     * Simulate a realistic mouse click on an element
+     * @param {HTMLElement} element - The element to click
+     */
+    function simulateMouseClick(element) {
+      if (!element) return false;
+
+      // Get element position for realistic coordinates
+      const rect = element.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+
+      // Create realistic mouse event properties
+      const mouseEventInit = {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        detail: 1,
+        screenX: window.screenX + x,
+        screenY: window.screenY + y,
+        clientX: x,
+        clientY: y,
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        metaKey: false,
+        button: 0, // Left mouse button
+        buttons: 1,
+        relatedTarget: null
+      };
+
+      // Dispatch full mouse event sequence (mousedown → mouseup → click)
+      element.dispatchEvent(new MouseEvent('mousedown', mouseEventInit));
+      element.dispatchEvent(new MouseEvent('mouseup', mouseEventInit));
+      element.dispatchEvent(new MouseEvent('click', mouseEventInit));
+
+      return true;
+    }
 
     // ── Audio alarm (Web Audio API — no external deps) ────────────────────────
     let alarmTimer = null;
@@ -186,9 +225,15 @@
 
         if (!btn) { logErr('Next button not found'); return; }
         log('Clicking next: "' + (btn.value || btn.textContent || '').trim() + '"');
+
+        // Use realistic mouse click simulation
+        simulateMouseClick(btn);
+
+        // Backup: also try form.requestSubmit
         const form = btn.form || document.querySelector('form');
-        if (form && form.requestSubmit) form.requestSubmit(btn);
-        else btn.click();
+        if (form && form.requestSubmit) {
+          setTimeout(() => form.requestSubmit(btn), 100);
+        }
       }, delayMs || 800);
     }
 
@@ -597,29 +642,35 @@
         // Wait before submitting
         await wait(1000);
 
-        log('🚀 Clicking submit button...');
+        log('🚀 Clicking submit button with mouse simulation...');
 
-        // Try multiple click methods
-        try {
-          submitBtn.click();
-          log('  → Clicked with .click()');
-        } catch (e) {
-          log('  → .click() failed, trying dispatchEvent');
-          submitBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        // Primary method: Realistic mouse click simulation
+        const mouseClicked = simulateMouseClick(submitBtn);
+        if (mouseClicked) {
+          log('  → ✅ Simulated realistic mouse click (mousedown → mouseup → click)');
         }
 
-        // Also try form.submit() if button has a form
+        // Backup method: Standard .click()
+        await wait(300);
+        try {
+          submitBtn.click();
+          log('  → ✅ Also called .click() as backup');
+        } catch (e) {
+          log('  → .click() failed: ' + e.message);
+        }
+
+        // Also try form.requestSubmit() if button has a form
         const form = submitBtn.form || document.querySelector('form');
         if (form) {
           await wait(500);
-          log('  → Also found form, trying form.submit()');
+          log('  → Also found form, trying form.requestSubmit()');
           try {
             if (form.requestSubmit) {
               form.requestSubmit(submitBtn);
-              log('  → Used form.requestSubmit()');
+              log('  → ✅ Used form.requestSubmit()');
             } else {
               form.submit();
-              log('  → Used form.submit()');
+              log('  → ✅ Used form.submit()');
             }
           } catch (e) {
             log('  → Form submit failed: ' + e.message);
@@ -660,15 +711,23 @@
 
         if (confirmBtn) {
           log('📄 Confirmation page detected!');
-          log('🚀 Clicking final Next button...');
+          log('🚀 Clicking final Next button with mouse simulation...');
 
           await wait(1000);
 
+          // Primary method: Realistic mouse click
+          const mouseClicked = simulateMouseClick(confirmBtn);
+          if (mouseClicked) {
+            log('  → ✅ Simulated realistic mouse click on confirmation button');
+          }
+
+          // Backup method: Standard .click()
+          await wait(300);
           try {
             confirmBtn.click();
-            log('  → Clicked confirmation Next button');
+            log('  → ✅ Also called .click() on confirmation');
           } catch (e) {
-            confirmBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            log('  → .click() failed: ' + e.message);
           }
 
           // Try form submit too
@@ -678,10 +737,10 @@
             try {
               if (confirmForm.requestSubmit) {
                 confirmForm.requestSubmit(confirmBtn);
-                log('  → Used form.requestSubmit() on confirmation');
+                log('  → ✅ Used form.requestSubmit() on confirmation');
               } else {
                 confirmForm.submit();
-                log('  → Used form.submit() on confirmation');
+                log('  → ✅ Used form.submit() on confirmation');
               }
             } catch (e) {
               log('  → Confirmation form submit: ' + e.message);
