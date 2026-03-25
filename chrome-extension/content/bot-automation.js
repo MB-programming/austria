@@ -68,6 +68,36 @@
       }
     }
 
+    // ── Infinite Loading Protection ──────────────────────────────────────────
+    const LOADING_TIMEOUT = 45000; // 45 seconds - if page stuck, refresh
+    let loadingTimer = null;
+    let lastActivity = Date.now();
+
+    function resetLoadingTimer() {
+      lastActivity = Date.now();
+      if (loadingTimer) {
+        clearTimeout(loadingTimer);
+      }
+
+      loadingTimer = setTimeout(() => {
+        const timeSinceActivity = Date.now() - lastActivity;
+        if (timeSinceActivity >= LOADING_TIMEOUT) {
+          logErr(`⚠️ Infinite loading detected! (${LOADING_TIMEOUT/1000}s with no activity)`);
+          log('Page seems stuck... performing refresh');
+          window.location.href = window.location.href;
+        }
+      }, LOADING_TIMEOUT);
+    }
+
+    // Start loading timer
+    resetLoadingTimer();
+
+    // Monitor page activity
+    document.addEventListener('click', resetLoadingTimer);
+    document.addEventListener('change', resetLoadingTimer);
+    window.addEventListener('load', resetLoadingTimer);
+    window.addEventListener('DOMContentLoaded', resetLoadingTimer);
+
     // ── Utilities ─────────────────────────────────────────────────────────────
     const wait = ms => new Promise(r => setTimeout(r, ms));
     const log = msg => console.log('[AustriaBot] ' + msg);
@@ -746,8 +776,15 @@
     // ── Main loop ─────────────────────────────────────────────────────────────
     async function run() {
       await wait(500);
+
+      // Reset loading timer - we're active
+      resetLoadingTimer();
+
       const page = detectPage();
       log('Page detected: ' + page);
+
+      // Reset timer again after successful page detection
+      resetLoadingTimer();
 
       if (page === 'office') handleOffice();
       else if (page === 'calendar') handleCalendar();
