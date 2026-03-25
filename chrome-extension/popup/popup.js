@@ -58,7 +58,8 @@ function loadSettings() {
       const person = data.personData;
       document.getElementById('firstname').value = person.firstname || '';
       document.getElementById('lastname').value = person.lastname || '';
-      document.getElementById('dateOfBirth').value = person.dateOfBirth || '';
+      // Convert date from M/D/YYYY to YYYY-MM-DD for date picker
+      document.getElementById('dateOfBirth').value = convertToDatePickerFormat(person.dateOfBirth) || '';
       document.getElementById('passportNumber').value = person.passportNumber || '';
       document.getElementById('sex').value = person.sex || 'male';
       document.getElementById('street').value = person.street || '';
@@ -66,11 +67,14 @@ function loadSettings() {
       document.getElementById('city').value = person.city || '';
       document.getElementById('country').value = person.country || '';
       document.getElementById('nationality').value = person.nationality || '';
+      document.getElementById('nationalityAtBirth').value = person.nationalityAtBirth || '';
+      document.getElementById('actualNationality').value = person.actualNationality || '';
+      document.getElementById('countryOfBirth').value = person.countryOfBirth || '';
       document.getElementById('telephone').value = person.telephone || '';
       document.getElementById('email').value = person.email || '';
       document.getElementById('placeOfBirth').value = person.placeOfBirth || '';
-      document.getElementById('passportIssueDate').value = person.passportIssueDate || '';
-      document.getElementById('passportExpiry').value = person.passportExpiry || '';
+      document.getElementById('passportIssueDate').value = convertToDatePickerFormat(person.passportIssueDate) || '';
+      document.getElementById('passportExpiry').value = convertToDatePickerFormat(person.passportExpiry) || '';
     }
 
     // Update status
@@ -94,10 +98,15 @@ function saveSettings() {
     openaiApiKey: document.getElementById('openaiApiKey').value.trim() || ''
   };
 
+  // Convert dates from YYYY-MM-DD (date picker) to M/D/YYYY (form format)
+  const dobValue = document.getElementById('dateOfBirth').value.trim();
+  const issueValue = document.getElementById('passportIssueDate').value.trim();
+  const expiryValue = document.getElementById('passportExpiry').value.trim();
+
   const personData = {
     firstname: document.getElementById('firstname').value.trim(),
     lastname: document.getElementById('lastname').value.trim(),
-    dateOfBirth: document.getElementById('dateOfBirth').value.trim(),
+    dateOfBirth: convertToFormFormat(dobValue),
     passportNumber: document.getElementById('passportNumber').value.trim(),
     sex: document.getElementById('sex').value,
     street: document.getElementById('street').value.trim(),
@@ -105,11 +114,14 @@ function saveSettings() {
     city: document.getElementById('city').value.trim(),
     country: document.getElementById('country').value.trim(),
     nationality: document.getElementById('nationality').value.trim(),
+    nationalityAtBirth: document.getElementById('nationalityAtBirth').value.trim() || document.getElementById('nationality').value.trim(),
+    actualNationality: document.getElementById('actualNationality').value.trim() || document.getElementById('nationality').value.trim(),
+    countryOfBirth: document.getElementById('countryOfBirth').value.trim() || document.getElementById('country').value.trim(),
     telephone: document.getElementById('telephone').value.trim(),
     email: document.getElementById('email').value.trim(),
     placeOfBirth: document.getElementById('placeOfBirth').value.trim(),
-    passportIssueDate: document.getElementById('passportIssueDate').value.trim(),
-    passportExpiry: document.getElementById('passportExpiry').value.trim(),
+    passportIssueDate: convertToFormFormat(issueValue),
+    passportExpiry: convertToFormFormat(expiryValue),
     lastnameAtBirth: document.getElementById('lastname').value.trim() // Same as lastname
   };
 
@@ -192,4 +204,42 @@ function showMessage(text, type) {
   setTimeout(() => {
     message.classList.remove('show');
   }, 3000);
+}
+
+/**
+ * Convert date from YYYY-MM-DD (date picker format) to M/D/YYYY (form format)
+ * Example: "2016-03-15" → "3/15/2016"
+ */
+function convertToFormFormat(dateStr) {
+  if (!dateStr) return '';
+
+  // If already in M/D/YYYY format, return as is
+  if (dateStr.includes('/')) return dateStr;
+
+  // Convert from YYYY-MM-DD
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+
+  const [year, month, day] = parts;
+  // Remove leading zeros and format as M/D/YYYY
+  return `${parseInt(month)}/${parseInt(day)}/${year}`;
+}
+
+/**
+ * Convert date from M/D/YYYY (form format) to YYYY-MM-DD (date picker format)
+ * Example: "3/15/2016" → "2016-03-15"
+ */
+function convertToDatePickerFormat(dateStr) {
+  if (!dateStr) return '';
+
+  // If already in YYYY-MM-DD format, return as is
+  if (dateStr.includes('-') && dateStr.length === 10) return dateStr;
+
+  // Convert from M/D/YYYY or MM/DD/YYYY
+  const parts = dateStr.split('/');
+  if (parts.length !== 3) return dateStr;
+
+  const [month, day, year] = parts;
+  // Pad with zeros and format as YYYY-MM-DD
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }

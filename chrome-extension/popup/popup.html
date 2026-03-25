@@ -103,8 +103,11 @@
       </div>
 
       <div class="field">
-        <label>تاريخ الميلاد (DD.MM.YYYY)</label>
-        <input type="text" id="dateOfBirth" placeholder="01.01.1990">
+        <label>تاريخ الميلاد (Date of Birth)</label>
+        <input type="date" id="dateOfBirth" placeholder="MM/DD/YYYY">
+        <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
+          اختر التاريخ من الكاليندر أو اكتب بصيغة MM/DD/YYYY
+        </small>
       </div>
 
       <div class="field">
@@ -143,6 +146,33 @@
       <div class="field">
         <label>الجنسية (Nationality)</label>
         <input type="text" id="nationality" placeholder="Egyptian">
+        <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
+          الجنسية الحالية
+        </small>
+      </div>
+
+      <div class="field">
+        <label>الجنسية عند الميلاد (Nationality at Birth)</label>
+        <input type="text" id="nationalityAtBirth" placeholder="Egyptian">
+        <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
+          اتركه فاضي إذا كانت نفس الجنسية الحالية
+        </small>
+      </div>
+
+      <div class="field">
+        <label>الجنسية للطلب (Actual Nationality for Application)</label>
+        <input type="text" id="actualNationality" placeholder="Egyptian">
+        <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
+          الجنسية التي ستستخدمها في التقديم (عادةً نفس الجنسية الحالية)
+        </small>
+      </div>
+
+      <div class="field">
+        <label>بلد الميلاد (Country of Birth)</label>
+        <input type="text" id="countryOfBirth" placeholder="Egypt">
+        <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
+          البلد الذي ولدت فيه
+        </small>
       </div>
 
       <div class="field">
@@ -161,13 +191,19 @@
       </div>
 
       <div class="field">
-        <label>تاريخ إصدار الجواز (DD.MM.YYYY)</label>
-        <input type="text" id="passportIssueDate" placeholder="01.01.2020">
+        <label>تاريخ إصدار الجواز (Passport Issue Date)</label>
+        <input type="date" id="passportIssueDate" placeholder="MM/DD/YYYY">
+        <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
+          اختر التاريخ من الكاليندر
+        </small>
       </div>
 
       <div class="field">
-        <label>تاريخ انتهاء الجواز (DD.MM.YYYY)</label>
-        <input type="text" id="passportExpiry" placeholder="01.01.2030">
+        <label>تاريخ انتهاء الجواز (Passport Expiry)</label>
+        <input type="date" id="passportExpiry" placeholder="MM/DD/YYYY">
+        <small style="color: #888; font-size: 11px; display: block; margin-top: 3px;">
+          اختر التاريخ من الكاليندر
+        </small>
       </div>
     </div>
 

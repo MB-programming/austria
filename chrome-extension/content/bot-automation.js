@@ -392,10 +392,11 @@
       setVal('Telephone', P.telephone);
       setVal('Email', P.email);
       setVal('LastnameAtBirth', P.lastnameAtBirth || P.lastname);
-      pickOpt('NationalityAtBirth', P.nationality, P.nationalityCode);
-      pickOpt('CountryOfBirth', P.nationality, P.nationalityCode);
+      // Use separate nationality fields (fallback to main nationality if not set)
+      pickOpt('NationalityAtBirth', P.nationalityAtBirth || P.nationality, P.nationalityCode);
+      pickOpt('CountryOfBirth', P.countryOfBirth || P.country, P.countryCode);
       setVal('PlaceOfBirth', P.placeOfBirth);
-      pickOpt('NationalityForApplication', P.nationality, P.nationalityCode);
+      pickOpt('NationalityForApplication', P.actualNationality || P.nationality, P.nationalityCode);
       setVal('TraveldocumentDateOfIssue', P.passportIssueDate);
       setVal('TraveldocumentValidUntil', P.passportExpiry);
 
@@ -622,10 +623,11 @@
       setVal('City', P.city);                   pickOpt('Country', P.country, P.countryCode);
       setVal('Telephone', P.telephone);         setVal('Email', P.email);
       setVal('LastnameAtBirth', P.lastnameAtBirth || P.lastname);
-      pickOpt('NationalityAtBirth', P.nationality, P.nationalityCode);
-      pickOpt('CountryOfBirth',     P.nationality, P.nationalityCode);
+      // Use separate nationality fields (fallback to main nationality if not set)
+      pickOpt('NationalityAtBirth', P.nationalityAtBirth || P.nationality, P.nationalityCode);
+      pickOpt('CountryOfBirth', P.countryOfBirth || P.country, P.countryCode);
       setVal('PlaceOfBirth', P.placeOfBirth);
-      pickOpt('NationalityForApplication', P.nationality, P.nationalityCode);
+      pickOpt('NationalityForApplication', P.actualNationality || P.nationality, P.nationalityCode);
       setVal('TraveldocumentDateOfIssue', P.passportIssueDate);
       setVal('TraveldocumentValidUntil',  P.passportExpiry);
       pickOpt('TraveldocumentIssuingAuthority', P.nationality, P.nationalityCode);
