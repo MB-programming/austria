@@ -28,6 +28,11 @@
 
     console.log('[AustriaBot] Starting automation with settings:', CFG);
 
+    // ── Utilities (must be defined first!) ────────────────────────────────────
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const log = msg => console.log('[AustriaBot] ' + msg);
+    const logErr = msg => console.error('[AustriaBot] ERROR: ' + msg);
+
     // ── Reload Timeout Protection (4 seconds) ─────────────────────────────────
     const RELOAD_TIMEOUT_MS = 4000; // 4 seconds - if reload takes longer, force restart
     const SCHEDULER_MAX_PAGE_FAILURES = 8; // Go back to start after 8 scheduler page load failures
@@ -221,11 +226,7 @@
     window.addEventListener('load', resetLoadingTimer);
     window.addEventListener('DOMContentLoaded', resetLoadingTimer);
 
-    // ── Utilities ─────────────────────────────────────────────────────────────
-    const wait = ms => new Promise(r => setTimeout(r, ms));
-    const log = msg => console.log('[AustriaBot] ' + msg);
-    const logErr = msg => console.error('[AustriaBot] ERROR: ' + msg);
-
+    // ── Field finding helper ──────────────────────────────────────────────────
     // Find field by id, then by name, then by ASP.NET postback name (ends with $Id)
     const findEl = (id) =>
       document.getElementById(id) ||
@@ -515,8 +516,7 @@
           } else {
             log('COUNTDOWN:0 — Refreshing scheduler page...');
             clearInterval(tick);
-            trackReloadStart(); // Track for timeout detection
-            safeReload(); // This will stay on same page
+            safeReload(); // safeReload() already calls trackReloadStart()
           }
         }, 1000);
         return;
