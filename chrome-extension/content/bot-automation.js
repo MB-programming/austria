@@ -28,6 +28,126 @@
 
     console.log('[AustriaBot] Starting automation with settings:', CFG);
 
+    // ── Reload Timeout Protection (4 seconds) ─────────────────────────────────
+    const RELOAD_TIMEOUT_MS = 4000; // 4 seconds - if reload takes longer, force restart
+    const SCHEDULER_MAX_PAGE_FAILURES = 8; // Go back to start after 8 scheduler page load failures
+
+    function trackReloadStart() {
+      sessionStorage.setItem('austriaBot_reloadStartTime', Date.now().toString());
+      log('🔄 Reload started - tracking timeout...');
+    }
+
+    function incrementSchedulerPageFailures() {
+      const data = sessionStorage.getItem('austriaBot_schedulerPageFailures');
+      const count = (data ? parseInt(data) : 0) + 1;
+      sessionStorage.setItem('austriaBot_schedulerPageFailures', count.toString());
+      return count;
+    }
+
+    function resetSchedulerPageFailures() {
+      sessionStorage.removeItem('austriaBot_schedulerPageFailures');
+    }
+
+    function checkReloadTimeout() {
+      const startTime = sessionStorage.getItem('austriaBot_reloadStartTime');
+      if (!startTime) return false;
+
+      const elapsed = Date.now() - parseInt(startTime);
+      sessionStorage.removeItem('austriaBot_reloadStartTime');
+
+      if (elapsed > RELOAD_TIMEOUT_MS) {
+        logErr(`⚠️ Reload timeout! (${Math.round(elapsed/1000)}s > ${RELOAD_TIMEOUT_MS/1000}s)`);
+
+        // Check if we're on scheduler page - handle differently
+        const text = (document.getElementById('main') || document.body).innerText || '';
+        const isScheduler =
+          document.querySelector('input[type="radio"][name="Start"]') ||
+          /no appointments available/i.test(text) ||
+          /keine termine/i.test(text);
+
+        if (isScheduler) {
+          // On scheduler, increment failure counter
+          const failures = incrementSchedulerPageFailures();
+          log(`Scheduler page load timeout (failure ${failures}/${SCHEDULER_MAX_PAGE_FAILURES})`);
+
+          if (failures >= SCHEDULER_MAX_PAGE_FAILURES) {
+            logErr('Too many scheduler page load failures - restarting from beginning');
+            resetSchedulerPageFailures();
+            log('Going back to homepage...');
+            setTimeout(() => {
+              trackReloadStart();
+              window.location.replace(CFG.rootUrl);
+            }, 500);
+            return true;
+          } else {
+            // Just try reloading scheduler again
+            log('Retrying scheduler page...');
+            setTimeout(() => {
+              trackReloadStart();
+              location.reload();
+            }, 500);
+            return true;
+          }
+        } else {
+          // Not on scheduler - go back to start immediately
+          log('Forcing fresh start from homepage...');
+          setTimeout(() => {
+            trackReloadStart();
+            window.location.replace(CFG.rootUrl);
+          }, 500);
+          return true;
+        }
+      }
+
+      log(`✅ Page loaded in ${Math.round(elapsed/1000)}s`);
+      return false;
+    }
+
+    // Check on page load - if previous reload took too long, restart
+    if (checkReloadTimeout()) {
+      return; // Stop execution, letting the redirect happen
+    }
+
+    // ── Browser Crash Detection & Recovery ────────────────────────────────────
+    function setupCrashDetection() {
+      // Check if previous session crashed unexpectedly
+      const wasRunning = sessionStorage.getItem('austriaBot_running');
+      const intentionalExit = sessionStorage.getItem('austriaBot_intentionalExit');
+
+      if (wasRunning && !intentionalExit) {
+        logErr('⚠️ Previous session crashed - recovering...');
+        log('Restarting from homepage after crash');
+      }
+
+      // Mark that we're running
+      sessionStorage.setItem('austriaBot_running', 'true');
+      sessionStorage.removeItem('austriaBot_intentionalExit');
+
+      // Mark intentional exit on page unload
+      window.addEventListener('beforeunload', () => {
+        sessionStorage.setItem('austriaBot_intentionalExit', 'true');
+      });
+
+      // Catch critical JavaScript errors
+      window.addEventListener('error', (event) => {
+        if (event.error && event.error.stack) {
+          logErr('💥 Critical JS error: ' + event.error.message);
+          log('Attempting recovery in 2 seconds...');
+          setTimeout(() => {
+            trackReloadStart();
+            location.reload();
+          }, 2000);
+        }
+      });
+
+      // Catch unhandled promise rejections
+      window.addEventListener('unhandledrejection', (event) => {
+        logErr('💥 Unhandled rejection: ' + (event.reason?.message || event.reason));
+      });
+    }
+
+    setupCrashDetection();
+
     // ── Infinite Reload Protection ────────────────────────────────────────────
     const RELOAD_LIMIT = 5; // Max consecutive reloads before full refresh
     const RELOAD_TIMEOUT = 60000; // Reset counter after 60s
@@ -58,12 +178,14 @@
 
       if (count >= RELOAD_LIMIT) {
         logErr(`⚠️ Infinite reload detected! (${count} reloads in ${RELOAD_TIMEOUT/1000}s)`);
-        log('Performing full page refresh to break the loop...');
+        log('Going back to homepage to break the loop...');
         resetReloadCounter();
-        // Full page refresh (clears all state)
-        window.location.href = window.location.href;
+        trackReloadStart();
+        // Go back to start instead of simple refresh
+        window.location.replace(CFG.rootUrl);
       } else {
         log(`Reloading... (${count}/${RELOAD_LIMIT})`);
+        trackReloadStart();
         location.reload();
       }
     }
@@ -84,7 +206,8 @@
         if (timeSinceActivity >= LOADING_TIMEOUT) {
           logErr(`⚠️ Infinite loading detected! (${LOADING_TIMEOUT/1000}s with no activity)`);
           log('Page seems stuck... performing refresh');
-          window.location.href = window.location.href;
+          trackReloadStart();
+          location.reload();
         }
       }, LOADING_TIMEOUT);
     }
@@ -374,9 +497,13 @@
     function handleScheduler() {
       const slots = Array.from(document.querySelectorAll('input[type="radio"][name="Start"]'));
 
+      // Page loaded successfully - reset failure counter
+      resetSchedulerPageFailures();
+
       if (slots.length === 0) {
         const wait_s = Math.max(1, CFG.refreshIntervalSec || 30);
         log('NO_APPOINTMENTS — Reloading in ' + wait_s + 's');
+        log('📍 Staying on scheduler page (continuous refresh mode)');
 
         let remaining = Math.floor(wait_s);
         const tick = setInterval(() => {
@@ -384,15 +511,18 @@
           if (remaining > 0) {
             log('COUNTDOWN:' + remaining);
           } else {
-            log('COUNTDOWN:0 — Reloading...');
+            log('COUNTDOWN:0 — Refreshing scheduler page...');
             clearInterval(tick);
-            safeReload();
+            trackReloadStart(); // Track for timeout detection
+            safeReload(); // This will stay on same page
           }
         }, 1000);
         return;
       }
 
-      // Slot found!
+      // Slot found! Reset all counters
+      resetSchedulerPageFailures();
+      resetReloadCounter();
       startAlarm();
       log('🎉 APPOINTMENT SLOTS FOUND! Total: ' + slots.length);
 
@@ -765,8 +895,20 @@
         _slotTaken = true;  // flag: next scheduler page will pick first available slot
         stopAlarm();
         setTimeout(() => {
+          trackReloadStart();
           location.href = CFG.rootUrl;  // navigate back to start
         }, 800);
+        return;
+      }
+
+      // Check for HTTP 404 errors
+      if (/server error|404|not found|resource cannot be found|requested url.*appointment/i.test(text)) {
+        logErr('⚠️ HTTP 404 Error detected!');
+        log('Attempting recovery - refreshing page...');
+        setTimeout(() => {
+          trackReloadStart();
+          location.reload();
+        }, 1000);
         return;
       }
 
