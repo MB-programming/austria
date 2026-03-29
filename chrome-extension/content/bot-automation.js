@@ -33,8 +33,8 @@
     const log = msg => console.log('[AustriaBot] ' + msg);
     const logErr = msg => console.error('[AustriaBot] ERROR: ' + msg);
 
-    // ── Reload Timeout Protection (4 seconds) ─────────────────────────────────
-    const RELOAD_TIMEOUT_MS = 4000; // 4 seconds - if reload takes longer, force restart
+    // ── Reload Timeout Protection (3 seconds) ─────────────────────────────────
+    const RELOAD_TIMEOUT_MS = 3000; // 3 seconds - if reload takes longer, force restart
     const SCHEDULER_MAX_PAGE_FAILURES = 8; // Go back to start after 8 scheduler page load failures
 
     function trackReloadStart() {
@@ -491,8 +491,21 @@
     }
 
     // ── State: Information / instructions page ────────────────────────────────
+    let infoPageAttempts = 0;
+    const MAX_INFO_ATTEMPTS = 2; // Try clicking Next 2 times, then reload
+
     function handleInfo() {
-      log('Info page — clicking Next');
+      infoPageAttempts++;
+      log('Info page — clicking Next (attempt ' + infoPageAttempts + '/' + MAX_INFO_ATTEMPTS + ')');
+
+      if (infoPageAttempts > MAX_INFO_ATTEMPTS) {
+        logErr('⚠️ Stuck on info page after ' + MAX_INFO_ATTEMPTS + ' attempts - restarting');
+        infoPageAttempts = 0;
+        trackReloadStart();
+        window.location.replace(CFG.rootUrl);
+        return;
+      }
+
       submitNext(CFG.navDelay);
     }
 
@@ -506,7 +519,7 @@
       if (slots.length === 0) {
         const wait_s = Math.max(1, CFG.refreshIntervalSec || 30);
         log('NO_APPOINTMENTS — Reloading in ' + wait_s + 's');
-        log('📍 Staying on scheduler page (continuous refresh mode)');
+        log('🔁 Continuous refresh mode - UNLIMITED attempts until slots found');
 
         let remaining = Math.floor(wait_s);
         const tick = setInterval(() => {
@@ -516,7 +529,9 @@
           } else {
             log('COUNTDOWN:0 — Refreshing scheduler page...');
             clearInterval(tick);
-            safeReload(); // safeReload() already calls trackReloadStart()
+            // Direct reload - NO LIMIT for scheduler page
+            trackReloadStart();
+            location.reload();
           }
         }, 1000);
         return;
@@ -949,6 +964,12 @@
         clearTimeout(unknownPageTimer);
         unknownPageTimer = null;
         log('✅ Moved to known page - unknown timer cleared');
+      }
+
+      // Reset info page attempts if we've moved past it
+      if (page !== 'info' && infoPageAttempts > 0) {
+        log('✅ Moved past info page - resetting attempts counter');
+        infoPageAttempts = 0;
       }
 
       if (page === 'office') handleOffice();
