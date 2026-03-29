@@ -85,11 +85,11 @@
             }, 500);
             return true;
           } else {
-            // Just try reloading scheduler again
+            // Just try reloading scheduler again - use replace to avoid dialog
             log('Retrying scheduler page...');
             setTimeout(() => {
               trackReloadStart();
-              location.reload();
+              window.location.replace(window.location.href);
             }, 500);
             return true;
           }
@@ -129,8 +129,11 @@
       sessionStorage.removeItem('austriaBot_intentionalExit');
 
       // Mark intentional exit on page unload
-      window.addEventListener('beforeunload', () => {
+      window.addEventListener('beforeunload', (event) => {
         sessionStorage.setItem('austriaBot_intentionalExit', 'true');
+        // Prevent "Confirm Form Resubmission" dialog
+        // Allow bot navigation without user confirmation
+        delete event['returnValue'];
       });
 
       // Catch critical JavaScript errors
@@ -152,6 +155,20 @@
     }
 
     setupCrashDetection();
+
+    // ── Disable Browser Dialogs ───────────────────────────────────────────────
+    // Prevent "Confirm Form Resubmission" and similar browser dialogs
+    window.onbeforeunload = null;
+
+    // Automatically accept any navigation confirmations
+    setInterval(() => {
+      // Check for browser confirmation dialogs and auto-accept
+      const confirmButton = document.querySelector('button[aria-label="Continue"], button:contains("Continue")');
+      if (confirmButton) {
+        log('Auto-clicking Continue on browser dialog');
+        confirmButton.click();
+      }
+    }, 500);
 
     // ── Infinite Reload Protection ────────────────────────────────────────────
     const RELOAD_LIMIT = 5; // Max consecutive reloads before full refresh
@@ -529,9 +546,9 @@
           } else {
             log('COUNTDOWN:0 — Refreshing scheduler page...');
             clearInterval(tick);
-            // Direct reload - NO LIMIT for scheduler page
+            // Use location.replace to avoid "Confirm Form Resubmission" dialog
             trackReloadStart();
-            location.reload();
+            window.location.replace(window.location.href);
           }
         }, 1000);
         return;
