@@ -878,6 +878,10 @@
     }
 
     // ── State: Unknown / confirmation ─────────────────────────────────────────
+    // Track how long we've been stuck on unknown pages
+    let unknownPageTimer = null;
+    const UNKNOWN_PAGE_TIMEOUT = 3000; // 3 seconds
+
     function handleUnknown() {
       const text = (document.getElementById('main') || document.body).innerText || '';
 
@@ -912,7 +916,17 @@
         return;
       }
 
+      // Unknown page - set timer to restart if stuck here too long
       log('Unknown page — waiting...');
+
+      if (!unknownPageTimer) {
+        log(`⏱️ Unknown page timeout started (${UNKNOWN_PAGE_TIMEOUT/1000}s)`);
+        unknownPageTimer = setTimeout(() => {
+          logErr(`⚠️ Stuck on unknown page for ${UNKNOWN_PAGE_TIMEOUT/1000}s - restarting from beginning`);
+          trackReloadStart();
+          window.location.replace(CFG.rootUrl);
+        }, UNKNOWN_PAGE_TIMEOUT);
+      }
     }
 
     // ── Main loop ─────────────────────────────────────────────────────────────
@@ -927,6 +941,13 @@
 
       // Reset timer again after successful page detection
       resetLoadingTimer();
+
+      // Clear unknown page timer if we're on a known page
+      if (page !== 'unknown' && unknownPageTimer) {
+        clearTimeout(unknownPageTimer);
+        unknownPageTimer = null;
+        log('✅ Moved to known page - unknown timer cleared');
+      }
 
       if (page === 'office') handleOffice();
       else if (page === 'calendar') handleCalendar();
