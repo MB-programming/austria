@@ -377,17 +377,19 @@
         document.getElementById('DSGVOAccepted')
       ) return 'form';
 
-      // Scheduler
+      // Scheduler - CHECK THIS BEFORE INFO PAGE!
+      // Important: "no appointments" pages must be detected as scheduler even with ?fromSpecificInfo=True
       if (
         document.querySelector('input[type="radio"][name="Start"]') ||
         /\/HomeWeb\/Scheduler/i.test(path) ||
         /\/Scheduler/i.test(path) ||
         /no appointments available/i.test(text) ||
         /keine termine/i.test(text) ||
-        /unfortunately no appointment/i.test(text)
+        /unfortunately no appointment/i.test(text) ||
+        /for your selection there are unfortunately/i.test(text)
       ) return 'scheduler';
 
-      // Info page
+      // Info page - checked AFTER scheduler to avoid false detection
       if (/fromspecificinfo=true/i.test(search)) return 'info';
       if (
         /\/Info/i.test(path) ||
